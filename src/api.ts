@@ -1,19 +1,19 @@
 import type { App } from "obsidian";
-import type { TokenManager } from "./store/token";
 import axios from "axios";
 import type { RaindropCollection } from "./types";
+import type RaindropPlugin from "./main";
 
 export class RaindropAPI {
 	app: App;
-	private tokenManager: TokenManager;
+	plugin: RaindropPlugin;
 
-	constructor(app: App, tokenManager: TokenManager) {
+	constructor(app: App, plugin: RaindropPlugin) {
 		this.app = app;
-		this.tokenManager = tokenManager;
+		this.plugin = plugin;
 	}
 
 	async get(url: string, params: any) {
-		const token = await this.tokenManager.getToken();
+		const token = this.plugin.settings.token;
 
 		if (!token) {
 			throw new Error("Invalid token");

@@ -10,7 +10,7 @@ export class RaindropSettingTab extends PluginSettingTab {
 	constructor(app: App, plugin: RaindropPlugin) {
 		super(app, plugin);
 		this.plugin = plugin;
-		this.api = new RaindropAPI(app, plugin.tokenManager);
+		this.api = new RaindropAPI(app, plugin);
 	}
 
 	display(): void {
@@ -56,14 +56,14 @@ export class RaindropSettingTab extends PluginSettingTab {
 			.setDesc(tokenDescFragment)
 			.addText(async (text) => {
 				try {
-					text.setValue(await this.plugin.tokenManager.getToken());
+					text.setValue(this.plugin.settings.token);
 				} catch (e) {
 					/* Throw away read error if file does not exist. */
 				}
 
 				text.onChange(async (value) => {
 					try {
-						await this.plugin.tokenManager.setToken(value);
+						this.plugin.settings.token = value;
 						new Notice('Token saved');
 					} catch (e) {
 						new Notice('Invalid token');

@@ -1,17 +1,18 @@
 import { App, Editor, MarkdownView, Modal, Notice, Plugin } from 'obsidian';
 import { RaindropSettingTab } from './store/settings';
-import { TokenManager } from './store/token';
 import RaindropSync from './sync';
 import type { SyncCollectionSettings } from './types';
 
 
 interface RaindropPluginSettings {
+	token: string,
 	highlightsFolder: string;
 	lastSyncDate?: Date;
 	syncCollections: SyncCollectionSettings;
 }
 
 const DEFAULT_SETTINGS: RaindropPluginSettings = {
+	token: '',
 	highlightsFolder: '',
 	lastSyncDate: undefined,
 	syncCollections: {},
@@ -19,13 +20,11 @@ const DEFAULT_SETTINGS: RaindropPluginSettings = {
 
 export default class RaindropPlugin extends Plugin {
 	private raindropSync: RaindropSync;
-	tokenManager: TokenManager;
 	settings: RaindropPluginSettings;
 
 	async onload() {
 		await this.loadSettings();
 
-		this.tokenManager = new TokenManager(this.app)
 		this.raindropSync = new RaindropSync(this.app, this);
 
 		this.addCommand({
