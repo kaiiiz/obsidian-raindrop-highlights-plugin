@@ -1,7 +1,7 @@
-import { App, requestUrl } from "obsidian";
-import { TokenManager } from "./store/token";
+import type { App } from "obsidian";
+import type { TokenManager } from "./store/token";
 import axios from "axios";
-import { RaindropCollection } from "./types";
+import type { RaindropCollection } from "./types";
 
 export class RaindropAPI {
 	app: App;
@@ -43,7 +43,6 @@ export class RaindropAPI {
 		const res = await this.get("https://api.raindrop.io/rest/v1/collections", {});
 
 		const collections: RaindropCollection[] = res.items.map((collection: any) => {
-			console.log(collection);
 			return {
 				title: collection['title'],
 				id: collection['_id'],

@@ -1,6 +1,6 @@
 import { App, Notice } from "obsidian";
 import { RaindropAPI } from "./api";
-import RaindropPlugin from "./main";
+import type RaindropPlugin from "./main";
 
 export default class RaindropSync {
 	private app: App;
@@ -14,6 +14,14 @@ export default class RaindropSync {
 	}
 
 	async sync() {
+
+		// const highlightsFolder = this.plugin.settings.highlightsFolder;
+		// try {
+		// 	await this.app.vault.createFolder(`${highlightsFolder}/${collection['title']}`);
+		// } catch (e) {
+		// 	/* ignore folder already exists error */
+		// }
+
 		try {
 			await this.api.getRaindropsAfter(this.plugin.settings.lastSyncDate);
 		} catch (e) {

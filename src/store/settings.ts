@@ -1,6 +1,7 @@
 import {App, Notice, PluginSettingTab, Setting} from 'obsidian';
 import { RaindropAPI } from 'src/api';
-import RaindropPlugin from '../main';
+import type RaindropPlugin from '../main';
+import CollectionsModal from '../modal/collections';
 
 export class RaindropSettingTab extends PluginSettingTab {
 	private plugin: RaindropPlugin;
@@ -72,36 +73,34 @@ export class RaindropSettingTab extends PluginSettingTab {
 	}
 
 	private async collections(): Promise<void> {
-		// const collections = await this.api.getCollections();
-		// const highlightsFolder = this.plugin.settings.highlightsFolder;
-		// collections.forEach(async (collection) => {
-		// 	try {
-		// 		await this.app.vault.createFolder(`${highlightsFolder}/${collection['title']}`);
-		// 	} catch (e) {
-		// 		/* ignore folder already exists error */
-		// 	}
-		// });
+		new Setting(this.containerEl)
+			.setName('Collections')
+			.setDesc('Manage collections to be synced')
+			.addButton(button => {
+				return button
+				.setButtonText('Manage')
+				.setCta()
+				.onClick(async () => {
+					// update for new collections
+					const allCollections = await this.api.getCollections();
+					const syncCollections = this.plugin.settings.syncCollections;
+					allCollections.forEach(async (collection) => {
+						const {id, lastUpdate} = collection;
 
-		// new Setting(this.containerEl)
-		// 	.setName('Raindrop.io API token')
-		// 	.add
+						if (id in syncCollections) {
+							syncCollections[id].lastUpdate = lastUpdate;
+						} else {
+							syncCollections[id] = {
+								...collection,
+								sync: false,
+							}
+						}
+					});
+					await this.plugin.saveSettings();
 
-		// 	.setDesc(tokenDescFragment)
-		// 	.addText(async (text) => {
-		// 		try {
-		// 			text.setValue(await this.plugin.tokenManager.getToken());
-		// 		} catch (e) {
-		// 			/* Throw away read error if file does not exist. */
-		// 		}
-
-		// 		text.onChange(async (value) => {
-		// 			try {
-		// 				await this.plugin.tokenManager.setToken(value);
-		// 				new Notice('Token saved');
-		// 			} catch (e) {
-		// 				new Notice('Invalid token');
-		// 			}
-		// 		});
-		// 	})
+					const collectionsModal = new CollectionsModal(this.app, this.plugin);
+					this.display(); // rerender
+				});
+			});
 	}
 }

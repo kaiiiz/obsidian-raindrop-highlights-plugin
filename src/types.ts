@@ -4,6 +4,15 @@ export interface RaindropUser {
 
 export interface RaindropCollection {
 	title: string,
-	id: Number,
+	id: number,
 	lastUpdate: Date,
 }
+
+export interface SyncCollection {
+	id: number,
+	title: string,
+	lastUpdate: Date,
+	sync: boolean,
+}
+
+export interface SyncCollectionSettings {[id: number]: SyncCollection}
