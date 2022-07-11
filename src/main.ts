@@ -1,18 +1,30 @@
 import { App, Editor, MarkdownView, Modal, Notice, Plugin } from 'obsidian';
-import { RaindropSettingTab, RaindropPluginSettings, DEFAULT_SETTINGS } from './store/settings';
+import { RaindropSettingTab } from './store/settings';
 import { TokenManager } from './store/token';
 import RaindropSync from './sync';
 
+interface RaindropPluginSettings {
+	highlightsFolder: string;
+	lastSyncDate?: Date;
+	syncCollections: Array<string>;
+}
+
+const DEFAULT_SETTINGS: RaindropPluginSettings = {
+	highlightsFolder: '',
+	lastSyncDate: undefined,
+	syncCollections: [],
+}
+
 export default class RaindropPlugin extends Plugin {
 	private raindropSync: RaindropSync;
-	private tokenManager: TokenManager;
+	tokenManager: TokenManager;
 	settings: RaindropPluginSettings;
 
 	async onload() {
 		await this.loadSettings();
 
 		this.tokenManager = new TokenManager(this.app)
-		this.raindropSync = new RaindropSync(this.app, this.tokenManager);
+		this.raindropSync = new RaindropSync(this.app, this);
 
 		this.addCommand({
 			id: 'raindrop-sync',
@@ -22,7 +34,7 @@ export default class RaindropPlugin extends Plugin {
 			}
 		});
 
-		this.addSettingTab(new RaindropSettingTab(this.app, this, this.tokenManager));
+		this.addSettingTab(new RaindropSettingTab(this.app, this));
 	}
 
 	onunload() {
@@ -35,21 +47,5 @@ export default class RaindropPlugin extends Plugin {
 
 	async saveSettings() {
 		await this.saveData(this.settings);
-	}
-}
-
-class SampleModal extends Modal {
-	constructor(app: App) {
-		super(app);
-	}
-
-	onOpen() {
-		const {contentEl} = this;
-		contentEl.setText('Woah!');
-	}
-
-	onClose() {
-		const {contentEl} = this;
-		contentEl.empty();
 	}
 }

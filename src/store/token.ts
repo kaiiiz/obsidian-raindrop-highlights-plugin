@@ -2,7 +2,7 @@ import { App } from "obsidian";
 
 export class TokenManager {
     app: App;
-	token: undefined|string;
+	private token: undefined|string;
 
 	constructor(app: App) {
 		this.app = app;

@@ -1,23 +1,28 @@
-import { App } from "obsidian";
+import { App, Notice } from "obsidian";
 import { RaindropAPI } from "./api";
-import { TokenManager } from "./store/token";
-
-class FileManager {
-
-}
+import RaindropPlugin from "./main";
 
 export default class RaindropSync {
-	app: App;
-	private fileManager: FileManager;
+	private app: App;
+	private plugin: RaindropPlugin;
 	private api: RaindropAPI;
 
-	constructor(app: App, tokenManager: TokenManager) {
+	constructor(app: App, plugin: RaindropPlugin) {
 		this.app = app;
-		this.fileManager = new FileManager();
-		this.api = new RaindropAPI(app, tokenManager);
+		this.plugin = plugin;
+		this.api = new RaindropAPI(app, this.plugin.tokenManager);
 	}
 
 	async sync() {
+		try {
+			await this.api.getRaindropsAfter(this.plugin.settings.lastSyncDate);
+		} catch (e) {
+			new Notice(`Raindrop Sync Failed: ${e.message}`);
+		}
+	}
 
+	async syncComplete() {
+		this.plugin.settings.lastSyncDate = new Date();
+		await this.plugin.saveSettings();
 	}
 }

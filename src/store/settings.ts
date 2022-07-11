@@ -1,23 +1,15 @@
 import {App, Notice, PluginSettingTab, Setting} from 'obsidian';
+import { RaindropAPI } from 'src/api';
 import RaindropPlugin from '../main';
-import { TokenManager } from './token';
-
-export interface RaindropPluginSettings {
-	highlightsFolder: string;
-}
-
-export const DEFAULT_SETTINGS: RaindropPluginSettings = {
-	highlightsFolder: '',
-}
 
 export class RaindropSettingTab extends PluginSettingTab {
-	plugin: RaindropPlugin;
-	private tokenManager: TokenManager;
+	private plugin: RaindropPlugin;
+	private api: RaindropAPI;
 
-	constructor(app: App, plugin: RaindropPlugin, tokenManager: TokenManager) {
+	constructor(app: App, plugin: RaindropPlugin) {
 		super(app, plugin);
 		this.plugin = plugin;
-		this.tokenManager = tokenManager;
+		this.api = new RaindropAPI(app, plugin.tokenManager);
 	}
 
 	display(): void {
@@ -26,6 +18,7 @@ export class RaindropSettingTab extends PluginSettingTab {
 		containerEl.empty();
 		this.token();
 		this.highlightsFolder();
+		this.collections();
 	}
 
 	private highlightsFolder(): void {
@@ -62,19 +55,53 @@ export class RaindropSettingTab extends PluginSettingTab {
 			.setDesc(tokenDescFragment)
 			.addText(async (text) => {
 				try {
-					text.setValue(await this.tokenManager.getToken());
+					text.setValue(await this.plugin.tokenManager.getToken());
 				} catch (e) {
 					/* Throw away read error if file does not exist. */
 				}
 
 				text.onChange(async (value) => {
 					try {
-						await this.tokenManager.setToken(value);
+						await this.plugin.tokenManager.setToken(value);
 						new Notice('Token saved');
 					} catch (e) {
 						new Notice('Invalid token');
 					}
 				});
-			})
+			});
+	}
+
+	private async collections(): Promise<void> {
+		// const collections = await this.api.getCollections();
+		// const highlightsFolder = this.plugin.settings.highlightsFolder;
+		// collections.forEach(async (collection) => {
+		// 	try {
+		// 		await this.app.vault.createFolder(`${highlightsFolder}/${collection['title']}`);
+		// 	} catch (e) {
+		// 		/* ignore folder already exists error */
+		// 	}
+		// });
+
+		// new Setting(this.containerEl)
+		// 	.setName('Raindrop.io API token')
+		// 	.add
+
+		// 	.setDesc(tokenDescFragment)
+		// 	.addText(async (text) => {
+		// 		try {
+		// 			text.setValue(await this.plugin.tokenManager.getToken());
+		// 		} catch (e) {
+		// 			/* Throw away read error if file does not exist. */
+		// 		}
+
+		// 		text.onChange(async (value) => {
+		// 			try {
+		// 				await this.plugin.tokenManager.setToken(value);
+		// 				new Notice('Token saved');
+		// 			} catch (e) {
+		// 				new Notice('Invalid token');
+		// 			}
+		// 		});
+		// 	})
 	}
 }
