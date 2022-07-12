@@ -1,6 +1,9 @@
-import { App, Notice } from "obsidian";
+import { App, Notice, TFile } from "obsidian";
+import sanitize from "sanitize-filename";
+import matter from "gray-matter";
 import { RaindropAPI } from "./api";
 import type RaindropPlugin from "./main";
+import type { ArticleFile, ArticleFileFrontMatter, RaindropArticle, SyncCollection } from "./types";
 
 export default class RaindropSync {
 	private app: App;
@@ -14,23 +17,109 @@ export default class RaindropSync {
 	}
 
 	async sync() {
+		for (const id in this.plugin.settings.syncCollections) {
+			const collection = this.plugin.settings.syncCollections[id];
+			if (collection.sync) {
+				await this.syncCollection(collection);
+			}
+		}
+	}
 
-		// const highlightsFolder = this.plugin.settings.highlightsFolder;
-		// try {
-		// 	await this.app.vault.createFolder(`${highlightsFolder}/${collection['title']}`);
-		// } catch (e) {
-		// 	/* ignore folder already exists error */
-		// }
-
+	async syncCollection(collection: SyncCollection) {
+		const highlightsFolder = this.plugin.settings.highlightsFolder;
+		const collectionFolder = `${highlightsFolder}/${collection["title"]}`;
 		try {
-			await this.api.getRaindropsAfter(this.plugin.settings.lastSyncDate);
+			await this.app.vault.createFolder(collectionFolder);
+		} catch (e) {
+			/* ignore folder already exists error */
+		}
+
+		let articles: RaindropArticle[] = [];
+		try {
+			// await this.api.getRaindropsAfter(collection.id, this.plugin.settings.lastSyncDate);
+			articles = await this.api.getRaindropsAfter(
+				0,
+				new Date("2022-07-04")
+			);
 		} catch (e) {
 			new Notice(`Raindrop Sync Failed: ${e.message}`);
 		}
+
+		this.syncArticles(articles, collectionFolder);
+	}
+
+	async syncArticles(articles: RaindropArticle[], collectionFolder: string) {
+		const tfilesPath = new Set(
+			this.app.vault.getMarkdownFiles().map((tfile) => tfile.path)
+		);
+		const articleFilesMap: { [id: number]: TFile } = Object.assign(
+			{},
+			...this.getArticleFiles().map((x) => ({ [x.raindropId]: x.file }))
+		);
+
+		articles.forEach((article) => {
+			if (article.id in articleFilesMap) {
+				this.updateFile(articleFilesMap[article.id], article);
+			} else {
+				let fileName = `${this.sanitizeTitle(article.title)}.md`;
+				let filePath = `${collectionFolder}/${fileName}`;
+				let suffix = 1;
+				while (tfilesPath.has(filePath)) {
+					console.debug(`${filePath} alreay exists`);
+					fileName = `${this.sanitizeTitle(
+						article.title
+					)} (${suffix++}).md`;
+					filePath = `${collectionFolder}/${fileName}`;
+				}
+				this.createFile(filePath, article);
+			}
+		});
 	}
 
 	async syncComplete() {
 		this.plugin.settings.lastSyncDate = new Date();
 		await this.plugin.saveSettings();
+	}
+
+	async updateFile(file: TFile, article: RaindropArticle) {
+		const newMdContent = this.renderContent(article, false);
+		const oldMdContent = await this.app.vault.cachedRead(file);
+		const mdContent = oldMdContent + newMdContent;
+		await this.app.vault.modify(file, mdContent);
+	}
+
+	async createFile(filePath: string, article: RaindropArticle) {
+		const newMdContent = this.renderContent(article, false);
+		const mdContent = this.addFrontMatter(newMdContent, article);
+		await this.app.vault.create(filePath, mdContent);
+	}
+
+	renderContent(article: RaindropArticle, newArticle = true) {
+		return `test123\n`
+	}
+
+	addFrontMatter(markdownContent: string, article: RaindropArticle) {
+		const fm: ArticleFileFrontMatter = {
+			raindrop_id: article.id,
+		};
+		return matter.stringify(markdownContent, fm);
+	}	
+
+	getArticleFiles(): ArticleFile[] {
+		return this.app.vault
+			.getMarkdownFiles()
+			.map((file) => {
+				const cache = this.app.metadataCache.getFileCache(file);
+				const raindropId = cache?.frontmatter?.raindrop_id;
+				return { file, raindropId };
+			})
+			.filter(({ raindropId }) => {
+				return raindropId;
+			});
+	}
+
+	sanitizeTitle(title: string): string {
+		const santizedTitle = title.replace(/[':#|]/g, "").trim();
+		return sanitize(santizedTitle);
 	}
 }

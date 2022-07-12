@@ -1,6 +1,5 @@
-import { App, Modal, Setting } from "obsidian";
+import { App, Modal } from "obsidian";
 import type RaindropPlugin from "src/main";
-import type { SyncCollection, SyncCollectionSettings } from "src/types";
 import CollectionsContent from '../modal/collections.svelte';
 
 export default class CollectionsModal extends Modal {
@@ -28,7 +27,6 @@ export default class CollectionsModal extends Modal {
 				}
 			},
 		});
-
 	}
 
 	onClose() {

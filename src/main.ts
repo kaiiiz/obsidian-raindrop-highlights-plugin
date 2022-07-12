@@ -1,15 +1,8 @@
 import { App, Editor, MarkdownView, Modal, Notice, Plugin } from 'obsidian';
-import { RaindropSettingTab } from './store/settings';
+import { RaindropSettingTab } from './settings';
 import RaindropSync from './sync';
-import type { SyncCollectionSettings } from './types';
+import type { RaindropPluginSettings, SyncCollectionSettings } from './types';
 
-
-interface RaindropPluginSettings {
-	token: string,
-	highlightsFolder: string;
-	lastSyncDate?: Date;
-	syncCollections: SyncCollectionSettings;
-}
 
 const DEFAULT_SETTINGS: RaindropPluginSettings = {
 	token: '',

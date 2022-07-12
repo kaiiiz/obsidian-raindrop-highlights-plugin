@@ -1,7 +1,7 @@
 import {App, Notice, PluginSettingTab, Setting} from 'obsidian';
 import { RaindropAPI } from 'src/api';
-import type RaindropPlugin from '../main';
-import CollectionsModal from '../modal/collections';
+import type RaindropPlugin from './main';
+import CollectionsModal from './modal/collections';
 
 export class RaindropSettingTab extends PluginSettingTab {
 	private plugin: RaindropPlugin;
@@ -85,11 +85,9 @@ export class RaindropSettingTab extends PluginSettingTab {
 					const allCollections = await this.api.getCollections();
 					const syncCollections = this.plugin.settings.syncCollections;
 					allCollections.forEach(async (collection) => {
-						const {id, lastUpdate} = collection;
+						const {id} = collection;
 
-						if (id in syncCollections) {
-							syncCollections[id].lastUpdate = lastUpdate;
-						} else {
+						if (!(id in syncCollections)) {
 							syncCollections[id] = {
 								...collection,
 								sync: false,
