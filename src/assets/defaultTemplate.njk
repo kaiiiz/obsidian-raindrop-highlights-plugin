@@ -1,4 +1,5 @@
-{% if is_new_article %}
+{%- if is_new_article -%}
+
 # Metadata
 {% if link %}Source URL:: {{link}}{% endif %}
 
@@ -7,9 +8,8 @@
 
 {% if excerpt %}{{excerpt}}{% endif %}
 
-{% endif %}{% for highlight in highlights -%}
+{%- endif -%}{%- for highlight in highlights %}
 {{highlight.text}} — Updated on {{highlight.lastUpdate}}
 {% if highlight.note %}> {{highlight.note}}{% endif %}
 ---
-
-{% endfor %}
+{% endfor -%}

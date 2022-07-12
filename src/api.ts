@@ -85,6 +85,20 @@ export class RaindropAPI {
 			})
 		}
 
+		// get real highlights (raindrop returns only 3 highlights in /raindrops/${collectionId} endpoint)
+		for (let article of articles) {
+			if (article.highlights.length == 3) {
+				let res = await this.get(`${BASEURL}/raindrop/${article.id}`, {});
+				article['highlights'] = this.parseHighlights(res.item.highlights);
+			}
+			// filter highlights by lastSync
+			if (lastSync !== undefined) {
+				article['highlights'] = article['highlights'].filter((hl) => {
+					return hl.lastUpdate >= lastSync;
+				})
+			}
+		}
+
 		return articles;
 	}
 
@@ -93,22 +107,26 @@ export class RaindropAPI {
 			const article: RaindropArticle = {
 				id: raindrop['_id'],
 				title: raindrop['title'],
-				highlights: raindrop['highlights'].map((hl: any) => {
-					const highlight: RaindropHighlight = {
-						id: hl['_id'],
-						color: hl['color'],
-						text: hl['text'],
-						lastUpdate: new Date(hl['lastUpdate']),
-						created: new Date(hl['created']),
-						note: hl['note'],
-					};
-					return highlight;
-				}),
+				highlights: this.parseHighlights(raindrop['highlights']),
 				excerpt: raindrop['excerpt'],
 				link: raindrop['link'],
 				lastUpdate: new Date(raindrop['lastUpdate']),
 			};
 			return article;
+		});
+	}
+
+	private parseHighlights(highlights: any): RaindropHighlight[] {
+		return highlights.map((hl: any) => {
+			const highlight: RaindropHighlight = {
+				id: hl['_id'],
+				color: hl['color'],
+				text: hl['text'],
+				lastUpdate: new Date(hl['lastUpdate']),
+				created: new Date(hl['created']),
+				note: hl['note'],
+			};
+			return highlight;
 		});
 	}
 
