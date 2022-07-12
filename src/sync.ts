@@ -51,31 +51,26 @@ export default class RaindropSync {
 	}
 
 	async syncArticles(articles: RaindropArticle[], collectionFolder: string) {
-		const tfilesPath = new Set(
-			this.app.vault.getMarkdownFiles().map((tfile) => tfile.path)
-		);
 		const articleFilesMap: { [id: number]: TFile } = Object.assign(
 			{},
 			...this.getArticleFiles().map((x) => ({ [x.raindropId]: x.file }))
 		);
 
-		articles.forEach((article) => {
+		for (let article of articles) {
 			if (article.id in articleFilesMap) {
-				this.updateFile(articleFilesMap[article.id], article);
+				await this.updateFile(articleFilesMap[article.id], article);
 			} else {
 				let fileName = `${this.sanitizeTitle(article.title)}.md`;
 				let filePath = `${collectionFolder}/${fileName}`;
 				let suffix = 1;
-				while (tfilesPath.has(filePath)) {
+				while (await this.app.vault.adapter.exists(filePath)) {
 					console.debug(`${filePath} alreay exists`);
-					fileName = `${this.sanitizeTitle(
-						article.title
-					)} (${suffix++}).md`;
+					fileName = `${this.sanitizeTitle(article.title)} (${suffix++}).md`;
 					filePath = `${collectionFolder}/${fileName}`;
 				}
-				this.createFile(filePath, article);
+				articleFilesMap[article.id] = await this.createFile(filePath, article);
 			}
-		});
+		}
 	}
 
 	async syncComplete() {
@@ -90,10 +85,10 @@ export default class RaindropSync {
 		await this.app.vault.modify(file, mdContent);
 	}
 
-	async createFile(filePath: string, article: RaindropArticle) {
+	async createFile(filePath: string, article: RaindropArticle): Promise<TFile> {
 		const newMdContent = this.renderer.renderContent(article, true);
 		const mdContent = this.renderer.addFrontMatter(newMdContent, article);
-		await this.app.vault.create(filePath, mdContent);
+		return this.app.vault.create(filePath, mdContent);
 	}
 
 	getArticleFiles(): ArticleFile[] {
