@@ -52,4 +52,5 @@ export interface RaindropPluginSettings {
 	highlightsFolder: string;
 	lastSyncDate?: Date;
 	syncCollections: SyncCollectionSettings;
+	template: string;
 }

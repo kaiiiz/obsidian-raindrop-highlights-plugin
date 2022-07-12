@@ -1,19 +1,21 @@
 import { App, Notice, TFile } from "obsidian";
 import sanitize from "sanitize-filename";
-import matter from "gray-matter";
 import { RaindropAPI } from "./api";
 import type RaindropPlugin from "./main";
-import type { ArticleFile, ArticleFileFrontMatter, RaindropArticle, SyncCollection } from "./types";
+import Renderer from "./renderer";
+import type { ArticleFile, RaindropArticle, SyncCollection } from "./types";
 
 export default class RaindropSync {
 	private app: App;
 	private plugin: RaindropPlugin;
 	private api: RaindropAPI;
+	private renderer: Renderer;
 
 	constructor(app: App, plugin: RaindropPlugin) {
 		this.app = app;
 		this.plugin = plugin;
 		this.api = new RaindropAPI(app, plugin);
+		this.renderer = new Renderer(plugin);
 	}
 
 	async sync() {
@@ -82,28 +84,17 @@ export default class RaindropSync {
 	}
 
 	async updateFile(file: TFile, article: RaindropArticle) {
-		const newMdContent = this.renderContent(article, false);
+		const newMdContent = this.renderer.renderContent(article, false);
 		const oldMdContent = await this.app.vault.cachedRead(file);
 		const mdContent = oldMdContent + newMdContent;
 		await this.app.vault.modify(file, mdContent);
 	}
 
 	async createFile(filePath: string, article: RaindropArticle) {
-		const newMdContent = this.renderContent(article, false);
-		const mdContent = this.addFrontMatter(newMdContent, article);
+		const newMdContent = this.renderer.renderContent(article, true);
+		const mdContent = this.renderer.addFrontMatter(newMdContent, article);
 		await this.app.vault.create(filePath, mdContent);
 	}
-
-	renderContent(article: RaindropArticle, newArticle = true) {
-		return `test123\n`
-	}
-
-	addFrontMatter(markdownContent: string, article: RaindropArticle) {
-		const fm: ArticleFileFrontMatter = {
-			raindrop_id: article.id,
-		};
-		return matter.stringify(markdownContent, fm);
-	}	
 
 	getArticleFiles(): ArticleFile[] {
 		return this.app.vault

@@ -23,6 +23,10 @@ esbuild.build({
 	banner: {
 		js: banner,
 	},
+	loader: {
+		'.html': 'text',
+		'.njk': 'text'
+	},
 	entryPoints: ['src/main.ts'],
 	bundle: true,
 	external: [

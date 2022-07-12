@@ -1,15 +1,20 @@
 import {App, Notice, PluginSettingTab, Setting} from 'obsidian';
+import templateInstructions from './templates/templateInstructions.html';
+import tokenInstructions from './templates/tokenInstructions.html';
 import { RaindropAPI } from 'src/api';
 import type RaindropPlugin from './main';
 import CollectionsModal from './modal/collections';
+import Renderer from './renderer';
 
 export class RaindropSettingTab extends PluginSettingTab {
 	private plugin: RaindropPlugin;
 	private api: RaindropAPI;
+	private renderer: Renderer;
 
 	constructor(app: App, plugin: RaindropPlugin) {
 		super(app, plugin);
 		this.plugin = plugin;
+		this.renderer = new Renderer(plugin);
 		this.api = new RaindropAPI(app, plugin);
 	}
 
@@ -20,6 +25,7 @@ export class RaindropSettingTab extends PluginSettingTab {
 		this.token();
 		this.highlightsFolder();
 		this.collections();
+		this.template();
 	}
 
 	private highlightsFolder(): void {
@@ -45,11 +51,9 @@ export class RaindropSettingTab extends PluginSettingTab {
 	  }
 
 	private token(): void {
-		const tokenDesc = 'Get "Test token" in <a href="https://app.raindrop.io/settings/integrations">https://app.raindrop.io/settings/integrations</a>.';
-
 		const tokenDescFragment = document
 			.createRange()
-			.createContextualFragment(tokenDesc);
+			.createContextualFragment(tokenInstructions);
 
 		new Setting(this.containerEl)
 			.setName('Raindrop.io API token')
@@ -99,6 +103,33 @@ export class RaindropSettingTab extends PluginSettingTab {
 					const collectionsModal = new CollectionsModal(this.app, this.plugin);
 					this.display(); // rerender
 				});
+			});
+	}
+
+	private async template(): Promise<void> {
+		const templateDescFragment = document
+			.createRange()
+			.createContextualFragment(templateInstructions);
+
+		new Setting(this.containerEl)
+			.setName('Highlights template')
+			.setDesc(templateDescFragment)
+			.addTextArea((text) => {
+				text.inputEl.style.width = '100%';
+				text.inputEl.style.height = '450px';
+				text.inputEl.style.fontSize = '0.8em';
+				text.setValue(this.plugin.settings.template)
+					.onChange(async (value) => {
+						const isValid = this.renderer.validate(value);
+
+						if (isValid) {
+							this.plugin.settings.template = value;
+							await this.plugin.saveSettings();
+						}
+
+						text.inputEl.style.border = isValid ? '' : '1px solid red';
+					});
+				return text;
 			});
 	}
 }
