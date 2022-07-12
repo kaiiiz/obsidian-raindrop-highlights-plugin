@@ -90,20 +90,25 @@ export class RaindropAPI {
 
 	private parseArticle(articles: any): RaindropArticle[] {
 		return articles.map((raindrop: any) => {
-			return {
+			const article: RaindropArticle = {
 				id: raindrop['_id'],
 				title: raindrop['title'],
 				highlights: raindrop['highlights'].map((hl: any) => {
-					return {
+					const highlight: RaindropHighlight = {
+						id: hl['_id'],
 						color: hl['color'],
 						text: hl['text'],
 						lastUpdate: new Date(hl['lastUpdate']),
-					} as RaindropHighlight;
+						created: new Date(hl['created']),
+						note: hl['note'],
+					};
+					return highlight;
 				}),
 				excerpt: raindrop['excerpt'],
 				link: raindrop['link'],
 				lastUpdate: new Date(raindrop['lastUpdate']),
-			} as RaindropArticle;
+			};
+			return article;
 		});
 	}
 

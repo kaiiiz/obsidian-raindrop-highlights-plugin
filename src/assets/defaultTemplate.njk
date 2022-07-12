@@ -8,5 +8,8 @@
 {% if excerpt %}{{excerpt}}{% endif %}
 
 {% endif %}{% for highlight in highlights -%}
-- [ ] {{highlight.text}} — Updated on {{highlight.lastUpdate}}
+{{highlight.text}} — Updated on {{highlight.lastUpdate}}
+{% if highlight.note %}> {{highlight.note}}{% endif %}
+---
+
 {% endfor %}

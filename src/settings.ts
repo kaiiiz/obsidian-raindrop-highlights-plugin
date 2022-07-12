@@ -139,7 +139,7 @@ export class RaindropSettingTab extends PluginSettingTab {
 	private resetSyncHistory(): void {
 		new Setting(this.containerEl)
 		  .setName('Reset sync')
-		  .setDesc('Wipe sync history to allow for resync')
+		  .setDesc('Wipe sync history to resync')
 		  .addButton((button) => {
 			return button
 			  .setButtonText('Reset')

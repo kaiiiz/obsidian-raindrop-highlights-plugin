@@ -10,9 +10,11 @@ export interface RaindropCollection { // Remote state
 }
 
 export interface RaindropHighlight { // Remote state
+	id: string,
 	color: string,
+	created: Date,
 	lastUpdate: Date,
-	// note: string,
+	note: string,
 	text: string,
 }
 
