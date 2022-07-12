@@ -3,7 +3,7 @@ import sanitize from "sanitize-filename";
 import { RaindropAPI } from "./api";
 import type RaindropPlugin from "./main";
 import Renderer from "./renderer";
-import type { ArticleFile, RaindropArticle, SyncCollection } from "./types";
+import type { ArticleFile, RaindropArticle, RaindropCollection, SyncCollection } from "./types";
 
 export default class RaindropSync {
 	private app: App;
@@ -30,27 +30,27 @@ export default class RaindropSync {
 	async syncCollection(collection: SyncCollection) {
 		const highlightsFolder = this.plugin.settings.highlightsFolder;
 		const collectionFolder = `${highlightsFolder}/${collection["title"]}`;
-		try {
-			await this.app.vault.createFolder(collectionFolder);
-		} catch (e) {
-			/* ignore folder already exists error */
-		}
+		const lastSyncDate = this.plugin.settings.syncCollections[collection.id].lastSyncDate;
 
 		let articles: RaindropArticle[] = [];
 		try {
-			// await this.api.getRaindropsAfter(collection.id, this.plugin.settings.lastSyncDate);
-			articles = await this.api.getRaindropsAfter(
-				0,
-				new Date("2022-07-04")
-			);
+			console.debug('start sync collection:', collection.title, "last sync at:", lastSyncDate);
+			articles = await this.api.getRaindropsAfter(collection.id, lastSyncDate);
 		} catch (e) {
 			new Notice(`Raindrop Sync Failed: ${e.message}`);
 		}
 
-		this.syncArticles(articles, collectionFolder);
+		await this.syncArticles(articles, collectionFolder);
+		await this.syncCollectionComplete(collection);
 	}
 
-	async syncArticles(articles: RaindropArticle[], collectionFolder: string) {
+	async syncArticles(articles: RaindropArticle[], folderPath: string) {
+		try {
+			await this.app.vault.createFolder(folderPath);
+		} catch (e) {
+			/* ignore folder already exists error */
+		}
+
 		const articleFilesMap: { [id: number]: TFile } = Object.assign(
 			{},
 			...this.getArticleFiles().map((x) => ({ [x.raindropId]: x.file }))
@@ -61,24 +61,25 @@ export default class RaindropSync {
 				await this.updateFile(articleFilesMap[article.id], article);
 			} else {
 				let fileName = `${this.sanitizeTitle(article.title)}.md`;
-				let filePath = `${collectionFolder}/${fileName}`;
+				let filePath = `${folderPath}/${fileName}`;
 				let suffix = 1;
 				while (await this.app.vault.adapter.exists(filePath)) {
 					console.debug(`${filePath} alreay exists`);
 					fileName = `${this.sanitizeTitle(article.title)} (${suffix++}).md`;
-					filePath = `${collectionFolder}/${fileName}`;
+					filePath = `${folderPath}/${fileName}`;
 				}
 				articleFilesMap[article.id] = await this.createFile(filePath, article);
 			}
 		}
 	}
 
-	async syncComplete() {
-		this.plugin.settings.lastSyncDate = new Date();
+	async syncCollectionComplete(collection: RaindropCollection) {
+		this.plugin.settings.syncCollections[collection.id].lastSyncDate = new Date();
 		await this.plugin.saveSettings();
 	}
 
 	async updateFile(file: TFile, article: RaindropArticle) {
+		console.debug("update file", file.path);
 		const newMdContent = this.renderer.renderContent(article, false);
 		const oldMdContent = await this.app.vault.cachedRead(file);
 		const mdContent = oldMdContent + newMdContent;
@@ -86,6 +87,7 @@ export default class RaindropSync {
 	}
 
 	async createFile(filePath: string, article: RaindropArticle): Promise<TFile> {
+		console.debug("create file", filePath);
 		const newMdContent = this.renderer.renderContent(article, true);
 		const mdContent = this.renderer.addFrontMatter(newMdContent, article);
 		return this.app.vault.create(filePath, mdContent);

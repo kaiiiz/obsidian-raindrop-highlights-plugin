@@ -7,7 +7,6 @@ export interface RaindropUser { // Remote state
 export interface RaindropCollection { // Remote state
 	title: string,
 	id: number,
-	lastUpdate: Date,
 }
 
 export interface RaindropHighlight { // Remote state
@@ -43,6 +42,7 @@ export interface SyncCollection { // Local state
 	id: number,
 	title: string,
 	sync: boolean,
+	lastSyncDate?: Date;
 }
 
 export interface SyncCollectionSettings {[id: number]: SyncCollection}
@@ -50,7 +50,6 @@ export interface SyncCollectionSettings {[id: number]: SyncCollection}
 export interface RaindropPluginSettings {
 	token: string,
 	highlightsFolder: string;
-	lastSyncDate?: Date;
 	syncCollections: SyncCollectionSettings;
 	template: string;
 }

@@ -8,7 +8,6 @@ import DEFAULT_TEMPLATE from './assets/defaultTemplate.njk';
 const DEFAULT_SETTINGS: RaindropPluginSettings = {
 	token: '',
 	highlightsFolder: '',
-	lastSyncDate: undefined,
 	syncCollections: {},
 	template: DEFAULT_TEMPLATE,
 }

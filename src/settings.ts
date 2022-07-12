@@ -26,6 +26,7 @@ export class RaindropSettingTab extends PluginSettingTab {
 		this.highlightsFolder();
 		this.collections();
 		this.template();
+		this.resetSyncHistory();
 	}
 
 	private highlightsFolder(): void {
@@ -89,13 +90,15 @@ export class RaindropSettingTab extends PluginSettingTab {
 					const allCollections = await this.api.getCollections();
 					const syncCollections = this.plugin.settings.syncCollections;
 					allCollections.forEach(async (collection) => {
-						const {id} = collection;
+						const {id, title} = collection;
 
 						if (!(id in syncCollections)) {
 							syncCollections[id] = {
-								...collection,
+								id: id,
+								title: title,
 								sync: false,
-							}
+								lastSyncDate: undefined,
+							};
 						}
 					});
 					await this.plugin.saveSettings();
@@ -132,4 +135,24 @@ export class RaindropSettingTab extends PluginSettingTab {
 				return text;
 			});
 	}
+
+	private resetSyncHistory(): void {
+		new Setting(this.containerEl)
+		  .setName('Reset sync')
+		  .setDesc('Wipe sync history to allow for resync')
+		  .addButton((button) => {
+			return button
+			  .setButtonText('Reset')
+			//   .setDisabled(!get(settingsStore).isConnected)
+			  .setWarning()
+			  .onClick(async () => {
+				for (let id in this.plugin.settings.syncCollections) {
+					const collection = this.plugin.settings.syncCollections[id];
+					collection.lastSyncDate = undefined;
+				}
+				this.plugin.saveSettings();
+				new Notice("Sync history has been reset")
+			  });
+		  });
+	  }
 }

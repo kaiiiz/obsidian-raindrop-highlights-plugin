@@ -48,8 +48,7 @@ export class RaindropAPI {
 			return {
 				title: collection['title'],
 				id: collection['_id'],
-				lastUpdate: new Date(collection['lastUpdate']),
-			}
+			};
 		})
 
 		return collections;
