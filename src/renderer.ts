@@ -1,8 +1,17 @@
 import matter from "gray-matter";
 import nunjucks from "nunjucks";
+import Moment from "moment";
 import type RaindropPlugin from "./main";
-import type { ArticleFileFrontMatter, RaindropArticle, RaindropHighlight } from "./types";
+import type { ArticleFileFrontMatter, RaindropArticle } from "./types";
 
+type RenderHighlight = {
+	id: string,
+	color: string,
+	created: string,
+	lastUpdate: string,
+	note: string,
+	text: string,
+};
 
 type RenderTemplate = {
 	is_new_article: boolean;
@@ -10,7 +19,7 @@ type RenderTemplate = {
 	title: string;
 	excerpt: string;
 	link: string;
-	highlights: RaindropHighlight[];
+	highlights: RenderHighlight[];
 };
 
 export default class Renderer {
@@ -32,14 +41,27 @@ export default class Renderer {
 
 	renderContent(article: RaindropArticle, newArticle = true) {
 		const { id , title, highlights, excerpt, link } = article;
+		const dateTimeFormat = this.plugin.settings.dateTimeFormat;
+
+		const renderHighlights: RenderHighlight[] = highlights.map(hl => {
+			const renderHighlight: RenderHighlight = {
+				id: hl['id'],
+				color: hl['color'],
+				created: Moment(hl['created']).format(dateTimeFormat),
+				lastUpdate: Moment(hl['lastUpdate']).format(dateTimeFormat),
+				note: hl['note'],
+				text: hl['text'],
+			};
+			return renderHighlight;
+		});
 
 		const context: RenderTemplate = {
 			is_new_article: newArticle,
 			id,
 			title,
-			highlights,
 			excerpt,
 			link,
+			highlights: renderHighlights,
 		};
 	
 		const template = this.plugin.settings.template;

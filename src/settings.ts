@@ -1,7 +1,8 @@
 import {App, Notice, PluginSettingTab, Setting} from 'obsidian';
 import templateInstructions from './templates/templateInstructions.html';
 import tokenInstructions from './templates/tokenInstructions.html';
-import { RaindropAPI } from 'src/api';
+import datetimeInstructions from './templates/datetimeInstructions.html';
+import { RaindropAPI } from './api';
 import type RaindropPlugin from './main';
 import CollectionsModal from './modal/collections';
 import Renderer from './renderer';
@@ -25,6 +26,7 @@ export class RaindropSettingTab extends PluginSettingTab {
 		this.token();
 		this.highlightsFolder();
 		this.collections();
+		this.dateFormat();
 		this.template();
 		this.resetSyncHistory();
 	}
@@ -142,17 +144,36 @@ export class RaindropSettingTab extends PluginSettingTab {
 		  .setDesc('Wipe sync history to resync')
 		  .addButton((button) => {
 			return button
-			  .setButtonText('Reset')
-			//   .setDisabled(!get(settingsStore).isConnected)
-			  .setWarning()
-			  .onClick(async () => {
-				for (let id in this.plugin.settings.syncCollections) {
-					const collection = this.plugin.settings.syncCollections[id];
-					collection.lastSyncDate = undefined;
-				}
-				this.plugin.saveSettings();
-				new Notice("Sync history has been reset")
-			  });
-		  });
-	  }
+				.setButtonText('Reset')
+				// .setDisabled(!get(settingsStore).isConnected)
+				.setWarning()
+				.onClick(async () => {
+					for (let id in this.plugin.settings.syncCollections) {
+						const collection = this.plugin.settings.syncCollections[id];
+						collection.lastSyncDate = undefined;
+					}
+					this.plugin.saveSettings();
+					new Notice("Sync history has been reset");
+			});
+		});
+	}
+
+	private dateFormat(): void {
+		const descFragment = document
+		  .createRange()
+		  .createContextualFragment(datetimeInstructions);
+	
+		new Setting(this.containerEl)
+			.setName('Date & time format')
+			.setDesc(descFragment)
+			.addText((text) => {
+				return text
+					.setPlaceholder('YYYY-MM-DD HH:mm:ss')
+					.setValue(this.plugin.settings.dateTimeFormat)
+					.onChange(async (value) => {
+					this.plugin.settings.dateTimeFormat = value;
+					await this.plugin.saveSettings();
+					});
+			});
+	}	
 }

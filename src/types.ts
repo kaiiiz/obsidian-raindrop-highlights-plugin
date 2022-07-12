@@ -54,4 +54,5 @@ export interface RaindropPluginSettings {
 	highlightsFolder: string;
 	syncCollections: SyncCollectionSettings;
 	template: string;
+	dateTimeFormat: string;
 }

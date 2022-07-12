@@ -1,7 +1,7 @@
-import { App, Editor, MarkdownView, Modal, Notice, Plugin } from 'obsidian';
+import { Plugin } from 'obsidian';
 import { RaindropSettingTab } from './settings';
 import RaindropSync from './sync';
-import type { RaindropPluginSettings, SyncCollectionSettings } from './types';
+import type { RaindropPluginSettings } from './types';
 import DEFAULT_TEMPLATE from './assets/defaultTemplate.njk';
 
 
@@ -10,7 +10,8 @@ const DEFAULT_SETTINGS: RaindropPluginSettings = {
 	highlightsFolder: '',
 	syncCollections: {},
 	template: DEFAULT_TEMPLATE,
-}
+	dateTimeFormat: 'YYYY-MM-DD HH:mm:ss',
+};
 
 export default class RaindropPlugin extends Plugin {
 	private raindropSync: RaindropSync;
