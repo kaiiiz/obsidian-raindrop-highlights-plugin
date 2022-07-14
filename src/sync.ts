@@ -28,6 +28,7 @@ export default class RaindropSync {
 	}
 
 	async syncCollection(collection: SyncCollection) {
+		new Notice(`Sync Raindrop collection: ${collection.title}`);
 		const highlightsFolder = this.plugin.settings.highlightsFolder;
 		const collectionFolder = `${highlightsFolder}/${collection["title"]}`;
 		const lastSyncDate = this.plugin.settings.syncCollections[collection.id].lastSyncDate;
@@ -37,7 +38,7 @@ export default class RaindropSync {
 			console.debug('start sync collection:', collection.title, "last sync at:", lastSyncDate);
 			articles = await this.api.getRaindropsAfter(collection.id, lastSyncDate);
 		} catch (e) {
-			new Notice(`Raindrop Sync Failed: ${e.message}`);
+			new Notice(`Sync Raindrop collection ${collection.title} failed: ${e.message}`);
 		}
 
 		await this.syncArticles(articles, collectionFolder);
