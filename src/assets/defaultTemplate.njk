@@ -1,5 +1,4 @@
-{%- if is_new_article -%}
-
+{% if is_new_article %}
 # Metadata
 {% if link %}Source URL:: {{link}}{% endif %}
 
@@ -8,8 +7,21 @@
 
 {% if excerpt %}{{excerpt}}{% endif %}
 
-{%- endif -%}{%- for highlight in highlights %}
-{{highlight.text}} — Updated on {{highlight.lastUpdate}}
-{% if highlight.note %}> {{highlight.note}}{% endif %}
----
-{% endfor -%}
+## Highlights
+{% endif -%}{% for highlight in highlights %}
+{% if highlight.color == "red" -%}
+    {%- set callout = "danger" -%}
+{%- elif highlight.color == "blue" -%}
+    {%- set callout = "info" -%}
+{%- elif highlight.color == "green" -%}
+    {%- set callout = "check" -%}
+{%- else -%}
+    {%- set callout = "quote" -%}
+{%- endif -%}
+> [!{{callout}}]+ Updated on {{highlight.lastUpdate}}
+>
+> {{highlight.text.split("\n") | join("\n>")}}
+{% if highlight.note -%}>
+> > {{highlight.note}}
+{%- endif %}
+{%- endfor -%}
