@@ -10,7 +10,7 @@ const DEFAULT_SETTINGS: RaindropPluginSettings = {
 	highlightsFolder: '',
 	syncCollections: {},
 	template: DEFAULT_TEMPLATE,
-	dateTimeFormat: 'YYYY-MM-DD HH:mm:ss',
+	dateTimeFormat: 'YYYY/MM/DD HH:mm:ss',
 };
 
 export default class RaindropPlugin extends Plugin {
