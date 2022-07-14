@@ -108,6 +108,6 @@ export default class RaindropSync {
 
 	sanitizeTitle(title: string): string {
 		const santizedTitle = title.replace(/[':#|]/g, "").trim();
-		return sanitize(santizedTitle);
+		return sanitize(santizedTitle).substring(0, 192);
 	}
 }
