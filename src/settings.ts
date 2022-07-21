@@ -63,14 +63,17 @@ export class RaindropSettingTab extends PluginSettingTab {
 			.setDesc(tokenDescFragment)
 			.addText(async (text) => {
 				try {
-					text.setValue(this.plugin.settings.token);
+					const token = this.plugin.tokenManager.get();
+					if (token) {
+						text.setValue(token);
+					}
 				} catch (e) {
 					/* Throw away read error if file does not exist. */
 				}
 
 				text.onChange(async (value) => {
 					try {
-						this.plugin.settings.token = value;
+						this.plugin.tokenManager.set(value);
 						new Notice('Token saved');
 					} catch (e) {
 						new Notice('Invalid token');

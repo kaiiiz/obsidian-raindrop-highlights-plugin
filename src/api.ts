@@ -15,8 +15,7 @@ export class RaindropAPI {
 	}
 
 	async get(url: string, params: any) {
-		const token = this.plugin.settings.token;
-
+		const token = this.plugin.tokenManager.get();
 		if (!token) {
 			throw new Error("Invalid token");
 		}

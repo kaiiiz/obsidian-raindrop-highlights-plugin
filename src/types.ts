@@ -52,7 +52,6 @@ export interface SyncCollection { // Local state
 export interface SyncCollectionSettings {[id: number]: SyncCollection}
 
 export interface RaindropPluginSettings {
-	token: string,
 	highlightsFolder: string;
 	syncCollections: SyncCollectionSettings;
 	template: string;
