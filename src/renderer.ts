@@ -20,6 +20,7 @@ type RenderTemplate = {
 	excerpt: string;
 	link: string;
 	highlights: RenderHighlight[];
+	tags: string[],
 };
 
 export default class Renderer {
@@ -40,7 +41,7 @@ export default class Renderer {
 	}
 
 	renderContent(article: RaindropArticle, newArticle = true) {
-		const { id , title, highlights, excerpt, link } = article;
+		const { id , title, highlights, excerpt, link, tags } = article;
 		const dateTimeFormat = this.plugin.settings.dateTimeFormat;
 
 		const renderHighlights: RenderHighlight[] = highlights.map(hl => {
@@ -62,8 +63,9 @@ export default class Renderer {
 			excerpt,
 			link,
 			highlights: renderHighlights,
+			tags,
 		};
-	
+
 		const template = this.plugin.settings.template;
 		const content = nunjucks.renderString(template, context);
 		return content;
@@ -72,6 +74,7 @@ export default class Renderer {
 	addFrontMatter(markdownContent: string, article: RaindropArticle) {
 		const fm: ArticleFileFrontMatter = {
 			raindrop_id: article.id,
+			raindrop_last_update: (new Date()).toISOString(),
 		};
 		return matter.stringify(markdownContent, fm);
 	}

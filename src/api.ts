@@ -15,8 +15,7 @@ export class RaindropAPI {
 	}
 
 	async get(url: string, params: any) {
-		const token = this.plugin.settings.token;
-
+		const token = this.plugin.tokenManager.get();
 		if (!token) {
 			throw new Error("Invalid token");
 		}
@@ -111,6 +110,7 @@ export class RaindropAPI {
 				excerpt: raindrop['excerpt'],
 				link: raindrop['link'],
 				lastUpdate: new Date(raindrop['lastUpdate']),
+				tags: raindrop['tags'],
 			};
 			return article;
 		});

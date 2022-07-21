@@ -63,14 +63,17 @@ export class RaindropSettingTab extends PluginSettingTab {
 			.setDesc(tokenDescFragment)
 			.addText(async (text) => {
 				try {
-					text.setValue(this.plugin.settings.token);
+					const token = this.plugin.tokenManager.get();
+					if (token) {
+						text.setValue(token);
+					}
 				} catch (e) {
 					/* Throw away read error if file does not exist. */
 				}
 
 				text.onChange(async (value) => {
 					try {
-						this.plugin.settings.token = value;
+						this.plugin.tokenManager.set(value);
 						new Notice('Token saved');
 					} catch (e) {
 						new Notice('Invalid token');
@@ -90,20 +93,7 @@ export class RaindropSettingTab extends PluginSettingTab {
 				.onClick(async () => {
 					// update for new collections
 					const allCollections = await this.api.getCollections();
-					const syncCollections = this.plugin.settings.syncCollections;
-					allCollections.forEach(async (collection) => {
-						const {id, title} = collection;
-
-						if (!(id in syncCollections)) {
-							syncCollections[id] = {
-								id: id,
-								title: title,
-								sync: false,
-								lastSyncDate: undefined,
-							};
-						}
-					});
-					await this.plugin.saveSettings();
+					this.plugin.updateCollectionSettings(allCollections);
 
 					const collectionsModal = new CollectionsModal(this.app, this.plugin);
 					this.display(); // rerender

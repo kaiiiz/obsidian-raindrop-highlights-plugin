@@ -25,6 +25,7 @@ export interface RaindropArticle { // Remote state
 	excerpt: string,
 	link: string,
 	lastUpdate: Date,
+	tags: string[],
 }
 
 // ----------
@@ -36,6 +37,7 @@ export interface ArticleFile {
 
 export interface ArticleFileFrontMatter { // use snake_case in front matter
 	raindrop_id: number,
+	raindrop_last_update: string,
 }
 
 // ----------
@@ -50,7 +52,6 @@ export interface SyncCollection { // Local state
 export interface SyncCollectionSettings {[id: number]: SyncCollection}
 
 export interface RaindropPluginSettings {
-	token: string,
 	highlightsFolder: string;
 	syncCollections: SyncCollectionSettings;
 	template: string;
