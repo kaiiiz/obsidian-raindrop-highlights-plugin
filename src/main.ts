@@ -1,7 +1,7 @@
 import { Plugin } from 'obsidian';
 import { RaindropSettingTab } from './settings';
 import RaindropSync from './sync';
-import type { RaindropPluginSettings } from './types';
+import type { RaindropCollection, RaindropPluginSettings } from './types';
 import DEFAULT_TEMPLATE from './assets/defaultTemplate.njk';
 
 
@@ -43,5 +43,24 @@ export default class RaindropPlugin extends Plugin {
 
 	async saveSettings() {
 		await this.saveData(this.settings);
+	}
+
+	async updateCollectionSettings(collections: RaindropCollection[]) {
+		const syncCollections = this.settings.syncCollections;
+		collections.forEach(async (collection) => {
+			const {id, title} = collection;
+
+			if (!(id in syncCollections)) {
+				syncCollections[id] = {
+					id: id,
+					title: title,
+					sync: false,
+					lastSyncDate: undefined,
+				};
+			} else {
+				syncCollections[id].title = title;
+			}
+		});
+		await this.saveSettings();
 	}
 }

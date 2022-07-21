@@ -90,20 +90,7 @@ export class RaindropSettingTab extends PluginSettingTab {
 				.onClick(async () => {
 					// update for new collections
 					const allCollections = await this.api.getCollections();
-					const syncCollections = this.plugin.settings.syncCollections;
-					allCollections.forEach(async (collection) => {
-						const {id, title} = collection;
-
-						if (!(id in syncCollections)) {
-							syncCollections[id] = {
-								id: id,
-								title: title,
-								sync: false,
-								lastSyncDate: undefined,
-							};
-						}
-					});
-					await this.plugin.saveSettings();
+					this.plugin.updateCollectionSettings(allCollections);
 
 					const collectionsModal = new CollectionsModal(this.app, this.plugin);
 					this.display(); // rerender
