@@ -37,6 +37,7 @@ export interface ArticleFile {
 
 export interface ArticleFileFrontMatter { // use snake_case in front matter
 	raindrop_id: number,
+	raindrop_last_update: string,
 }
 
 // ----------

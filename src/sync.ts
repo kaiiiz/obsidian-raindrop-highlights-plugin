@@ -83,6 +83,19 @@ export default class RaindropSync {
 	}
 
 	async updateFile(file: TFile, article: RaindropArticle) {
+		const metadata = this.app.metadataCache.getFileCache(file);
+		if (metadata?.frontmatter && 'raindrop_last_update' in metadata.frontmatter) {
+			const localLastUpdate = new Date(metadata.frontmatter.raindrop_last_update);
+			if (localLastUpdate >= article.lastUpdate) {
+				console.debug('skip update file', file.path);
+				return;
+			}
+
+			article.highlights = article.highlights.filter(hl => {
+				return localLastUpdate < hl.lastUpdate;
+			});
+		}
+
 		console.debug("update file", file.path);
 		const newMdContent = this.renderer.renderContent(article, false);
 		const oldMdContent = await this.app.vault.cachedRead(file);
