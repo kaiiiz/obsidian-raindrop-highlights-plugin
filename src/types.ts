@@ -25,6 +25,7 @@ export interface RaindropArticle { // Remote state
 	excerpt: string,
 	link: string,
 	lastUpdate: Date,
+	tags: string[],
 }
 
 // ----------

@@ -111,6 +111,7 @@ export class RaindropAPI {
 				excerpt: raindrop['excerpt'],
 				link: raindrop['link'],
 				lastUpdate: new Date(raindrop['lastUpdate']),
+				tags: raindrop['tags'],
 			};
 			return article;
 		});
