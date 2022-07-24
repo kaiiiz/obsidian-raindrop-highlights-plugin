@@ -71,17 +71,19 @@ export class RaindropAPI {
 			articles = articles.concat(this.parseArticle(res.items));
 		}
 
-		if (lastSync === undefined) { // sync all
-			while (remainPages--) {
-				await addNewPages(page++);
+		if (articles.length > 0) {
+			if (lastSync === undefined) { // sync all
+				while (remainPages--) {
+					await addNewPages(page++);
+				}
+			} else { // sync article after lastSync
+				while (articles[articles.length - 1].lastUpdate >= lastSync && remainPages--) {
+					await addNewPages(page++);
+				}
+				articles = articles.filter(article => {
+					return article.lastUpdate >= lastSync;
+				})
 			}
-		} else { // sync article after lastSync
-			while (articles[articles.length - 1].lastUpdate >= lastSync && remainPages--) {
-				await addNewPages(page++);
-			}
-			articles = articles.filter(article => {
-				return article.lastUpdate >= lastSync;
-			})
 		}
 
 		// get real highlights (raindrop returns only 3 highlights in /raindrops/${collectionId} endpoint)
