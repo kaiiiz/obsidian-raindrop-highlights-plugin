@@ -5,7 +5,7 @@ import type { RaindropAPI } from './api';
 import type RaindropPlugin from './main';
 import CollectionsModal from './modal/collections';
 import Renderer from './renderer';
-import ApiTokenModal from './modal/ApiTokenModal';
+import ApiTokenModal from './modal/apiTokenModal';
 
 export class RaindropSettingTab extends PluginSettingTab {
 	private plugin: RaindropPlugin;
