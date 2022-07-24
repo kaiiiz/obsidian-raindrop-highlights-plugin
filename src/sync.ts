@@ -1,6 +1,6 @@
 import { App, Notice, TFile } from "obsidian";
 import sanitize from "sanitize-filename";
-import { RaindropAPI } from "./api";
+import type { RaindropAPI } from "./api";
 import type RaindropPlugin from "./main";
 import Renderer from "./renderer";
 import type { ArticleFile, RaindropArticle, RaindropCollection, SyncCollection } from "./types";
@@ -11,10 +11,10 @@ export default class RaindropSync {
 	private api: RaindropAPI;
 	private renderer: Renderer;
 
-	constructor(app: App, plugin: RaindropPlugin) {
+	constructor(app: App, plugin: RaindropPlugin, api: RaindropAPI) {
 		this.app = app;
+		this.api = api;
 		this.plugin = plugin;
-		this.api = new RaindropAPI(app);
 		this.renderer = new Renderer(plugin);
 	}
 

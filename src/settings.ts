@@ -2,7 +2,7 @@ import {App, Notice, PluginSettingTab, Setting} from 'obsidian';
 import templateInstructions from './templates/templateInstructions.html';
 import tokenInstructions from './templates/tokenInstructions.html';
 import datetimeInstructions from './templates/datetimeInstructions.html';
-import { RaindropAPI } from './api';
+import type { RaindropAPI } from './api';
 import type RaindropPlugin from './main';
 import CollectionsModal from './modal/collections';
 import Renderer from './renderer';
@@ -13,11 +13,11 @@ export class RaindropSettingTab extends PluginSettingTab {
 	private api: RaindropAPI;
 	private renderer: Renderer;
 
-	constructor(app: App, plugin: RaindropPlugin) {
+	constructor(app: App, plugin: RaindropPlugin, api: RaindropAPI) {
 		super(app, plugin);
 		this.plugin = plugin;
 		this.renderer = new Renderer(plugin);
-		this.api = new RaindropAPI(app);
+		this.api = api;
 	}
 
 	display(): void {

@@ -3,6 +3,7 @@ import { RaindropSettingTab } from './settings';
 import RaindropSync from './sync';
 import type { RaindropCollection, RaindropPluginSettings } from './types';
 import DEFAULT_TEMPLATE from './assets/defaultTemplate.njk';
+import { RaindropAPI } from './api';
 
 
 const DEFAULT_SETTINGS: RaindropPluginSettings = {
@@ -30,11 +31,13 @@ const DEFAULT_SETTINGS: RaindropPluginSettings = {
 export default class RaindropPlugin extends Plugin {
 	private raindropSync: RaindropSync;
 	public settings: RaindropPluginSettings;
+	public api: RaindropAPI;
 
 	async onload() {
 		await this.loadSettings();
 
-		this.raindropSync = new RaindropSync(this.app, this);
+		this.api = new RaindropAPI(this.app);
+		this.raindropSync = new RaindropSync(this.app, this, this.api);
 
 		this.addCommand({
 			id: 'raindrop-sync',
@@ -59,7 +62,7 @@ export default class RaindropPlugin extends Plugin {
 			}
 		});
 
-		this.addSettingTab(new RaindropSettingTab(this.app, this));
+		this.addSettingTab(new RaindropSettingTab(this.app, this, this.api));
 	}
 
 	onunload() {
