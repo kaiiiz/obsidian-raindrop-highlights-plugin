@@ -1,4 +1,4 @@
-import { App, Notice, TFile } from "obsidian";
+import { App, Notice, parseYaml, TFile, type FrontMatterCache } from "obsidian";
 import sanitize from "sanitize-filename";
 import type { RaindropAPI } from "./api";
 import type RaindropPlugin from "./main";
@@ -100,7 +100,22 @@ export default class RaindropSync {
 		console.debug("update file", file.path);
 		const newMdContent = this.renderer.renderContent(article, false);
 		const oldMdContent = await this.app.vault.cachedRead(file);
-		const mdContent = oldMdContent + newMdContent;
+		let newFrontMatter = "---\n";
+		let oldFrontMatter = "";
+
+		if (metadata?.frontmatter) {
+			const {position: {start, end}} = metadata.frontmatter;
+			oldFrontMatter = oldMdContent.split("\n").slice(start.line, end.line).join("\n");
+			const parsedYaml = parseYaml(oldFrontMatter);
+			parsedYaml['raindrop_last_update'] = (new Date()).toISOString();
+			const newYaml = []
+			for (let key in parsedYaml) {
+				newYaml.push(`${key}: ${parsedYaml[key]}`);
+			}
+			newFrontMatter += newYaml.join("\n");
+		}
+
+		const mdContent = oldMdContent.replace(oldFrontMatter, newFrontMatter) + newMdContent;
 		await this.app.vault.modify(file, mdContent);
 	}
 
