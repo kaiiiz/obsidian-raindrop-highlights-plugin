@@ -52,8 +52,11 @@ export interface SyncCollection { // Local state
 export interface SyncCollectionSettings {[id: number]: SyncCollection}
 
 export interface RaindropPluginSettings {
+	username?: string;
+	isConnected: boolean;
 	highlightsFolder: string;
 	syncCollections: SyncCollectionSettings;
 	template: string;
 	dateTimeFormat: string;
+	autoSyncInterval: number;
 }

@@ -1,7 +1,7 @@
 <script lang="ts">
 	import type { SyncCollectionSettings } from "src/types";
 
-    export let collections: SyncCollectionSettings = {};
+	export let collections: SyncCollectionSettings = {};
 	export let toggle: (id: number) => Promise<void>;
 </script>
 

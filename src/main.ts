@@ -1,28 +1,45 @@
-import { Plugin } from 'obsidian';
+import { Notice, Plugin } from 'obsidian';
 import { RaindropSettingTab } from './settings';
 import RaindropSync from './sync';
 import type { RaindropCollection, RaindropPluginSettings } from './types';
 import DEFAULT_TEMPLATE from './assets/defaultTemplate.njk';
-import TokenManager from './tokenManager';
+import { RaindropAPI } from './api';
 
 
 const DEFAULT_SETTINGS: RaindropPluginSettings = {
-	highlightsFolder: '',
-	syncCollections: {},
+	username: undefined,
+	isConnected: false,
+	highlightsFolder: '/',
+	syncCollections: {
+		'-1': {
+			id: -1,
+			title: 'Unsorted',
+			sync: false,
+			lastSyncDate: undefined,
+		},
+		'-99': {
+			id: -99,
+			title: 'Trash',
+			sync: false,
+			lastSyncDate: undefined,
+		}
+	},
 	template: DEFAULT_TEMPLATE,
 	dateTimeFormat: 'YYYY/MM/DD HH:mm:ss',
+	autoSyncInterval: 0,
 };
 
 export default class RaindropPlugin extends Plugin {
 	private raindropSync: RaindropSync;
 	public settings: RaindropPluginSettings;
-	public tokenManager: TokenManager;
+	public api: RaindropAPI;
+	private timeoutIDAutoSync?: number;
 
 	async onload() {
 		await this.loadSettings();
 
-		this.tokenManager = new TokenManager();
-		this.raindropSync = new RaindropSync(this.app, this);
+		this.api = new RaindropAPI(this.app);
+		this.raindropSync = new RaindropSync(this.app, this, this.api);
 
 		this.addCommand({
 			id: 'raindrop-sync',
@@ -32,7 +49,22 @@ export default class RaindropPlugin extends Plugin {
 			}
 		});
 
-		this.addSettingTab(new RaindropSettingTab(this.app, this));
+		this.addCommand({
+			id: 'raindrop-show-last-sync-time',
+			name: 'Show last sync time',
+			callback: async () => {
+				let message = "";
+				for (let id in this.settings.syncCollections) {
+					const collection = this.settings.syncCollections[id];
+					if (collection.sync) {
+						message += `${collection.title}: ${collection.lastSyncDate?.toLocaleString()}\n`
+					}
+				}
+				new Notice(message);
+			}
+		});
+
+		this.addSettingTab(new RaindropSettingTab(this.app, this, this.api));
 	}
 
 	onunload() {
@@ -41,6 +73,12 @@ export default class RaindropPlugin extends Plugin {
 
 	async loadSettings() {
 		this.settings = Object.assign({}, DEFAULT_SETTINGS, await this.loadData());
+		for (let id in this.settings.syncCollections) {
+			const collection = this.settings.syncCollections[id];
+			if (collection.lastSyncDate) {
+				collection.lastSyncDate = new Date(collection.lastSyncDate);
+			}
+		}
 	}
 
 	async saveSettings() {
@@ -64,5 +102,27 @@ export default class RaindropPlugin extends Plugin {
 			}
 		});
 		await this.saveSettings();
+	}
+
+	async clearAutoSync(): Promise<void> {
+		if (this.timeoutIDAutoSync) {
+			window.clearTimeout(this.timeoutIDAutoSync);
+			this.timeoutIDAutoSync = undefined;
+		}
+		console.log('Clearing auto sync...');
+	}
+
+	async startAutoSync(minutes?: number): Promise<void> {
+		const minutesToSync = minutes ?? this.settings.autoSyncInterval;
+		if (minutesToSync > 0) {
+			this.timeoutIDAutoSync = window.setTimeout(
+				() => {
+					this.raindropSync.sync();
+					this.startAutoSync();
+				},
+				minutesToSync * 60000
+			);
+		}
+		console.log(`StartAutoSync: this.timeoutIDAutoSync ${this.timeoutIDAutoSync} with ${minutesToSync} minutes`);
 	}
 }
