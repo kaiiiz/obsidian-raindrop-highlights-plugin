@@ -41,6 +41,7 @@ export default class RaindropSync {
 			console.debug('start sync collection:', collection.title, "last sync at:", lastSyncDate);
 			articles = await this.api.getRaindropsAfter(collection.id, lastSyncDate);
 		} catch (e) {
+			console.error(e);
 			new Notice(`Sync Raindrop collection ${collection.title} failed: ${e.message}`);
 		}
 

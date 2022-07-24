@@ -7,8 +7,21 @@ import TokenManager from './tokenManager';
 
 
 const DEFAULT_SETTINGS: RaindropPluginSettings = {
-	highlightsFolder: '',
-	syncCollections: {},
+	highlightsFolder: '/',
+	syncCollections: {
+		'-1': {
+			id: -1,
+			title: 'Unsorted',
+			sync: false,
+			lastSyncDate: undefined,
+		},
+		'-99': {
+			id: -99,
+			title: 'Trash',
+			sync: false,
+			lastSyncDate: undefined,
+		}
+	},
 	template: DEFAULT_TEMPLATE,
 	dateTimeFormat: 'YYYY/MM/DD HH:mm:ss',
 };
