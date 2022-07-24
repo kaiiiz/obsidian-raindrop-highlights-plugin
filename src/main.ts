@@ -26,12 +26,14 @@ const DEFAULT_SETTINGS: RaindropPluginSettings = {
 	},
 	template: DEFAULT_TEMPLATE,
 	dateTimeFormat: 'YYYY/MM/DD HH:mm:ss',
+	autoSyncInterval: 0,
 };
 
 export default class RaindropPlugin extends Plugin {
 	private raindropSync: RaindropSync;
 	public settings: RaindropPluginSettings;
 	public api: RaindropAPI;
+	private timeoutIDAutoSync?: number;
 
 	async onload() {
 		await this.loadSettings();
@@ -100,5 +102,27 @@ export default class RaindropPlugin extends Plugin {
 			}
 		});
 		await this.saveSettings();
+	}
+
+	async clearAutoSync(): Promise<void> {
+		if (this.timeoutIDAutoSync) {
+			window.clearTimeout(this.timeoutIDAutoSync);
+			this.timeoutIDAutoSync = undefined;
+		}
+		console.log('Clearing auto sync...');
+	}
+
+	async startAutoSync(minutes?: number): Promise<void> {
+		const minutesToSync = minutes ?? this.settings.autoSyncInterval;
+		if (minutesToSync > 0) {
+			this.timeoutIDAutoSync = window.setTimeout(
+				() => {
+					this.raindropSync.sync();
+					this.startAutoSync();
+				},
+				minutesToSync * 60000
+			);
+		}
+		console.log(`StartAutoSync: this.timeoutIDAutoSync ${this.timeoutIDAutoSync} with ${minutesToSync} minutes`);
 	}
 }

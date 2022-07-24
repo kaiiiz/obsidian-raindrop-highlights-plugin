@@ -1,6 +1,5 @@
 import {App, Notice, PluginSettingTab, Setting} from 'obsidian';
 import templateInstructions from './templates/templateInstructions.html';
-import tokenInstructions from './templates/tokenInstructions.html';
 import datetimeInstructions from './templates/datetimeInstructions.html';
 import type { RaindropAPI } from './api';
 import type RaindropPlugin from './main';
@@ -31,6 +30,7 @@ export class RaindropSettingTab extends PluginSettingTab {
 		}
 		this.highlightsFolder();
 		this.collections();
+		this.autoSyncInterval();
 		this.dateFormat();
 		this.template();
 		this.resetSyncHistory();
@@ -196,5 +196,34 @@ export class RaindropSettingTab extends PluginSettingTab {
 					await this.plugin.saveSettings();
 					});
 			});
-	}	
+	}
+
+	private autoSyncInterval(): void {
+		new Setting(this.containerEl)
+			.setName('Auto sync in interval (minutes)')
+			.setDesc('Sync every X minutes. To disable auto sync, specify negative value or zero (default)')
+			.addText((text) => {
+				text
+				.setPlaceholder(String(0))
+				.setValue(this.plugin.settings.autoSyncInterval.toString())
+				.onChange(async (value) => {
+					if (!isNaN(Number(value))) {
+						const minutes = Number(value);
+						this.plugin.settings.autoSyncInterval = minutes;
+						await this.plugin.saveSettings();
+						console.log("Set raindrop.io autosync interval", minutes);
+						if (minutes > 0) {
+							this.plugin.clearAutoSync();
+							this.plugin.startAutoSync(minutes);
+							console.log(
+								`Raindrop.io auto sync enabled! Every ${minutes} minutes.`
+							);
+						} else {
+							this.plugin.clearAutoSync();
+							console.log("Raindrop.io auto sync disabled!");
+						}
+					}
+				});
+			});
+	}
 }

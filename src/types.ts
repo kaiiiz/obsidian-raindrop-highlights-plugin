@@ -58,4 +58,5 @@ export interface RaindropPluginSettings {
 	syncCollections: SyncCollectionSettings;
 	template: string;
 	dateTimeFormat: string;
+	autoSyncInterval: number;
 }
