@@ -6,6 +6,7 @@ import { RaindropAPI } from './api';
 import type RaindropPlugin from './main';
 import CollectionsModal from './modal/collections';
 import Renderer from './renderer';
+import ApiTokenModal from './modal/ApiTokenModal';
 
 export class RaindropSettingTab extends PluginSettingTab {
 	private plugin: RaindropPlugin;
@@ -16,19 +17,77 @@ export class RaindropSettingTab extends PluginSettingTab {
 		super(app, plugin);
 		this.plugin = plugin;
 		this.renderer = new Renderer(plugin);
-		this.api = new RaindropAPI(app, plugin);
+		this.api = new RaindropAPI(app);
 	}
 
 	display(): void {
 		const {containerEl} = this;
 
 		containerEl.empty();
-		this.token();
+		if (this.plugin.settings.isConnected) {
+			this.disconnect();
+		} else {
+			this.connect();
+		}
 		this.highlightsFolder();
 		this.collections();
 		this.dateFormat();
 		this.template();
 		this.resetSyncHistory();
+	}
+
+	private connect(): void {
+		new Setting(this.containerEl)
+			.setName('Connect to Raindrop.io')
+			.addButton((button) => {
+				return button
+					.setButtonText('Connect')
+					.setCta()
+					.onClick(async () => {
+						const tokenModal = new ApiTokenModal(this.app, this.api);
+						await tokenModal.waitForClose;
+
+						if (this.api.tokenManager.get()) {
+							new Notice('Token saved');
+							const user = await this.api.getUser();
+							this.plugin.settings.isConnected = true;
+							this.plugin.settings.username = user.fullName;
+							await this.plugin.saveSettings();
+						}
+
+						this.display(); // rerender
+					});
+			});
+	}
+
+	private async disconnect(): Promise<void> {
+		new Setting(this.containerEl)
+			.setName(`Connected to Raindrop.io as ${this.plugin.settings.username}`)
+			.addButton((button) => {
+				return button
+					.setButtonText('Disconnect')
+					.setCta()
+					.onClick(async () => {
+						button
+							.removeCta()
+							.setButtonText('Removing API token...')
+							.setDisabled(true);
+
+						try {
+							this.api.tokenManager.clear();
+							this.plugin.settings.isConnected = false;
+							this.plugin.settings.username = undefined;
+							await this.plugin.saveSettings();
+						} catch (e) {
+							console.error(e);
+							new Notice(`Token removed failed: ${e}`);
+							return;
+						}
+
+						new Notice('Token removed successfully');
+						this.display(); // rerender
+					});
+			});
 	}
 
 	private highlightsFolder(): void {
@@ -53,41 +112,13 @@ export class RaindropSettingTab extends PluginSettingTab {
 		  });
 	  }
 
-	private token(): void {
-		const tokenDescFragment = document
-			.createRange()
-			.createContextualFragment(tokenInstructions);
-
-		new Setting(this.containerEl)
-			.setName('Raindrop.io API token')
-			.setDesc(tokenDescFragment)
-			.addText(async (text) => {
-				try {
-					const token = this.plugin.tokenManager.get();
-					if (token) {
-						text.setValue(token);
-					}
-				} catch (e) {
-					/* Throw away read error if file does not exist. */
-				}
-
-				text.onChange(async (value) => {
-					try {
-						this.plugin.tokenManager.set(value);
-						new Notice('Token saved');
-					} catch (e) {
-						new Notice('Invalid token');
-					}
-				});
-			});
-	}
-
 	private async collections(): Promise<void> {
 		new Setting(this.containerEl)
 			.setName('Collections')
 			.setDesc('Manage collections to be synced')
 			.addButton(button => {
 				return button
+				.setDisabled(!this.plugin.settings.isConnected)
 				.setButtonText('Manage')
 				.setCta()
 				.onClick(async () => {
@@ -135,7 +166,7 @@ export class RaindropSettingTab extends PluginSettingTab {
 		  .addButton((button) => {
 			return button
 				.setButtonText('Reset')
-				// .setDisabled(!get(settingsStore).isConnected)
+				.setDisabled(!this.plugin.settings.isConnected)
 				.setWarning()
 				.onClick(async () => {
 					for (let id in this.plugin.settings.syncCollections) {
@@ -143,7 +174,7 @@ export class RaindropSettingTab extends PluginSettingTab {
 						collection.lastSyncDate = undefined;
 					}
 					this.plugin.saveSettings();
-					new Notice("Sync history has been reset");
+					new Notice("Sync history reset successfully");
 			});
 		});
 	}

@@ -14,7 +14,7 @@ export default class RaindropSync {
 	constructor(app: App, plugin: RaindropPlugin) {
 		this.app = app;
 		this.plugin = plugin;
-		this.api = new RaindropAPI(app, plugin);
+		this.api = new RaindropAPI(app);
 		this.renderer = new Renderer(plugin);
 	}
 

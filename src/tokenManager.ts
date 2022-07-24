@@ -18,4 +18,8 @@ export default class TokenManager {
 	set(token: string) {
 		this.localStorage.setItem('raindrop_token', token);
 	}
+
+	clear() {
+		this.localStorage.removeItem('raindrop_token');
+	}
 }

@@ -3,10 +3,11 @@ import { RaindropSettingTab } from './settings';
 import RaindropSync from './sync';
 import type { RaindropCollection, RaindropPluginSettings } from './types';
 import DEFAULT_TEMPLATE from './assets/defaultTemplate.njk';
-import TokenManager from './tokenManager';
 
 
 const DEFAULT_SETTINGS: RaindropPluginSettings = {
+	username: undefined,
+	isConnected: false,
 	highlightsFolder: '/',
 	syncCollections: {
 		'-1': {
@@ -29,12 +30,10 @@ const DEFAULT_SETTINGS: RaindropPluginSettings = {
 export default class RaindropPlugin extends Plugin {
 	private raindropSync: RaindropSync;
 	public settings: RaindropPluginSettings;
-	public tokenManager: TokenManager;
 
 	async onload() {
 		await this.loadSettings();
 
-		this.tokenManager = new TokenManager();
 		this.raindropSync = new RaindropSync(this.app, this);
 
 		this.addCommand({

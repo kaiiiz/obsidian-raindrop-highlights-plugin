@@ -1,21 +1,21 @@
 import type { App } from "obsidian";
 import axios from "axios";
-import type { RaindropArticle, RaindropCollection, RaindropHighlight } from "./types";
-import type RaindropPlugin from "./main";
+import type { RaindropArticle, RaindropCollection, RaindropHighlight, RaindropUser } from "./types";
+import TokenManager from "./tokenManager";
 
 const BASEURL = "https://api.raindrop.io/rest/v1"
 
 export class RaindropAPI {
 	app: App;
-	plugin: RaindropPlugin;
+	tokenManager: TokenManager;
 
-	constructor(app: App, plugin: RaindropPlugin) {
+	constructor(app: App) {
 		this.app = app;
-		this.plugin = plugin;
+		this.tokenManager = new TokenManager();
 	}
 
 	async get(url: string, params: any) {
-		const token = this.plugin.tokenManager.get();
+		const token = this.tokenManager.get();
 		if (!token) {
 			throw new Error("Invalid token");
 		}
@@ -103,6 +103,35 @@ export class RaindropAPI {
 		return articles;
 	}
 
+	async getUser(): Promise<RaindropUser> {
+		const res = await this.get(`${BASEURL}/user`, {});
+		return {
+			fullName: res.user.fullName,
+		};
+	}
+
+	async checkToken(token: string): Promise<RaindropUser> {
+		let result;
+		try {
+			result = await axios.get(`${BASEURL}/user`, {
+				headers: {
+					"Authorization": `Bearer ${token}`,
+					"Content-Type": "application/json",
+				},
+			});
+			if (result.status !== 200) {
+				throw new Error("Invalid token");
+			}
+		} catch(e) {
+			throw new Error("Invalid token");
+		}
+
+		const user = result.data.user;
+		return {
+			fullName: user.fullName,
+		};
+	}
+
 	private parseArticle(articles: any): RaindropArticle[] {
 		return articles.map((raindrop: any) => {
 			const article: RaindropArticle = {
@@ -131,23 +160,4 @@ export class RaindropAPI {
 			return highlight;
 		});
 	}
-
-	// async checkToken(token: string): Promise<RaindropUser> {
-	// 	const result = await fetch("https://api.raindrop.io/rest/v1/user", {
-	// 		method: "GET",
-	// 		headers: new Headers({
-	// 			Authorization: `Bearer ${token}`,
-	// 			"Content-Type": "application/json",
-	// 		}),
-	// 	});
-
-	// 	if (!result.ok) {
-	// 		throw new Error("Invalid token");
-	// 	}
-
-	// 	const user = (await result.json()).user;
-	// 	return {
-	// 		fullName: user.fullName,
-	// 	}
-	// }
 }
