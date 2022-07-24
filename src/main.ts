@@ -1,4 +1,4 @@
-import { Plugin } from 'obsidian';
+import { Notice, Plugin } from 'obsidian';
 import { RaindropSettingTab } from './settings';
 import RaindropSync from './sync';
 import type { RaindropCollection, RaindropPluginSettings } from './types';
@@ -32,6 +32,21 @@ export default class RaindropPlugin extends Plugin {
 			}
 		});
 
+		this.addCommand({
+			id: 'raindrop-show-last-sync-time',
+			name: 'Show last sync time',
+			callback: async () => {
+				let message = "";
+				for (let id in this.settings.syncCollections) {
+					const collection = this.settings.syncCollections[id];
+					if (collection.sync) {
+						message += `${collection.title}: ${collection.lastSyncDate?.toLocaleString()}\n`
+					}
+				}
+				new Notice(message);
+			}
+		});
+
 		this.addSettingTab(new RaindropSettingTab(this.app, this));
 	}
 
@@ -41,6 +56,12 @@ export default class RaindropPlugin extends Plugin {
 
 	async loadSettings() {
 		this.settings = Object.assign({}, DEFAULT_SETTINGS, await this.loadData());
+		for (let id in this.settings.syncCollections) {
+			const collection = this.settings.syncCollections[id];
+			if (collection.lastSyncDate) {
+				collection.lastSyncDate = new Date(collection.lastSyncDate);
+			}
+		}
 	}
 
 	async saveSettings() {
