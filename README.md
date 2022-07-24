@@ -1,73 +1,71 @@
-# Obsidian Sample Plugin
+# Obsidian Raindrop Highlight Plugin (Community Plugin)
 
-This is a sample plugin for Obsidian (https://obsidian.md).
+Obsidian Raindrop Highlight (Community Plugin) is an unofficial plugin to synchronize Raindrop.io web article highlights/annotations into your Obsidian Vault.
 
-This project uses Typescript to provide type checking and documentation.
-The repo depends on the latest plugin API (obsidian.d.ts) in Typescript Definition format, which contains TSDoc comments describing what it does.
+Although there already exists a similar project called [Obsidian Raindrop Plugin](https://github.com/mtopping/obsidian-raindrop), it doesn't support pulling highlights/annotations from Raindrop yet, so I decided to develop my own version...
 
-**Note:** The Obsidian API is still in early alpha and is subject to change at any time!
+## Features
 
-This sample plugin demonstrates some of the basic functionality the plugin API can do.
-- Changes the default font color to red using `styles.css`.
-- Adds a ribbon icon, which shows a Notice when clicked.
-- Adds a command "Open Sample Modal" which opens a Modal.
-- Adds a plugin setting tab to the settings page.
-- Registers a global click event and output 'click' to the console.
-- Registers a global interval which logs 'setInterval' to the console.
+- Sync web article highlights/annotations on Obsidian
+- Update existing articles with new highlights and annotations
+- Customization highlights through [Nunjucks](https://mozilla.github.io/nunjucks/) template
+- Manage Raindrop collections to be synced
+- Auto sync in interval
 
-## First time developing plugins?
+## Usage
 
-Quick starting guide for new plugin devs:
+After installing the plugin, configure the the settings of the plugin then initiate the first sync manually. Thereafter, the plugin can be configured to sync automatically or manually
 
-- Check if [someone already developed a plugin for what you want](https://obsidian.md/plugins)! There might be an existing plugin similar enough that you can partner up with.
-- Make a copy of this repo as a template with the "Use this template" button (login to GitHub if you don't see it).
-- Clone your repo to a local development folder. For convenience, you can place this folder in your `.obsidian/plugins/your-plugin-name` folder.
-- Install NodeJS, then run `npm i` in the command line under your repo folder.
-- Run `npm run dev` to compile your plugin from `main.ts` to `main.js`.
-- Make changes to `main.ts` (or create new `.ts` files). Those changes should be automatically compiled into `main.js`.
-- Reload Obsidian to load the new version of your plugin.
-- Enable plugin in settings window.
-- For updates to the Obsidian API run `npm update` in the command line under your repo folder.
+Use `Raindrop Highlights: Sync Highlights` command to trigger manual sync.
 
-## Releasing new releases
+Use `Raindrop Highlights: Show last sync time` command to check last sync time for each collection.
 
-- Update your `manifest.json` with your new version number, such as `1.0.1`, and the minimum Obsidian version required for your latest release.
-- Update your `versions.json` file with `"new-plugin-version": "minimum-obsidian-version"` so older versions of Obsidian can download an older version of your plugin that's compatible.
-- Create new GitHub release using your new version number as the "Tag version". Use the exact version number, don't include a prefix `v`. See here for an example: https://github.com/obsidianmd/obsidian-sample-plugin/releases
-- Upload the files `manifest.json`, `main.js`, `styles.css` as binary attachments. Note: The manifest.json file must be in two places, first the root path of your repository and also in the release.
-- Publish the release.
+### API Token
 
-> You can simplify the version bump process by running `npm version patch`, `npm version minor` or `npm version major` after updating `minAppVersion` manually in `manifest.json`.
-> The command will bump version in `manifest.json` and `package.json`, and add the entry for the new version to `versions.json`
+This plugin doesn't use the OAuth mechanism. To get your API Token, follow the steps:
 
-## Adding your plugin to the community plugin list
+1. Access the [Integrations](https://app.raindrop.io/settings/integrations) section of your Raindrop account
+2. Click "Create new app"
+3. Copy the "Test token"
+4. Paste to the obsidian plugin setting
 
-- Check https://github.com/obsidianmd/obsidian-releases/blob/master/plugin-review.md
-- Publish an initial version.
-- Make sure you have a `README.md` file in the root of your repo.
-- Make a pull request at https://github.com/obsidianmd/obsidian-releases to add your plugin.
+**NOTE**: The token is stored using [localStorage](https://developer.mozilla.org/en-US/docs/Web/API/Window/localStorage) and it may have conflicts if the same vault were to be open on 2 different windows.
 
-## How to use
+### Settings
 
-- Clone this repo.
-- `npm i` or `yarn` to install dependencies
-- `npm run dev` to start compilation in watch mode.
+- `Connect`: Enter API Token in order to pull the highlights from Raindrop
+- `Disconnect`: Remove API Token from Obsidian
+- `Auto Sync Interval`: Set the interval in minutes to sync Raindrop highlights automatically
+- `Highlights folder`: Specify the folder location for your Raindrop articles
+- `Collection`: Specify the collections to be synced to the vault
+- `Highlights template`: Nunjuck template for rendering your highlights
+- `Reset sync`: Wipe your sync history. Does not delete any previously synced highlights from your vault
 
-## Manually installing the plugin
+### To sync all new highlights since previous update
 
-- Copy over `main.js`, `styles.css`, `manifest.json` to your vault `VaultFolder/.obsidian/plugins/your-plugin-id/`.
+- Command: `Raindrop Highlights: Sync Highlights`
 
-## Improve code quality with eslint (optional)
-- [ESLint](https://eslint.org/) is a tool that analyzes your code to quickly find problems. You can run ESLint against your plugin to find common bugs and ways to improve your code. 
-- To use eslint with this project, make sure to install eslint from terminal:
-  - `npm install -g eslint`
-- To use eslint to analyze this project use this command:
-  - `eslint main.ts`
-  - eslint will then create a report with suggestions for code improvement by file and line number.
-- If your source code is in a folder, such as `src`, you can use eslint with this command to analyze all files in that folder:
-  - `eslint .\src\`
+**NOTE**: Do not touch the front matter properties: `raindrop_id` and `raindrop_last_update`. These properties are used to identify the existing article.
 
+## Acknowledgement
 
-## API Documentation
+This project is inspired by Hady Ozman's [Obsidian Kindle Plugin](https://github.com/hadynz/obsidian-kindle-plugin) and Wei Chen's [Obsidian Hypothesis Plugin](https://github.com/weichenw/obsidian-hypothesis-plugin). Lots of features are migrated from their works, big thanks for their hard working!
 
-See https://github.com/obsidianmd/obsidian-api
+## Limiations
+
+- To simplify the implementation, this plugin only supports one-way sync. (i.e. from Raindrop to Obsdiain) If you move a file from one folder to another folder, the article's collection in Raindrop remains unchanged.
+- Raindrop API has [rate limiting](https://developer.raindrop.io/#rate-limiting), you can make up to 120 requests per minute per authenticated user. This plugin does its best to prevent unneeded requests, it only requests posts updated after the last sync time.
+
+## My workflow
+
+I have 4 collections in Raindrop: `Watching`, `Archive`, `Inbox`, `Obsidian` and only sync `Watching` and `Obsidian` collections in Obsidian.
+
+> `Watching` collection is used to keep track of the content that I'm interested in (e.g. Unsolved issue, Discussion... etc)
+
+1. New bookmarks are saved in `Inbox` for later processing.
+2. Every morning, I pick up some articles from `Inbox` and move them to `Obsidian` collection.
+3. Read, highlight and annotate the articles in `Obsidian` collection from my phone or computer.
+4. Pull the highlight and annotation into Obsidian. Summarize and link the main idea of the articles I just read.
+5. Once finished, move the articles from `Obsidian` collection to `Archive`.
+
+This workflow keeps my everyday reading process without distraction, and also makes the summarization process easier.
