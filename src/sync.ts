@@ -4,6 +4,7 @@ import type { RaindropAPI } from "./api";
 import type RaindropPlugin from "./main";
 import Renderer from "./renderer";
 import type { ArticleFile, RaindropArticle, RaindropCollection, SyncCollection } from "./types";
+import matter from "gray-matter";
 
 export default class RaindropSync {
 	private app: App;
@@ -99,24 +100,13 @@ export default class RaindropSync {
 
 		console.debug("update file", file.path);
 		const newMdContent = this.renderer.renderContent(article, false);
-		const oldMdContent = await this.app.vault.cachedRead(file);
-		let newFrontMatter = "---\n";
-		let oldFrontMatter = "";
+		await this.app.vault.append(file, newMdContent);
 
-		if (metadata?.frontmatter) {
-			const {position: {start, end}} = metadata.frontmatter;
-			oldFrontMatter = oldMdContent.split("\n").slice(start.line, end.line).join("\n");
-			const parsedYaml = parseYaml(oldFrontMatter);
-			parsedYaml['raindrop_last_update'] = (new Date()).toISOString();
-			const newYaml = []
-			for (let key in parsedYaml) {
-				newYaml.push(`${key}: ${parsedYaml[key]}`);
-			}
-			newFrontMatter += newYaml.join("\n");
-		}
-
-		const mdContent = oldMdContent.replace(oldFrontMatter, newFrontMatter) + newMdContent;
-		await this.app.vault.modify(file, mdContent);
+		let oldMdContent = await this.app.vault.cachedRead(file);
+		const oldMdObj = matter(oldMdContent);
+		oldMdObj.data['raindrop_last_update'] = (new Date()).toISOString();
+		oldMdContent = matter.stringify(oldMdObj.content, oldMdObj.data);
+		await this.app.vault.modify(file, oldMdContent);
 	}
 
 	async createFile(filePath: string, article: RaindropArticle): Promise<TFile> {
