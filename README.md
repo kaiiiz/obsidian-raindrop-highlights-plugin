@@ -1,6 +1,6 @@
-# Obsidian Raindrop Highlight Plugin (Community Plugin)
+# Obsidian Raindrop Highlights Plugin (Community Plugin)
 
-Obsidian Raindrop Highlight (Community Plugin) is an unofficial plugin to synchronize Raindrop.io web article highlights/annotations into your Obsidian Vault.
+Obsidian Raindrop Highlights (Community Plugin) is an unofficial plugin to synchronize Raindrop.io web article highlights/annotations into your Obsidian Vault.
 
 Although there already exists a similar project called [Obsidian Raindrop Plugin](https://github.com/mtopping/obsidian-raindrop), it doesn't support pulling highlights/annotations from Raindrop yet, so I decided to develop my own version...
 
@@ -14,7 +14,7 @@ Although there already exists a similar project called [Obsidian Raindrop Plugin
 
 ## Usage
 
-After installing the plugin, configure the the settings of the plugin then initiate the first sync manually. Thereafter, the plugin can be configured to sync automatically or manually
+After installing the plugin, configure the the settings of the plugin then initiate the first sync manually. Thereafter, the plugin can be configured to sync automatically or manually.
 
 Use `Raindrop Highlights: Sync Highlights` command to trigger manual sync.
 
@@ -45,7 +45,7 @@ This plugin doesn't use the OAuth mechanism. To get your API Token, follow the s
 
 - Command: `Raindrop Highlights: Sync Highlights`
 
-**NOTE**: Do not touch the front matter properties: `raindrop_id` and `raindrop_last_update`. These properties are used to identify the existing article.
+**NOTE**: Do not touch the front matter properties: `raindrop_id` and `raindrop_last_update`. These properties are used to identify the existing article to prevent duplication.
 
 ## Acknowledgement
 
