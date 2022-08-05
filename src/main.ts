@@ -105,11 +105,11 @@ export default class RaindropPlugin extends Plugin {
 	}
 
 	async updateCollectionSettings(collections: RaindropCollection[]) {
-		const syncCollections = this.settings.syncCollections;
+		const syncCollections: SyncCollectionSettings = {};
 		collections.forEach(async (collection) => {
 			const {id, title} = collection;
 
-			if (!(id in syncCollections)) {
+			if (!(id in this.settings.syncCollections)) {
 				syncCollections[id] = {
 					id: id,
 					title: title,
@@ -117,9 +117,11 @@ export default class RaindropPlugin extends Plugin {
 					lastSyncDate: undefined,
 				};
 			} else {
+				syncCollections[id] = this.settings.syncCollections[id];
 				syncCollections[id].title = title;
 			}
 		});
+		this.settings.syncCollections = syncCollections;
 		await this.saveSettings();
 	}
 
