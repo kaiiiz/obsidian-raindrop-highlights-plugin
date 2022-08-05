@@ -2,11 +2,11 @@
 
 Obsidian Raindrop Highlights (Community Plugin) is an unofficial plugin to synchronize Raindrop.io web article highlights/annotations into your Obsidian Vault.
 
-Although there already exists a similar project called [Obsidian Raindrop Plugin](https://github.com/mtopping/obsidian-raindrop), it doesn't support pulling highlights/annotations from Raindrop yet, so I decided to develop my own version...
+Although there is already a similar project called [Obsidian Raindrop Plugin](https://github.com/mtopping/obsidian-raindrop), it doesn't support pulling highlights/annotations from Raindrop yet, so I decided to develop my own version...
 
 ## Features
 
-- Sync web article highlights/annotations on Obsidian
+- Sync web article highlights/annotations into Obsidian
 - Update existing articles with new highlights and annotations
 - Customization highlights through [Nunjucks](https://mozilla.github.io/nunjucks/) template
 - Manage Raindrop collections to be synced
@@ -58,7 +58,7 @@ This project is inspired by Hady Ozman's [Obsidian Kindle Plugin](https://github
 
 ## My workflow
 
-I have 4 collections in Raindrop: `Watching`, `Archive`, `Inbox`, `Obsidian` and only sync `Watching` and `Obsidian` collections in Obsidian.
+I have 4 collections in Raindrop: `Watching`, `Archive`, `Inbox`, `Reading` and only sync `Watching` and `Archive` collections in Obsidian.
 
 > `Watching` collection is used to keep track of the content that I'm interested in (e.g. Unsolved issue, Discussion... etc)
 

@@ -65,6 +65,24 @@ export class RaindropSettingTab extends PluginSettingTab {
 			.setName(`Connected to Raindrop.io as ${this.plugin.settings.username}`)
 			.addButton((button) => {
 				return button
+					.setButtonText('Test API')
+					.setCta()
+					.onClick(async () => {
+						try {
+							const user = await this.api.getUser();
+							new Notice(`Test pass, hello ${user.fullName}`);
+						} catch (e) {
+							console.error(e);
+							new Notice(`Test failed: ${e}`);
+							this.api.tokenManager.clear();
+							this.plugin.settings.isConnected = false;
+							this.plugin.settings.username = undefined;
+							await this.plugin.saveSettings();
+						}
+					});
+			})
+			.addButton((button) => {
+				return button
 					.setButtonText('Disconnect')
 					.setCta()
 					.onClick(async () => {
@@ -162,7 +180,7 @@ export class RaindropSettingTab extends PluginSettingTab {
 	private resetSyncHistory(): void {
 		new Setting(this.containerEl)
 		  .setName('Reset sync')
-		  .setDesc('Wipe sync history to resync')
+		  .setDesc('Reset last sync time to resync')
 		  .addButton((button) => {
 			return button
 				.setButtonText('Reset')
