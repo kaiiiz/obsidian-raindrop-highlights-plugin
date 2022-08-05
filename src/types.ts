@@ -20,6 +20,7 @@ export interface RaindropHighlight { // Remote state
 
 export interface RaindropArticle { // Remote state
 	id: number,
+	collectionId: number,
 	title: string,
 	highlights: RaindropHighlight[],
 	excerpt: string,

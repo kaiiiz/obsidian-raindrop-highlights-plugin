@@ -64,6 +64,25 @@ export default class RaindropPlugin extends Plugin {
 			}
 		});
 
+		this.addCommand({
+			id: 'raindrop-open-link',
+			name: 'Open Link in Raindrop',
+			callback: async () => {
+				const file = app.workspace.getActiveFile();
+				if (file) {
+					const fmc = app.metadataCache.getFileCache(file)?.frontmatter;
+					if (fmc?.raindrop_id) {
+						const article = await this.api.getArticle(fmc.raindrop_id);
+						window.open(`https://app.raindrop.io/my/${article.collectionId}/item/${article.id}/edit`);
+					} else {
+						new Notice("This is not a Raindrop article file")
+					}
+				} else {
+					new Notice("No active file");
+				}
+			}
+		})
+
 		this.addSettingTab(new RaindropSettingTab(this.app, this, this.api));
 	}
 
