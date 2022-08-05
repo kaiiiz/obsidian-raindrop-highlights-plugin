@@ -18,7 +18,7 @@ Although there is already a similar project called [Obsidian Raindrop Plugin](ht
 
 After installing the plugin, configure the the settings of the plugin then initiate the first sync manually. Thereafter, the plugin can be configured to sync automatically or manually.
 
-Use `Raindrop Highlights: Sync Highlights` command to trigger manual sync.
+Use Raindrop icon in the sidebar or command `Raindrop Highlights: Sync Highlights` to trigger manual sync.
 
 Use `Raindrop Highlights: Show Last Sync Time` command to check last sync time for each collection.
 
@@ -49,7 +49,7 @@ This plugin doesn't use the OAuth mechanism. To get your API Token, follow the s
 
 - Command: `Raindrop Highlights: Sync Highlights`
 
-**NOTE**: Do not touch the front matter properties: `raindrop_id` and `raindrop_last_update`. These properties are used to identify the existing article to prevent duplication.
+**NOTE**: Do not touch the front matter properties: `raindrop_id` and `raindrop_last_update`. These properties are used to identify the existing article to prevent file and highlights duplication.
 
 ## Acknowledgement
 

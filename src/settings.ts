@@ -28,12 +28,26 @@ export class RaindropSettingTab extends PluginSettingTab {
 		} else {
 			this.connect();
 		}
+		this.ribbonIcon();
 		this.highlightsFolder();
 		this.collections();
 		this.autoSyncInterval();
 		this.dateFormat();
 		this.template();
 		this.resetSyncHistory();
+	}
+
+	private ribbonIcon(): void {
+		new Setting(this.containerEl)
+			.setName('Enable ribbon icon in the sidebar (need reload)')
+			.addToggle((toggle) => {
+				return toggle
+					.setValue(this.plugin.settings.ribbonIcon)
+					.onChange(async (value) => {
+						this.plugin.settings.ribbonIcon = value;
+						await this.plugin.saveSettings();
+					});
+			});
 	}
 
 	private connect(): void {

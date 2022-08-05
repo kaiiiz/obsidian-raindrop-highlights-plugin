@@ -55,6 +55,7 @@ export interface SyncCollectionSettings {[id: number]: SyncCollection}
 export interface RaindropPluginSettings {
 	username?: string;
 	isConnected: boolean;
+	ribbonIcon: boolean;
 	highlightsFolder: string;
 	syncCollections: SyncCollectionSettings;
 	template: string;

@@ -9,6 +9,7 @@ import { RaindropAPI } from './api';
 const DEFAULT_SETTINGS: RaindropPluginSettings = {
 	username: undefined,
 	isConnected: false,
+	ribbonIcon: true,
 	highlightsFolder: '/',
 	syncCollections: {
 		'-1': {
@@ -40,6 +41,16 @@ export default class RaindropPlugin extends Plugin {
 
 		this.api = new RaindropAPI(this.app);
 		this.raindropSync = new RaindropSync(this.app, this, this.api);
+
+		if (this.settings.ribbonIcon) {
+			this.addRibbonIcon('cloud', 'Sync your Raindrop highlights', () => {
+				if (!this.settings.isConnected) {
+					new Notice('Please configure Raindrop API token in the plugin setting');
+				} else {
+					this.raindropSync.sync();
+				}
+			});
+		}
 
 		this.addCommand({
 			id: 'raindrop-sync',
@@ -81,7 +92,7 @@ export default class RaindropPlugin extends Plugin {
 					new Notice("No active file");
 				}
 			}
-		})
+		});
 
 		this.addSettingTab(new RaindropSettingTab(this.app, this, this.api));
 	}
