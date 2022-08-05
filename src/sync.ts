@@ -41,13 +41,12 @@ export default class RaindropSync {
 		try {
 			console.debug('start sync collection:', collection.title, "last sync at:", lastSyncDate);
 			articles = await this.api.getRaindropsAfter(collection.id, lastSyncDate);
+			await this.syncArticles(articles, collectionFolder);
+			await this.syncCollectionComplete(collection);
 		} catch (e) {
 			console.error(e);
 			new Notice(`Sync Raindrop collection ${collection.title} failed: ${e.message}`);
 		}
-
-		await this.syncArticles(articles, collectionFolder);
-		await this.syncCollectionComplete(collection);
 	}
 
 	async syncArticles(articles: RaindropArticle[], folderPath: string) {
