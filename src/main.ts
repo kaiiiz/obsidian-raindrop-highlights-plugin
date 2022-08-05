@@ -109,7 +109,7 @@ export default class RaindropPlugin extends Plugin {
 			window.clearTimeout(this.timeoutIDAutoSync);
 			this.timeoutIDAutoSync = undefined;
 		}
-		console.log('Clearing auto sync...');
+		console.info('Clearing auto sync...');
 	}
 
 	async startAutoSync(minutes?: number): Promise<void> {
@@ -123,6 +123,6 @@ export default class RaindropPlugin extends Plugin {
 				minutesToSync * 60000
 			);
 		}
-		console.log(`StartAutoSync: this.timeoutIDAutoSync ${this.timeoutIDAutoSync} with ${minutesToSync} minutes`);
+		console.info(`StartAutoSync: this.timeoutIDAutoSync ${this.timeoutIDAutoSync} with ${minutesToSync} minutes`);
 	}
 }

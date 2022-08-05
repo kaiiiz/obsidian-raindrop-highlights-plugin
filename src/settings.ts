@@ -211,16 +211,16 @@ export class RaindropSettingTab extends PluginSettingTab {
 						const minutes = Number(value);
 						this.plugin.settings.autoSyncInterval = minutes;
 						await this.plugin.saveSettings();
-						console.log("Set raindrop.io autosync interval", minutes);
+						console.info("Set raindrop.io autosync interval", minutes);
 						if (minutes > 0) {
 							this.plugin.clearAutoSync();
 							this.plugin.startAutoSync(minutes);
-							console.log(
+							console.info(
 								`Raindrop.io auto sync enabled! Every ${minutes} minutes.`
 							);
 						} else {
 							this.plugin.clearAutoSync();
-							console.log("Raindrop.io auto sync disabled!");
+							console.info("Raindrop.io auto sync disabled!");
 						}
 					}
 				});
