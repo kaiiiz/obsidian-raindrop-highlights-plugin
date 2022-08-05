@@ -41,14 +41,33 @@ export class RaindropAPI {
 	}
 
 	async getCollections(): Promise<RaindropCollection[]> {
-		const res = await this.get(`${BASEURL}/collections`, {});
+		let res = await this.get(`${BASEURL}/collections`, {});
+		const collectionMap: {[id: number]: string} = {}
 
-		const collections: RaindropCollection[] = res.items.map((collection: any) => {
+		let collections: RaindropCollection[] = res.items.map((collection: any) => {
+			const id = collection['_id'];
+			const title = collection['title'];
+			collectionMap[id] = title;
 			return {
-				title: collection['title'],
-				id: collection['_id'],
+				title: title,
+				id: id,
 			};
 		})
+
+		res = await this.get(`${BASEURL}/collections/childrens`, {});
+		res.items.forEach((collection: any) => {
+			const id = collection['_id'];
+			const parentId = collection['parent']['$id'];
+			let title = collection['title'];
+			if (parentId in collectionMap) {
+				title = `${collectionMap[parentId]}/${collection['title']}`;
+			}
+			collections.push({
+				title: title,
+				id: id,
+			});
+			collectionMap[id] = title;
+		});
 
 		return collections;
 	}
@@ -68,7 +87,7 @@ export class RaindropAPI {
 				"page": page,
 				"sort": "-lastUpdate"
 			});
-			articles = articles.concat(this.parseArticle(res.items));
+			articles = articles.concat(this.parseArticles(res.items));
 		}
 
 		if (articles.length > 0) {
@@ -145,6 +164,7 @@ export class RaindropAPI {
 	}
 
 	private parseArticle(raindrop: any): RaindropArticle {
+		console.log(raindrop);
 		const article: RaindropArticle = {
 			id: raindrop['_id'],
 			collectionId: raindrop['collectionId'],

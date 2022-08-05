@@ -6,7 +6,9 @@ Although there is already a similar project called [Obsidian Raindrop Plugin](ht
 
 ## Features
 
-- Sync web article highlights/annotations into Obsidian
+- Sync web article highlights into Obsidian
+- Sync web article annotations into Obsidian (Raindrop PRO user only)
+- Support nested collections (Raindrop PRO user only)
 - Update existing articles with new highlights and annotations
 - Customization highlights through [Nunjucks](https://mozilla.github.io/nunjucks/) template
 - Manage Raindrop collections to be synced
@@ -19,6 +21,8 @@ After installing the plugin, configure the the settings of the plugin then initi
 Use `Raindrop Highlights: Sync Highlights` command to trigger manual sync.
 
 Use `Raindrop Highlights: Show Last Sync Time` command to check last sync time for each collection.
+
+Use `Raindrop Highlights: Open Link in Raindrop` command to open the corresponding link in Raindrop.
 
 ### API Token
 
@@ -39,7 +43,7 @@ This plugin doesn't use the OAuth mechanism. To get your API Token, follow the s
 - `Highlights folder`: Specify the folder location for your Raindrop articles
 - `Collection`: Specify the collections to be synced to the vault
 - `Highlights template`: Nunjuck template for rendering your highlights
-- `Reset sync`: Wipe your sync history. Does not delete any previously synced highlights from your vault
+- `Reset sync`: Reset last sync time to resync. This operation does not delete any previously synced highlights from your vault
 
 ### To sync all new highlights since previous update
 

@@ -1,7 +1,7 @@
 import { Notice, Plugin } from 'obsidian';
 import { RaindropSettingTab } from './settings';
 import RaindropSync from './sync';
-import type { RaindropCollection, RaindropPluginSettings } from './types';
+import type { RaindropCollection, RaindropPluginSettings, SyncCollectionSettings } from './types';
 import DEFAULT_TEMPLATE from './assets/defaultTemplate.njk';
 import { RaindropAPI } from './api';
 
