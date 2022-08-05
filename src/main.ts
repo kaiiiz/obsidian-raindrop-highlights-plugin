@@ -51,7 +51,7 @@ export default class RaindropPlugin extends Plugin {
 
 		this.addCommand({
 			id: 'raindrop-show-last-sync-time',
-			name: 'Show last sync time',
+			name: 'Show Last Sync Time',
 			callback: async () => {
 				let message = "";
 				for (let id in this.settings.syncCollections) {

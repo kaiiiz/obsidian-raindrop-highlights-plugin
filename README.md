@@ -18,7 +18,7 @@ After installing the plugin, configure the the settings of the plugin then initi
 
 Use `Raindrop Highlights: Sync Highlights` command to trigger manual sync.
 
-Use `Raindrop Highlights: Show last sync time` command to check last sync time for each collection.
+Use `Raindrop Highlights: Show Last Sync Time` command to check last sync time for each collection.
 
 ### API Token
 
@@ -55,17 +55,3 @@ This project is inspired by Hady Ozman's [Obsidian Kindle Plugin](https://github
 
 - To simplify the implementation, this plugin only supports one-way sync. (i.e. from Raindrop to Obsdiain) If you move a file from one folder to another folder, the article's collection in Raindrop remains unchanged.
 - Raindrop API has [rate limiting](https://developer.raindrop.io/#rate-limiting), you can make up to 120 requests per minute per authenticated user. This plugin does its best to prevent unneeded requests, it only requests posts updated after the last sync time.
-
-## My workflow
-
-I have 4 collections in Raindrop: `Watching`, `Archive`, `Inbox`, `Reading` and only sync `Watching` and `Archive` collections in Obsidian.
-
-> `Watching` collection is used to keep track of the content that I'm interested in (e.g. Unsolved issue, Discussion... etc)
-
-1. New bookmarks are saved in `Inbox` for later processing.
-2. Every morning, I pick up some articles from `Inbox` and move them to `Obsidian` collection.
-3. Read, highlight and annotate the articles in `Obsidian` collection from my phone or computer.
-4. Pull the highlight and annotation into Obsidian. Summarize and link the main idea of the articles I just read.
-5. Once finished, move the articles from `Obsidian` collection to `Archive`.
-
-This workflow keeps my everyday reading process without distraction, and also makes the summarization process easier.
