@@ -20,6 +20,7 @@ export interface RaindropHighlight { // Remote state
 
 export interface RaindropArticle { // Remote state
 	id: number,
+	collectionId: number,
 	title: string,
 	highlights: RaindropHighlight[],
 	excerpt: string,
@@ -54,6 +55,7 @@ export interface SyncCollectionSettings {[id: number]: SyncCollection}
 export interface RaindropPluginSettings {
 	username?: string;
 	isConnected: boolean;
+	ribbonIcon: boolean;
 	highlightsFolder: string;
 	syncCollections: SyncCollectionSettings;
 	template: string;

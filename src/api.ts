@@ -14,7 +14,7 @@ export class RaindropAPI {
 		this.tokenManager = new TokenManager();
 	}
 
-	async get(url: string, params: any) {
+	private async get(url: string, params: any) {
 		const token = this.tokenManager.get();
 		if (!token) {
 			throw new Error("Invalid token");
@@ -41,14 +41,33 @@ export class RaindropAPI {
 	}
 
 	async getCollections(): Promise<RaindropCollection[]> {
-		const res = await this.get(`${BASEURL}/collections`, {});
+		let res = await this.get(`${BASEURL}/collections`, {});
+		const collectionMap: {[id: number]: string} = {}
 
-		const collections: RaindropCollection[] = res.items.map((collection: any) => {
+		let collections: RaindropCollection[] = res.items.map((collection: any) => {
+			const id = collection['_id'];
+			const title = collection['title'];
+			collectionMap[id] = title;
 			return {
-				title: collection['title'],
-				id: collection['_id'],
+				title: title,
+				id: id,
 			};
 		})
+
+		res = await this.get(`${BASEURL}/collections/childrens`, {});
+		res.items.forEach((collection: any) => {
+			const id = collection['_id'];
+			const parentId = collection['parent']['$id'];
+			let title = collection['title'];
+			if (parentId in collectionMap) {
+				title = `${collectionMap[parentId]}/${collection['title']}`;
+			}
+			collections.push({
+				title: title,
+				id: id,
+			});
+			collectionMap[id] = title;
+		});
 
 		return collections;
 	}
@@ -59,7 +78,7 @@ export class RaindropAPI {
 			"sort": "-lastUpdate"
 		});
 		let raindropsCnt = res.count;
-		let articles = this.parseArticle(res.items);
+		let articles = this.parseArticles(res.items);
 		let remainPages = Math.ceil(raindropsCnt / 25) - 1;
 		let page = 1;
 
@@ -68,7 +87,7 @@ export class RaindropAPI {
 				"page": page,
 				"sort": "-lastUpdate"
 			});
-			articles = articles.concat(this.parseArticle(res.items));
+			articles = articles.concat(this.parseArticles(res.items));
 		}
 
 		if (articles.length > 0) {
@@ -132,19 +151,31 @@ export class RaindropAPI {
 		};
 	}
 
-	private parseArticle(articles: any): RaindropArticle[] {
+	async getArticle(id: number): Promise<RaindropArticle> {
+		const res = await this.get(`${BASEURL}/raindrop/${id}`, {});
+		const article = this.parseArticle(res.item);
+		return article;
+	}
+
+	private parseArticles(articles: any): RaindropArticle[] {
 		return articles.map((raindrop: any) => {
-			const article: RaindropArticle = {
-				id: raindrop['_id'],
-				title: raindrop['title'],
-				highlights: this.parseHighlights(raindrop['highlights']),
-				excerpt: raindrop['excerpt'],
-				link: raindrop['link'],
-				lastUpdate: new Date(raindrop['lastUpdate']),
-				tags: raindrop['tags'],
-			};
-			return article;
+			return this.parseArticle(raindrop);
 		});
+	}
+
+	private parseArticle(raindrop: any): RaindropArticle {
+		console.log(raindrop);
+		const article: RaindropArticle = {
+			id: raindrop['_id'],
+			collectionId: raindrop['collectionId'],
+			title: raindrop['title'],
+			highlights: this.parseHighlights(raindrop['highlights']),
+			excerpt: raindrop['excerpt'],
+			link: raindrop['link'],
+			lastUpdate: new Date(raindrop['lastUpdate']),
+			tags: raindrop['tags'],
+		};
+		return article;
 	}
 
 	private parseHighlights(highlights: any): RaindropHighlight[] {

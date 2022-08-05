@@ -28,12 +28,26 @@ export class RaindropSettingTab extends PluginSettingTab {
 		} else {
 			this.connect();
 		}
+		this.ribbonIcon();
 		this.highlightsFolder();
 		this.collections();
 		this.autoSyncInterval();
 		this.dateFormat();
 		this.template();
 		this.resetSyncHistory();
+	}
+
+	private ribbonIcon(): void {
+		new Setting(this.containerEl)
+			.setName('Enable ribbon icon in the sidebar (need reload)')
+			.addToggle((toggle) => {
+				return toggle
+					.setValue(this.plugin.settings.ribbonIcon)
+					.onChange(async (value) => {
+						this.plugin.settings.ribbonIcon = value;
+						await this.plugin.saveSettings();
+					});
+			});
 	}
 
 	private connect(): void {
@@ -63,6 +77,24 @@ export class RaindropSettingTab extends PluginSettingTab {
 	private async disconnect(): Promise<void> {
 		new Setting(this.containerEl)
 			.setName(`Connected to Raindrop.io as ${this.plugin.settings.username}`)
+			.addButton((button) => {
+				return button
+					.setButtonText('Test API')
+					.setCta()
+					.onClick(async () => {
+						try {
+							const user = await this.api.getUser();
+							new Notice(`Test pass, hello ${user.fullName}`);
+						} catch (e) {
+							console.error(e);
+							new Notice(`Test failed: ${e}`);
+							this.api.tokenManager.clear();
+							this.plugin.settings.isConnected = false;
+							this.plugin.settings.username = undefined;
+							await this.plugin.saveSettings();
+						}
+					});
+			})
 			.addButton((button) => {
 				return button
 					.setButtonText('Disconnect')
@@ -162,7 +194,7 @@ export class RaindropSettingTab extends PluginSettingTab {
 	private resetSyncHistory(): void {
 		new Setting(this.containerEl)
 		  .setName('Reset sync')
-		  .setDesc('Wipe sync history to resync')
+		  .setDesc('Reset last sync time to resync')
 		  .addButton((button) => {
 			return button
 				.setButtonText('Reset')
@@ -211,16 +243,16 @@ export class RaindropSettingTab extends PluginSettingTab {
 						const minutes = Number(value);
 						this.plugin.settings.autoSyncInterval = minutes;
 						await this.plugin.saveSettings();
-						console.log("Set raindrop.io autosync interval", minutes);
+						console.info("Set raindrop.io autosync interval", minutes);
 						if (minutes > 0) {
 							this.plugin.clearAutoSync();
 							this.plugin.startAutoSync(minutes);
-							console.log(
+							console.info(
 								`Raindrop.io auto sync enabled! Every ${minutes} minutes.`
 							);
 						} else {
 							this.plugin.clearAutoSync();
-							console.log("Raindrop.io auto sync disabled!");
+							console.info("Raindrop.io auto sync disabled!");
 						}
 					}
 				});

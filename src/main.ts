@@ -1,7 +1,7 @@
 import { Notice, Plugin } from 'obsidian';
 import { RaindropSettingTab } from './settings';
 import RaindropSync from './sync';
-import type { RaindropCollection, RaindropPluginSettings } from './types';
+import type { RaindropCollection, RaindropPluginSettings, SyncCollectionSettings } from './types';
 import DEFAULT_TEMPLATE from './assets/defaultTemplate.njk';
 import { RaindropAPI } from './api';
 
@@ -9,6 +9,7 @@ import { RaindropAPI } from './api';
 const DEFAULT_SETTINGS: RaindropPluginSettings = {
 	username: undefined,
 	isConnected: false,
+	ribbonIcon: true,
 	highlightsFolder: '/',
 	syncCollections: {
 		'-1': {
@@ -41,6 +42,16 @@ export default class RaindropPlugin extends Plugin {
 		this.api = new RaindropAPI(this.app);
 		this.raindropSync = new RaindropSync(this.app, this, this.api);
 
+		if (this.settings.ribbonIcon) {
+			this.addRibbonIcon('cloud', 'Sync your Raindrop highlights', () => {
+				if (!this.settings.isConnected) {
+					new Notice('Please configure Raindrop API token in the plugin setting');
+				} else {
+					this.raindropSync.sync();
+				}
+			});
+		}
+
 		this.addCommand({
 			id: 'raindrop-sync',
 			name: 'Sync highlights',
@@ -51,7 +62,7 @@ export default class RaindropPlugin extends Plugin {
 
 		this.addCommand({
 			id: 'raindrop-show-last-sync-time',
-			name: 'Show last sync time',
+			name: 'Show Last Sync Time',
 			callback: async () => {
 				let message = "";
 				for (let id in this.settings.syncCollections) {
@@ -61,6 +72,25 @@ export default class RaindropPlugin extends Plugin {
 					}
 				}
 				new Notice(message);
+			}
+		});
+
+		this.addCommand({
+			id: 'raindrop-open-link',
+			name: 'Open Link in Raindrop',
+			callback: async () => {
+				const file = app.workspace.getActiveFile();
+				if (file) {
+					const fmc = app.metadataCache.getFileCache(file)?.frontmatter;
+					if (fmc?.raindrop_id) {
+						const article = await this.api.getArticle(fmc.raindrop_id);
+						window.open(`https://app.raindrop.io/my/${article.collectionId}/item/${article.id}/edit`);
+					} else {
+						new Notice("This is not a Raindrop article file")
+					}
+				} else {
+					new Notice("No active file");
+				}
 			}
 		});
 
@@ -86,11 +116,11 @@ export default class RaindropPlugin extends Plugin {
 	}
 
 	async updateCollectionSettings(collections: RaindropCollection[]) {
-		const syncCollections = this.settings.syncCollections;
+		const syncCollections: SyncCollectionSettings = {};
 		collections.forEach(async (collection) => {
 			const {id, title} = collection;
 
-			if (!(id in syncCollections)) {
+			if (!(id in this.settings.syncCollections)) {
 				syncCollections[id] = {
 					id: id,
 					title: title,
@@ -98,9 +128,11 @@ export default class RaindropPlugin extends Plugin {
 					lastSyncDate: undefined,
 				};
 			} else {
+				syncCollections[id] = this.settings.syncCollections[id];
 				syncCollections[id].title = title;
 			}
 		});
+		this.settings.syncCollections = syncCollections;
 		await this.saveSettings();
 	}
 
@@ -109,7 +141,7 @@ export default class RaindropPlugin extends Plugin {
 			window.clearTimeout(this.timeoutIDAutoSync);
 			this.timeoutIDAutoSync = undefined;
 		}
-		console.log('Clearing auto sync...');
+		console.info('Clearing auto sync...');
 	}
 
 	async startAutoSync(minutes?: number): Promise<void> {
@@ -123,6 +155,6 @@ export default class RaindropPlugin extends Plugin {
 				minutesToSync * 60000
 			);
 		}
-		console.log(`StartAutoSync: this.timeoutIDAutoSync ${this.timeoutIDAutoSync} with ${minutesToSync} minutes`);
+		console.info(`StartAutoSync: this.timeoutIDAutoSync ${this.timeoutIDAutoSync} with ${minutesToSync} minutes`);
 	}
 }
