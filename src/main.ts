@@ -97,8 +97,8 @@ export default class RaindropPlugin extends Plugin {
 		this.addSettingTab(new RaindropSettingTab(this.app, this, this.api));
 	}
 
-	onunload() {
-
+	async onunload() {
+		await this.clearAutoSync();
 	}
 
 	async loadSettings() {
