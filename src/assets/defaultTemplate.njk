@@ -22,7 +22,6 @@
 > [!{{callout}}]+ Updated on {{highlight.lastUpdate}}
 >
 > {{highlight.text.split("\n") | join("\n>")}}
-{% if highlight.note -%}>
-> > {{highlight.note}}
-{%- endif %}
+{% if highlight.note -%}> > {{highlight.note}}{%- endif %}
+
 {%- endfor -%}
