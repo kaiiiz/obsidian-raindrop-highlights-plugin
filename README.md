@@ -47,7 +47,7 @@ This plugin doesn't use the OAuth mechanism. To get your API Token, follow the s
 
 ### To sync all new highlights since previous update
 
-- Command: `Raindrop Highlights: Sync Highlights`
+- Use Raindrop icon in the sidebar or Command: `Raindrop Highlights: Sync Highlights`
 
 **NOTE**: Do not touch the front matter properties: `raindrop_id` and `raindrop_last_update`. These properties are used to identify the existing article to prevent file and highlights duplication.
 
