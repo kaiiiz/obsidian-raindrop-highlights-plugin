@@ -101,7 +101,7 @@ export class RaindropAPI {
 				}
 				articles = articles.filter(article => {
 					return article.lastUpdate >= lastSync;
-				})
+				});
 			}
 		}
 
@@ -115,7 +115,7 @@ export class RaindropAPI {
 			if (lastSync !== undefined) {
 				article['highlights'] = article['highlights'].filter((hl) => {
 					return hl.lastUpdate >= lastSync;
-				})
+				});
 			}
 		}
 
