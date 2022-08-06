@@ -57,6 +57,5 @@ This project is inspired by Hady Ozman's [Obsidian Kindle Plugin](https://github
 
 ## Limiations
 
-- To simplify the implementation, this plugin only supports one-way sync. (i.e. from Raindrop to Obsdiain) If you move a file from one folder to another folder, the article's collection in Raindrop remains unchanged.
-- To simplify the implementation, the file location inside Obsidian doesn't sync with Raindrop. (i.e. The collection folder inside Obsidian is only used for file creation.)
+- To simplify the implementation, this plugin only supports one-way sync. (i.e. from Raindrop to Obsdiain) If you move a file from one folder to another folder, the article's collection in Raindrop remains unchanged. The collection folder inside Obsidian is only used for file creation.
 - Raindrop API has [rate limiting](https://developer.raindrop.io/#rate-limiting), you can make up to 120 requests per minute per authenticated user. This plugin does its best to prevent unneeded requests, it only requests posts updated after the last sync time.
