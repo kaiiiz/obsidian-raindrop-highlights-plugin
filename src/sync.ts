@@ -1,10 +1,9 @@
-import { App, Notice, parseYaml, TFile, type FrontMatterCache } from "obsidian";
+import { App, Notice, parseYaml, stringifyYaml, TFile } from "obsidian";
 import sanitize from "sanitize-filename";
 import type { RaindropAPI } from "./api";
 import type RaindropPlugin from "./main";
 import Renderer from "./renderer";
-import type { ArticleFile, RaindropArticle, RaindropCollection, SyncCollection } from "./types";
-import matter from "gray-matter";
+import type { ArticleFile, ArticleFileFrontMatter, RaindropArticle, RaindropCollection, SyncCollection } from "./types";
 
 export default class RaindropSync {
 	private app: App;
@@ -101,17 +100,26 @@ export default class RaindropSync {
 		const newMdContent = this.renderer.renderContent(article, false);
 		await this.app.vault.append(file, newMdContent);
 
-		let oldMdContent = await this.app.vault.cachedRead(file);
-		const oldMdObj = matter(oldMdContent);
-		oldMdObj.data['raindrop_last_update'] = (new Date()).toISOString();
-		oldMdContent = matter.stringify(oldMdObj.content, oldMdObj.data);
-		await this.app.vault.modify(file, oldMdContent);
+		// update frontmatter
+		const frontmatter = await this.parseFrontmatter(file);
+		if (metadata?.frontmatter && frontmatter) {
+			frontmatter.raindrop_last_update = (new Date()).toISOString();
+			const filecontentStr = await this.readFileContent(file);
+			const frontmatterStr = stringifyYaml(frontmatter);
+			const oldMdContent = `---\n${frontmatterStr}---\n${filecontentStr}`;
+			await this.app.vault.modify(file, oldMdContent);
+		}
 	}
 
 	async createFile(filePath: string, article: RaindropArticle): Promise<TFile> {
 		console.debug("create file", filePath);
 		const newMdContent = this.renderer.renderContent(article, true);
-		const mdContent = this.renderer.addFrontMatter(newMdContent, article);
+		const frontmatter: ArticleFileFrontMatter = {
+			raindrop_id: article.id,
+			raindrop_last_update: (new Date()).toISOString(),
+		};
+		const frontmatterStr = stringifyYaml(frontmatter);
+		const mdContent = `---\n${frontmatterStr}---\n${newMdContent}`;
 		return this.app.vault.create(filePath, mdContent);
 	}
 
@@ -131,5 +139,30 @@ export default class RaindropSync {
 	sanitizeTitle(title: string): string {
 		const santizedTitle = title.replace(/[':#|]/g, "").trim();
 		return sanitize(santizedTitle).substring(0, 192);
+	}
+
+	private async parseFrontmatter(file: TFile): Promise<ArticleFileFrontMatter|null> {
+		const metadata = this.app.metadataCache.getFileCache(file);
+		if (!metadata?.frontmatter) {
+			return null;
+		} else {
+			const {position: {start, end}} = metadata.frontmatter;
+			const filecontent = await this.app.vault.cachedRead(file);
+			const yamlContent: string = filecontent.split("\n").slice(start.line, end.line).join("\n");
+			const parsedYaml: ArticleFileFrontMatter = parseYaml(yamlContent);
+			return parsedYaml;
+		}
+	}
+
+	private async readFileContent(file: TFile): Promise<string> {
+		const metadata = this.app.metadataCache.getFileCache(file);
+		let filecontent = await this.app.vault.cachedRead(file);
+		if (metadata?.frontmatter) {
+			const {position: {start, end}} = metadata?.frontmatter;
+			const filecontentLine = filecontent.split("\n");
+			filecontentLine.splice(start.line, end.line - start.line + 1);
+			filecontent = filecontentLine.join("\n");
+		}
+		return filecontent;
 	}
 }

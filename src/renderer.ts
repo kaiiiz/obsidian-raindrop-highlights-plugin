@@ -1,4 +1,3 @@
-import matter from "gray-matter";
 import nunjucks from "nunjucks";
 import Moment from "moment";
 import type RaindropPlugin from "./main";
@@ -69,13 +68,5 @@ export default class Renderer {
 		const template = this.plugin.settings.template;
 		const content = nunjucks.renderString(template, context);
 		return content;
-	}
-
-	addFrontMatter(markdownContent: string, article: RaindropArticle) {
-		const fm: ArticleFileFrontMatter = {
-			raindrop_id: article.id,
-			raindrop_last_update: (new Date()).toISOString(),
-		};
-		return matter.stringify(markdownContent, fm);
 	}
 }

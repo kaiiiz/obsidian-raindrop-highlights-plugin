@@ -164,7 +164,6 @@ export class RaindropAPI {
 	}
 
 	private parseArticle(raindrop: any): RaindropArticle {
-		console.log(raindrop);
 		const article: RaindropArticle = {
 			id: raindrop['_id'],
 			collectionId: raindrop['collectionId'],
