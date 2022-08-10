@@ -27,6 +27,10 @@ export interface RaindropArticle { // Remote state
 	link: string,
 	lastUpdate: Date,
 	tags: string[],
+	cover: string,
+	created: Date,
+	type: string,
+	important: boolean,
 }
 
 // ----------
@@ -39,6 +43,7 @@ export interface ArticleFile {
 export interface ArticleFileFrontMatter { // use snake_case in front matter
 	raindrop_id: number,
 	raindrop_last_update: string,
+	[key: string]: any,
 }
 
 // ----------
@@ -53,6 +58,7 @@ export interface SyncCollection { // Local state
 export interface SyncCollectionSettings {[id: number]: SyncCollection}
 
 export interface RaindropPluginSettings {
+	version: string;
 	username?: string;
 	isConnected: boolean;
 	ribbonIcon: boolean;

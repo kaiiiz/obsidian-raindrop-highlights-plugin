@@ -2,33 +2,8 @@ import { Notice, Plugin } from 'obsidian';
 import { RaindropSettingTab } from './settings';
 import RaindropSync from './sync';
 import type { RaindropCollection, RaindropPluginSettings, SyncCollectionSettings } from './types';
-import DEFAULT_TEMPLATE from './assets/defaultTemplate.njk';
 import { RaindropAPI } from './api';
-
-
-const DEFAULT_SETTINGS: RaindropPluginSettings = {
-	username: undefined,
-	isConnected: false,
-	ribbonIcon: true,
-	highlightsFolder: '/',
-	syncCollections: {
-		'-1': {
-			id: -1,
-			title: 'Unsorted',
-			sync: false,
-			lastSyncDate: undefined,
-		},
-		'-99': {
-			id: -99,
-			title: 'Trash',
-			sync: false,
-			lastSyncDate: undefined,
-		}
-	},
-	template: DEFAULT_TEMPLATE,
-	dateTimeFormat: 'YYYY/MM/DD HH:mm:ss',
-	autoSyncInterval: 0,
-};
+import { VERSION, DEFAULT_SETTINGS } from './constants';
 
 export default class RaindropPlugin extends Plugin {
 	private raindropSync: RaindropSync;
@@ -109,6 +84,12 @@ export default class RaindropPlugin extends Plugin {
 				collection.lastSyncDate = new Date(collection.lastSyncDate);
 			}
 		}
+		// if (this.settings.version !== VERSION) {
+		// version migration
+		// new Notice(`Migration Raindrop Highlights from ${this.settings.version} to ${VERSION}`);
+		// }
+		this.settings.version = VERSION;
+		await this.saveSettings();
 	}
 
 	async saveSettings() {
