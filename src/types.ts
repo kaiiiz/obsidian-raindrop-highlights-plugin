@@ -58,6 +58,7 @@ export interface SyncCollection { // Local state
 export interface SyncCollectionSettings {[id: number]: SyncCollection}
 
 export interface RaindropPluginSettings {
+	version: string;
 	username?: string;
 	isConnected: boolean;
 	ribbonIcon: boolean;
