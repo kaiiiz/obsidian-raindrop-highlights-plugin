@@ -1,15 +1,19 @@
 import nunjucks from "nunjucks";
 import Moment from "moment";
 import type RaindropPlugin from "./main";
-import type { ArticleFileFrontMatter, RaindropArticle } from "./types";
+import type { RaindropArticle } from "./types";
 
 type RenderHighlight = {
-	id: string,
-	color: string,
-	created: string,
-	lastUpdate: string,
-	note: string,
-	text: string,
+	id: string;
+	color: string;
+	created: string;
+	lastUpdate: string;
+	note: string;
+	text: string;
+};
+
+type RenderCollection = {
+	title: string;
 };
 
 type RenderTemplate = {
@@ -19,7 +23,12 @@ type RenderTemplate = {
 	excerpt: string;
 	link: string;
 	highlights: RenderHighlight[];
-	tags: string[],
+	collection: RenderCollection;
+	tags: string[];
+	cover: string;
+	created: string;
+	type: string;
+	important: boolean;
 };
 
 export default class Renderer {
@@ -40,29 +49,38 @@ export default class Renderer {
 	}
 
 	renderContent(article: RaindropArticle, newArticle = true) {
-		const { id , title, highlights, excerpt, link, tags } = article;
 		const dateTimeFormat = this.plugin.settings.dateTimeFormat;
 
-		const renderHighlights: RenderHighlight[] = highlights.map(hl => {
+		const renderHighlights: RenderHighlight[] = article.highlights.map((hl) => {
 			const renderHighlight: RenderHighlight = {
-				id: hl['id'],
-				color: hl['color'],
-				created: Moment(hl['created']).format(dateTimeFormat),
-				lastUpdate: Moment(hl['lastUpdate']).format(dateTimeFormat),
-				note: hl['note'],
-				text: hl['text'],
+				id: hl.id,
+				color: hl.color,
+				created: Moment(hl.created).format(dateTimeFormat),
+				lastUpdate: Moment(hl.lastUpdate).format(dateTimeFormat),
+				note: hl.note,
+				text: hl.text,
 			};
 			return renderHighlight;
 		});
 
+		// sync() should keep the latest collection data in local in the beginning
+		const renderCollection: RenderCollection = {
+			title: this.plugin.settings.syncCollections[article.collectionId].title,
+		}
+
 		const context: RenderTemplate = {
 			is_new_article: newArticle,
-			id,
-			title,
-			excerpt,
-			link,
+			id: article.id,
+			title: article.title,
+			excerpt: article.excerpt,
+			link: article.link,
 			highlights: renderHighlights,
-			tags,
+			collection: renderCollection,
+			tags: article.tags,
+			cover: article.cover,
+			created: Moment(article.created).format(dateTimeFormat),
+			type: article.type,
+			important: article.important,
 		};
 
 		const template = this.plugin.settings.template;

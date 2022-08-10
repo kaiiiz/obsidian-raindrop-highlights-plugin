@@ -27,6 +27,10 @@ export interface RaindropArticle { // Remote state
 	link: string,
 	lastUpdate: Date,
 	tags: string[],
+	cover: string,
+	created: Date,
+	type: string,
+	important: boolean,
 }
 
 // ----------

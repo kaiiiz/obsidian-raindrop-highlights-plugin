@@ -173,6 +173,10 @@ export class RaindropAPI {
 			link: raindrop['link'],
 			lastUpdate: new Date(raindrop['lastUpdate']),
 			tags: raindrop['tags'],
+			cover: raindrop['cover'],
+			created: new Date(raindrop['created']),
+			type: raindrop['type'],
+			important: raindrop['important'],
 		};
 		return article;
 	}
