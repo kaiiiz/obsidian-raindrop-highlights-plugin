@@ -111,12 +111,6 @@ export class RaindropAPI {
 				let res = await this.get(`${BASEURL}/raindrop/${article.id}`, {});
 				article['highlights'] = this.parseHighlights(res.item.highlights);
 			}
-			// filter highlights by lastSync
-			if (lastSync !== undefined) {
-				article['highlights'] = article['highlights'].filter((hl) => {
-					return hl.lastUpdate >= lastSync;
-				});
-			}
 		}
 
 		return articles;
