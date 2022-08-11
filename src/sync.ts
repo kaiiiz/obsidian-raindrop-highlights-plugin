@@ -101,13 +101,20 @@ export default class RaindropSync {
 		await this.app.vault.append(file, newMdContent);
 
 		// update frontmatter
-		const frontmatter = await this.parseFrontmatter(file);
-		if (metadata?.frontmatter && frontmatter) {
-			frontmatter.raindrop_last_update = (new Date()).toISOString();
-			const filecontentStr = await this.readFileContent(file);
-			const frontmatterStr = stringifyYaml(frontmatter);
-			const oldMdContent = `---\n${frontmatterStr}---\n${filecontentStr}`;
-			await this.app.vault.modify(file, oldMdContent);
+		if (metadata?.frontmatter) {
+			// separate content and front matter
+			const fileContent = await this.app.vault.cachedRead(file);
+			const {position: {start, end}} = metadata.frontmatter;
+			const fileContentObj = this.splitFrontmatterAndContent(fileContent, start.line, end.line);
+
+			// update frontmatter
+			const frontmatterObj: ArticleFileFrontMatter = parseYaml(fileContentObj.frontmatter);
+			frontmatterObj.raindrop_last_update = (new Date()).toISOString();
+
+			// stringify and concat
+			const newFrontmatter = stringifyYaml(frontmatterObj);
+			const newFullFileContent = `---\n${newFrontmatter}---\n${fileContentObj.content}`;
+			await this.app.vault.modify(file, newFullFileContent);
 		}
 	}
 
@@ -141,28 +148,18 @@ export default class RaindropSync {
 		return sanitize(santizedTitle).substring(0, 192);
 	}
 
-	private async parseFrontmatter(file: TFile): Promise<ArticleFileFrontMatter|null> {
-		const metadata = this.app.metadataCache.getFileCache(file);
-		if (!metadata?.frontmatter) {
-			return null;
-		} else {
-			const {position: {start, end}} = metadata.frontmatter;
-			const filecontent = await this.app.vault.cachedRead(file);
-			const yamlContent: string = filecontent.split("\n").slice(start.line, end.line).join("\n");
-			const parsedYaml: ArticleFileFrontMatter = parseYaml(yamlContent);
-			return parsedYaml;
-		}
-	}
-
-	private async readFileContent(file: TFile): Promise<string> {
-		const metadata = this.app.metadataCache.getFileCache(file);
-		let filecontent = await this.app.vault.cachedRead(file);
-		if (metadata?.frontmatter) {
-			const {position: {start, end}} = metadata?.frontmatter;
-			const filecontentLine = filecontent.split("\n");
-			filecontentLine.splice(start.line, end.line - start.line + 1);
-			filecontent = filecontentLine.join("\n");
-		}
-		return filecontent;
+	private splitFrontmatterAndContent(content: string, fmStartLine: number, fmEndLine: number): {
+		content: string,
+		frontmatter: string,
+	} {
+		const filecontentLine = content.split("\n");
+		const frontmatterLine = filecontentLine.splice(fmStartLine, fmEndLine - fmStartLine + 1);
+		const filecontentStr = filecontentLine.join("\n");
+		frontmatterLine.pop(); // remove the end of "---" in the frontmatter for `parseYaml`
+		const frontmatterStr = frontmatterLine.join("\n");
+		return {
+			content: filecontentStr,
+			frontmatter: frontmatterStr,
+		};
 	}
 }
