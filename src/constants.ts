@@ -1,7 +1,7 @@
 import DEFAULT_TEMPLATE from './assets/defaultTemplate.njk';
 import type { RaindropPluginSettings } from "./types";
 
-export const VERSION = '0.0.11';
+export const VERSION = '0.0.12';
 
 export const DEFAULT_SETTINGS: RaindropPluginSettings = {
 	version: VERSION,
