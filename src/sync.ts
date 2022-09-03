@@ -105,7 +105,7 @@ export default class RaindropSync {
 			// separate content and front matter
 			const fileContent = await this.app.vault.cachedRead(file);
 			const {position: {start, end}} = metadata.frontmatter;
-			const fileContentObj = this.splitFrontmatterAndContent(fileContent, start.line, end.line);
+			const fileContentObj = this.splitFrontmatterAndContent(fileContent, end.line);
 
 			// update frontmatter
 			const frontmatterObj: ArticleFileFrontMatter = parseYaml(fileContentObj.frontmatter);
@@ -148,18 +148,22 @@ export default class RaindropSync {
 		return sanitize(santizedTitle).substring(0, 192);
 	}
 
-	private splitFrontmatterAndContent(content: string, fmStartLine: number, fmEndLine: number): {
+	private splitFrontmatterAndContent(content: string, fmEndLine: number): {
 		content: string,
 		frontmatter: string,
 	} {
-		const filecontentLine = content.split("\n");
-		const frontmatterLine = filecontentLine.splice(fmStartLine, fmEndLine - fmStartLine + 1);
-		const filecontentStr = filecontentLine.join("\n");
-		frontmatterLine.pop(); // remove the end of "---" in the frontmatter for `parseYaml`
-		const frontmatterStr = frontmatterLine.join("\n");
+		// split content to -> [0, fmEndLine), [fmEndLine + 1, EOL)
+		let splitPosFm = -1;
+		while (fmEndLine-- && splitPosFm++ < content.length) {
+			splitPosFm = content.indexOf("\n", splitPosFm);
+			if (splitPosFm < 0) throw Error("Split front matter failed");
+		}
+		let splitPosContent = splitPosFm + 1;
+		splitPosContent = content.indexOf("\n", splitPosContent) + 1;
+
 		return {
-			content: filecontentStr,
-			frontmatter: frontmatterStr,
+			content: content.substring(splitPosContent),
+			frontmatter: content.substring(0, splitPosFm),
 		};
 	}
 }
