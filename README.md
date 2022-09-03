@@ -9,7 +9,9 @@ Although there exists a similar project called [Obsidian Raindrop Plugin](https:
 - Sync web article highlights into Obsidian
 - Sync web article annotations into Obsidian (Raindrop PRO user only)
 - Support nested collections (Raindrop PRO user only)
-- Update existing articles with new highlights and annotations (append to the end of file / always keep the latest state)
+- Update existing files with new highlights and annotations (2 mode supported)
+  - Append new highlights to the end of existing file (default)
+  - Overwrite the existing file with the the latest Raindrop article highlights and metadata
 - Customization highlights through [Nunjucks](https://mozilla.github.io/nunjucks/) template
 - Manage Raindrop collections to be synced
 - Auto sync in interval
@@ -18,11 +20,11 @@ Although there exists a similar project called [Obsidian Raindrop Plugin](https:
 
 After installing the plugin, configure the the settings of the plugin then initiate the first sync manually. Thereafter, the plugin can be configured to sync automatically or manually.
 
-Use Raindrop icon in the sidebar or command `Raindrop Highlights: Sync Highlights` to trigger manual sync.
+Use Raindrop icon in the sidebar or command `Raindrop Highlights: Sync highlights` to trigger manual sync.
 
-Use `Raindrop Highlights: Show Last Sync Time` command to check last sync time for each collection.
+Use `Raindrop Highlights: Show last sync time` command to check last sync time for each collection.
 
-Use `Raindrop Highlights: Open Link in Raindrop` command to open the corresponding link in Raindrop.
+Use `Raindrop Highlights: Open link in Raindrop` command to open the corresponding link in Raindrop.
 
 ### API Token
 
@@ -39,7 +41,7 @@ This plugin doesn't use the OAuth mechanism. To get your API Token, follow the s
 
 - `Connect`: Enter API Token in order to pull the highlights from Raindrop
 - `Disconnect`: Remove API Token from Obsidian
-- `Append Mode`: Disable append mode can keep the synced files in the latest state of the Raindrop articles, but this will lose the flexiblity to add/modify the synced files. (i.e. the old file content will be overwritten!)
+- `Append Mode`: Disabling append mode can keep the synced files with the latest state of the Raindrop articles, but will lose the flexiblity to add or modify the synced files. (i.e. the old file content will be overwritten!)
 - `Auto Sync Interval`: Set the interval in minutes to sync Raindrop highlights automatically
 - `Highlights folder`: Specify the folder location for your Raindrop articles
 - `Collection`: Specify the collections to be synced to the vault
@@ -48,7 +50,7 @@ This plugin doesn't use the OAuth mechanism. To get your API Token, follow the s
 
 ### To sync all new highlights since previous update
 
-- Use Raindrop icon in the sidebar or Command: `Raindrop Highlights: Sync Highlights`
+- Use Raindrop icon in the sidebar or Command: `Raindrop Highlights: Sync highlights`
 
 **NOTE**: Do not touch the front matter properties: `raindrop_id` and `raindrop_last_update`. These properties are used to identify the existing article to prevent file and highlights duplication.
 
