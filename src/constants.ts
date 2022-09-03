@@ -8,6 +8,7 @@ export const DEFAULT_SETTINGS: RaindropPluginSettings = {
 	username: undefined,
 	isConnected: false,
 	ribbonIcon: true,
+	appendMode: true,
 	highlightsFolder: '/',
 	syncCollections: {
 		'-1': {

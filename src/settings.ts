@@ -1,6 +1,7 @@
 import {App, Notice, PluginSettingTab, Setting} from 'obsidian';
 import templateInstructions from './templates/templateInstructions.html';
 import datetimeInstructions from './templates/datetimeInstructions.html';
+import appendModeInstructions from './templates/appendModeInstructions.html';
 import type { RaindropAPI } from './api';
 import type RaindropPlugin from './main';
 import CollectionsModal from './modal/collections';
@@ -29,6 +30,7 @@ export class RaindropSettingTab extends PluginSettingTab {
 			this.connect();
 		}
 		this.ribbonIcon();
+		this.appendMode();
 		this.highlightsFolder();
 		this.collections();
 		this.autoSyncInterval();
@@ -45,6 +47,24 @@ export class RaindropSettingTab extends PluginSettingTab {
 					.setValue(this.plugin.settings.ribbonIcon)
 					.onChange(async (value) => {
 						this.plugin.settings.ribbonIcon = value;
+						await this.plugin.saveSettings();
+					});
+			});
+	}
+
+	private appendMode(): void {
+		const descFragment = document
+		  .createRange()
+		  .createContextualFragment(appendModeInstructions);
+
+		new Setting(this.containerEl)
+			.setName('Append Mode')
+			.setDesc(descFragment)
+			.addToggle((toggle) => {
+				return toggle
+					.setValue(this.plugin.settings.appendMode)
+					.onChange(async (value) => {
+						this.plugin.settings.appendMode = value;
 						await this.plugin.saveSettings();
 					});
 			});
