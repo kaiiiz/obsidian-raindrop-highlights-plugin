@@ -1,4 +1,4 @@
-import type { App } from "obsidian";
+import { Notice, type App } from "obsidian";
 import axios from "axios";
 import type { RaindropArticle, RaindropCollection, RaindropHighlight, RaindropUser } from "./types";
 import TokenManager from "./tokenManager";
@@ -73,6 +73,7 @@ export class RaindropAPI {
 	}
 
 	async getRaindropsAfter(collectionId: number, lastSync?: Date): Promise<RaindropArticle[]> {
+		const notice = new Notice("Fetch Raindrops highlights", 0);
 		let res = await this.get(`${BASEURL}/raindrops/${collectionId}`, {
 			"page": 0,
 			"sort": "-lastUpdate"
@@ -80,6 +81,7 @@ export class RaindropAPI {
 		let raindropsCnt = res.count;
 		let articles = this.parseArticles(res.items);
 		let remainPages = Math.ceil(raindropsCnt / 25) - 1;
+		let totalPages = Math.ceil(raindropsCnt / 25) - 1;
 		let page = 1;
 
 		let addNewPages = async (page: number) => {
@@ -93,10 +95,12 @@ export class RaindropAPI {
 		if (articles.length > 0) {
 			if (lastSync === undefined) { // sync all
 				while (remainPages--) {
+					notice.setMessage(`Sync Raindrop pages: ${totalPages - remainPages}/${totalPages}`)
 					await addNewPages(page++);
 				}
 			} else { // sync article after lastSync
 				while (articles[articles.length - 1].lastUpdate >= lastSync && remainPages--) {
+					notice.setMessage(`Sync Raindrop pages: ${totalPages - remainPages}/${totalPages}`)
 					await addNewPages(page++);
 				}
 				articles = articles.filter(article => {
@@ -106,13 +110,15 @@ export class RaindropAPI {
 		}
 
 		// get real highlights (raindrop returns only 3 highlights in /raindrops/${collectionId} endpoint)
-		for (let article of articles) {
+		for (let [idx, article] of articles.entries()) {
+			notice.setMessage(`Sync Raindrop articles: ${idx + 1}/${articles.length}`)
 			if (article.highlights.length == 3) {
 				let res = await this.get(`${BASEURL}/raindrop/${article.id}`, {});
 				article['highlights'] = this.parseHighlights(res.item.highlights);
 			}
 		}
 
+		notice.hide();
 		return articles;
 	}
 
