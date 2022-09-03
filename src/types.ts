@@ -62,6 +62,7 @@ export interface RaindropPluginSettings {
 	username?: string;
 	isConnected: boolean;
 	ribbonIcon: boolean;
+	appendMode: boolean;
 	highlightsFolder: string;
 	syncCollections: SyncCollectionSettings;
 	template: string;

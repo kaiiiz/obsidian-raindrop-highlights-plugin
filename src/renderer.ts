@@ -1,7 +1,8 @@
 import nunjucks from "nunjucks";
 import Moment from "moment";
 import type RaindropPlugin from "./main";
-import type { RaindropArticle } from "./types";
+import type { ArticleFileFrontMatter, RaindropArticle } from "./types";
+import { stringifyYaml } from "obsidian";
 
 type RenderHighlight = {
 	id: string;
@@ -86,5 +87,16 @@ export default class Renderer {
 		const template = this.plugin.settings.template;
 		const content = nunjucks.renderString(template, context);
 		return content;
+	}
+
+	renderFullPost(article: RaindropArticle) {
+		const newMdContent = this.renderContent(article, true);
+		const frontmatter: ArticleFileFrontMatter = {
+			raindrop_id: article.id,
+			raindrop_last_update: (new Date()).toISOString(),
+		};
+		const frontmatterStr = stringifyYaml(frontmatter);
+		const mdContent = `---\n${frontmatterStr}---\n${newMdContent}`;
+		return mdContent;
 	}
 }

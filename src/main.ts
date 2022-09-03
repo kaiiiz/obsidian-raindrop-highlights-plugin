@@ -1,7 +1,7 @@
 import { Notice, Plugin } from 'obsidian';
 import { RaindropSettingTab } from './settings';
 import RaindropSync from './sync';
-import type { RaindropCollection, RaindropPluginSettings, SyncCollectionSettings } from './types';
+import type { RaindropCollection, RaindropPluginSettings, SyncCollection, SyncCollectionSettings } from './types';
 import { RaindropAPI } from './api';
 import { VERSION, DEFAULT_SETTINGS } from './constants';
 
@@ -37,22 +37,21 @@ export default class RaindropPlugin extends Plugin {
 
 		this.addCommand({
 			id: 'raindrop-show-last-sync-time',
-			name: 'Show Last Sync Time',
+			name: 'Show last sync time',
 			callback: async () => {
-				let message = "";
-				for (let id in this.settings.syncCollections) {
-					const collection = this.settings.syncCollections[id];
-					if (collection.sync) {
-						message += `${collection.title}: ${collection.lastSyncDate?.toLocaleString()}\n`
-					}
-				}
+				let message = Object.values(this.settings.syncCollections)
+					.filter((collection: SyncCollection) => collection.sync)
+					.map((collection: SyncCollection) => {
+						return `${collection.title}: ${collection.lastSyncDate?.toLocaleString()}`;
+					})
+					.join("\n");
 				new Notice(message);
 			}
 		});
 
 		this.addCommand({
 			id: 'raindrop-open-link',
-			name: 'Open Link in Raindrop',
+			name: 'Open link in Raindrop',
 			callback: async () => {
 				const file = app.workspace.getActiveFile();
 				if (file) {

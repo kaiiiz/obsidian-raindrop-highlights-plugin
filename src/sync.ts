@@ -83,6 +83,15 @@ export default class RaindropSync {
 	}
 
 	async updateFile(file: TFile, article: RaindropArticle) {
+		if (this.plugin.settings.appendMode) {
+			await this.updateFileAppendMode(file, article);
+		} else {
+			await this.updateFileOverwriteMode(file, article);
+		}
+	}
+
+	async updateFileAppendMode(file: TFile, article: RaindropArticle) {
+		console.debug("update file append mode", file.path);
 		const metadata = this.app.metadataCache.getFileCache(file);
 		if (metadata?.frontmatter && 'raindrop_last_update' in metadata.frontmatter) {
 			const localLastUpdate = new Date(metadata.frontmatter.raindrop_last_update);
@@ -96,7 +105,6 @@ export default class RaindropSync {
 			});
 		}
 
-		console.debug("update file", file.path);
 		const newMdContent = this.renderer.renderContent(article, false);
 		await this.app.vault.append(file, newMdContent);
 
@@ -105,7 +113,7 @@ export default class RaindropSync {
 			// separate content and front matter
 			const fileContent = await this.app.vault.cachedRead(file);
 			const {position: {start, end}} = metadata.frontmatter;
-			const fileContentObj = this.splitFrontmatterAndContent(fileContent, start.line, end.line);
+			const fileContentObj = this.splitFrontmatterAndContent(fileContent, end.line);
 
 			// update frontmatter
 			const frontmatterObj: ArticleFileFrontMatter = parseYaml(fileContentObj.frontmatter);
@@ -118,15 +126,15 @@ export default class RaindropSync {
 		}
 	}
 
+	async updateFileOverwriteMode(file: TFile, article: RaindropArticle) {
+		console.debug("update file overwrite mode", file.path);
+		const mdContent = this.renderer.renderFullPost(article);
+		return this.app.vault.modify(file, mdContent);
+	}
+
 	async createFile(filePath: string, article: RaindropArticle): Promise<TFile> {
 		console.debug("create file", filePath);
-		const newMdContent = this.renderer.renderContent(article, true);
-		const frontmatter: ArticleFileFrontMatter = {
-			raindrop_id: article.id,
-			raindrop_last_update: (new Date()).toISOString(),
-		};
-		const frontmatterStr = stringifyYaml(frontmatter);
-		const mdContent = `---\n${frontmatterStr}---\n${newMdContent}`;
+		const mdContent = this.renderer.renderFullPost(article);
 		return this.app.vault.create(filePath, mdContent);
 	}
 
@@ -148,18 +156,22 @@ export default class RaindropSync {
 		return sanitize(santizedTitle).substring(0, 192);
 	}
 
-	private splitFrontmatterAndContent(content: string, fmStartLine: number, fmEndLine: number): {
+	private splitFrontmatterAndContent(content: string, fmEndLine: number): {
 		content: string,
 		frontmatter: string,
 	} {
-		const filecontentLine = content.split("\n");
-		const frontmatterLine = filecontentLine.splice(fmStartLine, fmEndLine - fmStartLine + 1);
-		const filecontentStr = filecontentLine.join("\n");
-		frontmatterLine.pop(); // remove the end of "---" in the frontmatter for `parseYaml`
-		const frontmatterStr = frontmatterLine.join("\n");
+		// split content to -> [0, fmEndLine), [fmEndLine + 1, EOL)
+		let splitPosFm = -1;
+		while (fmEndLine-- && splitPosFm++ < content.length) {
+			splitPosFm = content.indexOf("\n", splitPosFm);
+			if (splitPosFm < 0) throw Error("Split front matter failed");
+		}
+		let splitPosContent = splitPosFm + 1;
+		splitPosContent = content.indexOf("\n", splitPosContent) + 1;
+
 		return {
-			content: filecontentStr,
-			frontmatter: frontmatterStr,
+			content: content.substring(splitPosContent),
+			frontmatter: content.substring(0, splitPosFm),
 		};
 	}
 }

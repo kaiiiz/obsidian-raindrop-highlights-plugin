@@ -1,12 +1,6 @@
 export default class TokenManager {
-	localStorage: any;
-
-	constructor() {
-		this.localStorage = window.localStorage;
-	}
-
 	get(): string|null {
-		const token = this.localStorage.getItem('raindrop_token');
+		const token = window.localStorage.getItem('raindrop_token');
 
 		if (token === null || token.length == 0) {
 			return null;
@@ -16,10 +10,10 @@ export default class TokenManager {
 	}
 
 	set(token: string) {
-		this.localStorage.setItem('raindrop_token', token);
+		window.localStorage.setItem('raindrop_token', token);
 	}
 
 	clear() {
-		this.localStorage.removeItem('raindrop_token');
+		window.localStorage.removeItem('raindrop_token');
 	}
 }
