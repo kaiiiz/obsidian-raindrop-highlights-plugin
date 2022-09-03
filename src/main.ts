@@ -37,7 +37,7 @@ export default class RaindropPlugin extends Plugin {
 
 		this.addCommand({
 			id: 'raindrop-show-last-sync-time',
-			name: 'Show Last Sync Time',
+			name: 'Show last sync time',
 			callback: async () => {
 				let message = "";
 				for (let id in this.settings.syncCollections) {
@@ -52,7 +52,7 @@ export default class RaindropPlugin extends Plugin {
 
 		this.addCommand({
 			id: 'raindrop-open-link',
-			name: 'Open Link in Raindrop',
+			name: 'Open link in Raindrop',
 			callback: async () => {
 				const file = app.workspace.getActiveFile();
 				if (file) {
