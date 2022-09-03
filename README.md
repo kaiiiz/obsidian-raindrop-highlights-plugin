@@ -9,7 +9,7 @@ Although there exists a similar project called [Obsidian Raindrop Plugin](https:
 - Sync web article highlights into Obsidian
 - Sync web article annotations into Obsidian (Raindrop PRO user only)
 - Support nested collections (Raindrop PRO user only)
-- Update existing articles with new highlights and annotations
+- Update existing articles with new highlights and annotations (append to the end of file / always keep the latest state)
 - Customization highlights through [Nunjucks](https://mozilla.github.io/nunjucks/) template
 - Manage Raindrop collections to be synced
 - Auto sync in interval
@@ -39,6 +39,7 @@ This plugin doesn't use the OAuth mechanism. To get your API Token, follow the s
 
 - `Connect`: Enter API Token in order to pull the highlights from Raindrop
 - `Disconnect`: Remove API Token from Obsidian
+- `Append Mode`: Disable append mode can keep the synced files in the latest state of the Raindrop articles, but this will lose the flexiblity to add/modify the synced files. (i.e. the old file content will be overwritten!)
 - `Auto Sync Interval`: Set the interval in minutes to sync Raindrop highlights automatically
 - `Highlights folder`: Specify the folder location for your Raindrop articles
 - `Collection`: Specify the collections to be synced to the vault
