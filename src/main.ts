@@ -57,8 +57,8 @@ export default class RaindropPlugin extends Plugin {
 				if (file) {
 					const fmc = app.metadataCache.getFileCache(file)?.frontmatter;
 					if (fmc?.raindrop_id) {
-						const article = await this.api.getArticle(fmc.raindrop_id);
-						window.open(`https://app.raindrop.io/my/${article.collectionId}/item/${article.id}/edit`);
+						const bookmark = await this.api.getRaindrop(fmc.raindrop_id);
+						window.open(`https://app.raindrop.io/my/${bookmark.collectionId}/item/${bookmark.id}/edit`);
 					} else {
 						new Notice("This is not a Raindrop article file")
 					}

@@ -1,6 +1,6 @@
 import { Notice, type App } from "obsidian";
 import axios from "axios";
-import type { RaindropArticle, RaindropCollection, RaindropHighlight, RaindropUser } from "./types";
+import type { RaindropBookmark, RaindropCollection, RaindropHighlight, RaindropUser } from "./types";
 import TokenManager from "./tokenManager";
 
 const BASEURL = "https://api.raindrop.io/rest/v1"
@@ -76,14 +76,14 @@ export class RaindropAPI {
 		return collections;
 	}
 
-	async getRaindropsAfter(collectionId: number, lastSync?: Date): Promise<RaindropArticle[]> {
+	async getRaindropsAfter(collectionId: number, lastSync?: Date): Promise<RaindropBookmark[]> {
 		const notice = new Notice("Fetch Raindrops highlights", 0);
 		let res = await this.get(`${BASEURL}/raindrops/${collectionId}`, {
 			"page": 0,
 			"sort": "-lastUpdate"
 		});
 		let raindropsCnt = res.count;
-		let articles = this.parseArticles(res.items);
+		let bookmarks = this.parseRaindrops(res.items);
 		let remainPages = Math.ceil(raindropsCnt / 25) - 1;
 		let totalPages = Math.ceil(raindropsCnt / 25) - 1;
 		let page = 1;
@@ -93,37 +93,37 @@ export class RaindropAPI {
 				"page": page,
 				"sort": "-lastUpdate"
 			});
-			articles = articles.concat(this.parseArticles(res.items));
+			bookmarks = bookmarks.concat(this.parseRaindrops(res.items));
 		}
 
-		if (articles.length > 0) {
+		if (bookmarks.length > 0) {
 			if (lastSync === undefined) { // sync all
 				while (remainPages--) {
 					notice.setMessage(`Sync Raindrop pages: ${totalPages - remainPages}/${totalPages}`)
 					await addNewPages(page++);
 				}
 			} else { // sync article after lastSync
-				while (articles[articles.length - 1].lastUpdate >= lastSync && remainPages--) {
+				while (bookmarks[bookmarks.length - 1].lastUpdate >= lastSync && remainPages--) {
 					notice.setMessage(`Sync Raindrop pages: ${totalPages - remainPages}/${totalPages}`)
 					await addNewPages(page++);
 				}
-				articles = articles.filter(article => {
-					return article.lastUpdate >= lastSync;
+				bookmarks = bookmarks.filter(bookmark => {
+					return bookmark.lastUpdate >= lastSync;
 				});
 			}
 		}
 
 		// get real highlights (raindrop returns only 3 highlights in /raindrops/${collectionId} endpoint)
-		for (let [idx, article] of articles.entries()) {
-			notice.setMessage(`Sync Raindrop articles: ${idx + 1}/${articles.length}`)
-			if (article.highlights.length == 3) {
-				let res = await this.get(`${BASEURL}/raindrop/${article.id}`, {});
-				article['highlights'] = this.parseHighlights(res.item.highlights);
+		for (let [idx, bookmark] of bookmarks.entries()) {
+			notice.setMessage(`Sync Raindrop bookmarks: ${idx + 1}/${bookmarks.length}`)
+			if (bookmark.highlights.length == 3) {
+				let res = await this.get(`${BASEURL}/raindrop/${bookmark.id}`, {});
+				bookmark['highlights'] = this.parseHighlights(res.item.highlights);
 			}
 		}
 
 		notice.hide();
-		return articles;
+		return bookmarks;
 	}
 
 	async getUser(): Promise<RaindropUser> {
@@ -155,20 +155,20 @@ export class RaindropAPI {
 		};
 	}
 
-	async getArticle(id: number): Promise<RaindropArticle> {
+	async getRaindrop(id: number): Promise<RaindropBookmark> {
 		const res = await this.get(`${BASEURL}/raindrop/${id}`, {});
-		const article = this.parseArticle(res.item);
-		return article;
+		const bookmark = this.parseRaindrop(res.item);
+		return bookmark;
 	}
 
-	private parseArticles(articles: any): RaindropArticle[] {
-		return articles.map((raindrop: any) => {
-			return this.parseArticle(raindrop);
+	private parseRaindrops(bookmarks: any): RaindropBookmark[] {
+		return bookmarks.map((raindrop: any) => {
+			return this.parseRaindrop(raindrop);
 		});
 	}
 
-	private parseArticle(raindrop: any): RaindropArticle {
-		const article: RaindropArticle = {
+	private parseRaindrop(raindrop: any): RaindropBookmark {
+		const bookmark: RaindropBookmark = {
 			id: raindrop['_id'],
 			collectionId: raindrop['collectionId'],
 			title: raindrop['title'],
@@ -182,7 +182,7 @@ export class RaindropAPI {
 			type: raindrop['type'],
 			important: raindrop['important'],
 		};
-		return article;
+		return bookmark;
 	}
 
 	private parseHighlights(highlights: any): RaindropHighlight[] {
