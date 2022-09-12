@@ -10,20 +10,7 @@ export const DEFAULT_SETTINGS: RaindropPluginSettings = {
 	ribbonIcon: true,
 	appendMode: true,
 	highlightsFolder: '/',
-	syncCollections: {
-		'-1': {
-			id: -1,
-			title: 'Unsorted',
-			sync: false,
-			lastSyncDate: undefined,
-		},
-		'-99': {
-			id: -99,
-			title: 'Trash',
-			sync: false,
-			lastSyncDate: undefined,
-		}
-	},
+	syncCollections: {},
 	template: DEFAULT_TEMPLATE,
 	dateTimeFormat: 'YYYY/MM/DD HH:mm:ss',
 	autoSyncInterval: 0,

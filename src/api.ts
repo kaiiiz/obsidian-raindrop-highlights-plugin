@@ -42,17 +42,21 @@ export class RaindropAPI {
 
 	async getCollections(): Promise<RaindropCollection[]> {
 		let res = await this.get(`${BASEURL}/collections`, {});
-		const collectionMap: {[id: number]: string} = {}
+		const collectionMap: {[id: number]: string} = {};
 
-		let collections: RaindropCollection[] = res.items.map((collection: any) => {
+		let collections: RaindropCollection[] = [
+			{ id: -1, title: 'Unsorted' },
+			{ id: -99, title: 'Trash' },
+		];
+		res.items.forEach((collection: any) => {
 			const id = collection['_id'];
 			const title = collection['title'];
 			collectionMap[id] = title;
-			return {
+			collections.push({
 				title: title,
 				id: id,
-			};
-		})
+			});
+		});
 
 		res = await this.get(`${BASEURL}/collections/childrens`, {});
 		res.items.forEach((collection: any) => {
