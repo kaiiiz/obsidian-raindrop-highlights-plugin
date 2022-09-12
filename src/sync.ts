@@ -61,6 +61,10 @@ export default class RaindropSync {
 		);
 
 		for (let article of articles) {
+			if (this.plugin.settings.onlyBookmarksWithHl && article.highlights.length == 0) {
+				continue;
+			}
+
 			if (article.id in articleFilesMap) {
 				await this.updateFile(articleFilesMap[article.id], article);
 			} else {

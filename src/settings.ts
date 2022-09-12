@@ -30,6 +30,7 @@ export class RaindropSettingTab extends PluginSettingTab {
 			this.connect();
 		}
 		this.ribbonIcon();
+		this.onlyBookmarksWithHl();
 		this.appendMode();
 		this.highlightsFolder();
 		this.collections();
@@ -65,6 +66,19 @@ export class RaindropSettingTab extends PluginSettingTab {
 					.setValue(this.plugin.settings.appendMode)
 					.onChange(async (value) => {
 						this.plugin.settings.appendMode = value;
+						await this.plugin.saveSettings();
+					});
+			});
+	}
+
+	private onlyBookmarksWithHl(): void {
+		new Setting(this.containerEl)
+			.setName('Only sync bookmarks with highlights')
+			.addToggle((toggle) => {
+				return toggle
+					.setValue(this.plugin.settings.ribbonIcon)
+					.onChange(async (value) => {
+						this.plugin.settings.onlyBookmarksWithHl = value;
 						await this.plugin.saveSettings();
 					});
 			});
