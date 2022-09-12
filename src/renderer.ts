@@ -1,7 +1,7 @@
 import nunjucks from "nunjucks";
 import Moment from "moment";
 import type RaindropPlugin from "./main";
-import type { ArticleFileFrontMatter, RaindropArticle } from "./types";
+import type { BookmarkFileFrontMatter, RaindropBookmark } from "./types";
 import { stringifyYaml } from "obsidian";
 
 type RenderHighlight = {
@@ -49,10 +49,10 @@ export default class Renderer {
 		}
 	}
 
-	renderContent(article: RaindropArticle, newArticle = true) {
+	renderContent(bookmark: RaindropBookmark, newArticle = true) {
 		const dateTimeFormat = this.plugin.settings.dateTimeFormat;
 
-		const renderHighlights: RenderHighlight[] = article.highlights.map((hl) => {
+		const renderHighlights: RenderHighlight[] = bookmark.highlights.map((hl) => {
 			const renderHighlight: RenderHighlight = {
 				id: hl.id,
 				color: hl.color,
@@ -66,22 +66,22 @@ export default class Renderer {
 
 		// sync() should keep the latest collection data in local in the beginning
 		const renderCollection: RenderCollection = {
-			title: this.plugin.settings.syncCollections[article.collectionId].title,
+			title: this.plugin.settings.syncCollections[bookmark.collectionId].title,
 		}
 
 		const context: RenderTemplate = {
 			is_new_article: newArticle,
-			id: article.id,
-			title: article.title,
-			excerpt: article.excerpt,
-			link: article.link,
+			id: bookmark.id,
+			title: bookmark.title,
+			excerpt: bookmark.excerpt,
+			link: bookmark.link,
 			highlights: renderHighlights,
 			collection: renderCollection,
-			tags: article.tags,
-			cover: article.cover,
-			created: Moment(article.created).format(dateTimeFormat),
-			type: article.type,
-			important: article.important,
+			tags: bookmark.tags,
+			cover: bookmark.cover,
+			created: Moment(bookmark.created).format(dateTimeFormat),
+			type: bookmark.type,
+			important: bookmark.important,
 		};
 
 		const template = this.plugin.settings.template;
@@ -89,10 +89,10 @@ export default class Renderer {
 		return content;
 	}
 
-	renderFullPost(article: RaindropArticle) {
-		const newMdContent = this.renderContent(article, true);
-		const frontmatter: ArticleFileFrontMatter = {
-			raindrop_id: article.id,
+	renderFullPost(bookmark: RaindropBookmark) {
+		const newMdContent = this.renderContent(bookmark, true);
+		const frontmatter: BookmarkFileFrontMatter = {
+			raindrop_id: bookmark.id,
 			raindrop_last_update: (new Date()).toISOString(),
 		};
 		const frontmatterStr = stringifyYaml(frontmatter);

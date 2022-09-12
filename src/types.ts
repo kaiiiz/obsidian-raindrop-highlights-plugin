@@ -18,7 +18,7 @@ export interface RaindropHighlight { // Remote state
 	text: string,
 }
 
-export interface RaindropArticle { // Remote state
+export interface RaindropBookmark { // Remote state
 	id: number,
 	collectionId: number,
 	title: string,
@@ -35,12 +35,12 @@ export interface RaindropArticle { // Remote state
 
 // ----------
 
-export interface ArticleFile {
+export interface BookmarkFile {
 	raindropId: number,
 	file: TFile;
 }
 
-export interface ArticleFileFrontMatter { // use snake_case in front matter
+export interface BookmarkFileFrontMatter { // use snake_case in front matter
 	raindrop_id: number,
 	raindrop_last_update: string,
 	[key: string]: any,
@@ -63,6 +63,7 @@ export interface RaindropPluginSettings {
 	isConnected: boolean;
 	ribbonIcon: boolean;
 	appendMode: boolean;
+	onlyBookmarksWithHl: boolean;
 	highlightsFolder: string;
 	syncCollections: SyncCollectionSettings;
 	template: string;
