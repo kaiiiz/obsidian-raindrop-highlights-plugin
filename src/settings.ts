@@ -1,5 +1,6 @@
 import {App, Notice, PluginSettingTab, Setting} from 'obsidian';
 import templateInstructions from './templates/templateInstructions.html';
+import metadataTemplateInstructions from './templates/metadataTemplateInstructions.html';
 import datetimeInstructions from './templates/datetimeInstructions.html';
 import appendModeInstructions from './templates/appendModeInstructions.html';
 import type { RaindropAPI } from './api';
@@ -37,6 +38,7 @@ export class RaindropSettingTab extends PluginSettingTab {
 		this.autoSyncInterval();
 		this.dateFormat();
 		this.template();
+		this.metadataTemplate();
 		this.resetSyncHistory();
 	}
 
@@ -224,6 +226,33 @@ export class RaindropSettingTab extends PluginSettingTab {
 				return text;
 			});
 	}
+	private async metadataTemplate(): Promise<void> {
+		const templateDescFragment = document
+			.createRange()
+			.createContextualFragment(metadataTemplateInstructions);
+
+		new Setting(this.containerEl)
+			.setName('Metadata template')
+			.setDesc(templateDescFragment)
+			.addTextArea((text) => {
+				text.inputEl.style.width = '100%';
+				text.inputEl.style.height = '450px';
+				text.inputEl.style.fontSize = '0.8em';
+				text.setValue(this.plugin.settings.metadataTemplate)
+					.onChange(async (value) => {
+						const isValid = this.renderer.validate(value);
+
+						if (isValid) {
+							this.plugin.settings.metadataTemplate = value;
+							await this.plugin.saveSettings();
+						}
+
+						text.inputEl.style.border = isValid ? '' : '1px solid red';
+					});
+				return text;
+			});
+	}
+	
 
 	private resetSyncHistory(): void {
 		new Setting(this.containerEl)

@@ -67,6 +67,7 @@ export interface RaindropPluginSettings {
 	highlightsFolder: string;
 	syncCollections: SyncCollectionSettings;
 	template: string;
+	metadataTemplate: string;
 	dateTimeFormat: string;
 	autoSyncInterval: number;
 }
