@@ -1,4 +1,5 @@
 import {App, Notice, PluginSettingTab, Setting} from 'obsidian';
+import DEFAULT_METADATA_TEMPLATE from './assets/defaultMetadataTemplate.njk';
 import templateInstructions from './templates/templateInstructions.html';
 import metadataTemplateInstructions from './templates/metadataTemplateInstructions.html';
 import datetimeInstructions from './templates/datetimeInstructions.html';
@@ -206,7 +207,7 @@ export class RaindropSettingTab extends PluginSettingTab {
 			.createContextualFragment(templateInstructions);
 
 		new Setting(this.containerEl)
-			.setName('Highlights template')
+			.setName('Content template')
 			.setDesc(templateDescFragment)
 			.addTextArea((text) => {
 				text.inputEl.style.width = '100%';
@@ -238,9 +239,10 @@ export class RaindropSettingTab extends PluginSettingTab {
 				text.inputEl.style.width = '100%';
 				text.inputEl.style.height = '450px';
 				text.inputEl.style.fontSize = '0.8em';
+				text.setPlaceholder(DEFAULT_METADATA_TEMPLATE);
 				text.setValue(this.plugin.settings.metadataTemplate)
 					.onChange(async (value) => {
-						const isValid = this.renderer.validate(value);
+						const isValid = this.renderer.validate(value, true);
 
 						if (isValid) {
 							this.plugin.settings.metadataTemplate = value;
