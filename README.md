@@ -12,9 +12,10 @@ Although there exists a similar project called [Obsidian Raindrop Plugin](https:
 - Update existing files with new highlights and annotations (2 mode supported)
   - Append new highlights to the end of existing file (default)
   - Overwrite the existing file with the the latest Raindrop article highlights and metadata
-- Customization highlights through [Nunjucks](https://mozilla.github.io/nunjucks/) template
+- Customize pulled bookmarks through [Nunjucks](https://mozilla.github.io/nunjucks/) template for both content and front matter
 - Manage Raindrop collections to be synced
 - Auto sync in interval
+- Only sync bookmarks with highlights
 
 ## Usage
 
@@ -45,7 +46,8 @@ This plugin doesn't use the OAuth mechanism. To get your API Token, follow the s
 - `Auto Sync Interval`: Set the interval in minutes to sync Raindrop highlights automatically
 - `Highlights folder`: Specify the folder location for your Raindrop articles
 - `Collection`: Specify the collections to be synced to the vault
-- `Highlights template`: Nunjuck template for rendering your highlights
+- `Content template`: Nunjuck template for rendering the content
+- `Front matter template`: Nunjuck template for rendering the front matter
 - `Reset sync`: Reset last sync time to resync. This operation does not delete any previously synced highlights from your vault
 
 ### To sync all new highlights since previous update
