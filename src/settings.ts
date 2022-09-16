@@ -237,7 +237,7 @@ export class RaindropSettingTab extends PluginSettingTab {
 			.setDesc(templateDescFragment)
 			.addTextArea((text) => {
 				text.inputEl.style.width = '100%';
-				text.inputEl.style.height = '450px';
+				text.inputEl.style.height = '250px';
 				text.inputEl.style.fontSize = '0.8em';
 				text.setPlaceholder(DEFAULT_METADATA_TEMPLATE);
 				text.setValue(this.plugin.settings.metadataTemplate)
