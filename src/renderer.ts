@@ -49,7 +49,7 @@ export default class Renderer {
 		}
 	}
 
-	renderContent(bookmark: RaindropBookmark, newArticle = true) {
+	renderContent(template:string, bookmark: RaindropBookmark, newArticle = true) {
 		const dateTimeFormat = this.plugin.settings.dateTimeFormat;
 
 		const renderHighlights: RenderHighlight[] = bookmark.highlights.map((hl) => {
@@ -83,19 +83,19 @@ export default class Renderer {
 			type: bookmark.type,
 			important: bookmark.important,
 		};
-
-		const template = this.plugin.settings.template;
+		
 		const content = nunjucks.renderString(template, context);
 		return content;
 	}
 
 	renderFullPost(bookmark: RaindropBookmark) {
-		const newMdContent = this.renderContent(bookmark, true);
+		let newMdContent = this.renderContent(this.plugin.settings.template, bookmark, true);
+		let newMetadataContent = this.renderContent(this.plugin.settings.metadataTemplate, bookmark, true);
 		const frontmatter: BookmarkFileFrontMatter = {
 			raindrop_id: bookmark.id,
 			raindrop_last_update: (new Date()).toISOString(),
 		};
-		const frontmatterStr = stringifyYaml(frontmatter);
+		const frontmatterStr = `${newMetadataContent}\n${stringifyYaml(frontmatter)}`;
 		const mdContent = `---\n${frontmatterStr}---\n${newMdContent}`;
 		return mdContent;
 	}

@@ -97,6 +97,7 @@ export default class RaindropSync {
 	async updateFileAppendMode(file: TFile, bookmark: RaindropBookmark) {
 		console.debug("update file append mode", file.path);
 		const metadata = this.app.metadataCache.getFileCache(file);
+		
 		if (metadata?.frontmatter && 'raindrop_last_update' in metadata.frontmatter) {
 			const localLastUpdate = new Date(metadata.frontmatter.raindrop_last_update);
 			if (localLastUpdate >= bookmark.lastUpdate) {
@@ -109,7 +110,8 @@ export default class RaindropSync {
 			});
 		}
 
-		const newMdContent = this.renderer.renderContent(bookmark, false);
+		const newMdContent = this.renderer.renderContent(this.plugin.settings.template, bookmark, false);
+
 		await this.app.vault.append(file, newMdContent);
 
 		// update frontmatter
@@ -119,10 +121,12 @@ export default class RaindropSync {
 			const {position: {start, end}} = metadata.frontmatter;
 			const fileContentObj = this.splitFrontmatterAndContent(fileContent, end.line);
 
-			// update frontmatter
-			const frontmatterObj: BookmarkFileFrontMatter = parseYaml(fileContentObj.frontmatter);
-			frontmatterObj.raindrop_last_update = (new Date()).toISOString();
+			const newMetadataContent = this.renderer.renderContent(this.plugin.settings.metadataTemplate, bookmark, true);
 
+			// update frontmatter
+			const frontmatterObj: BookmarkFileFrontMatter = parseYaml(newMetadataContent);
+			frontmatterObj.raindrop_last_update = (new Date()).toISOString();
+			frontmatterObj.raindrop_id = metadata.frontmatter.raindrop_id
 			// stringify and concat
 			const newFrontmatter = stringifyYaml(frontmatterObj);
 			const newFullFileContent = `---\n${newFrontmatter}---\n${fileContentObj.content}`;

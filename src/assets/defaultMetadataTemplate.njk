@@ -1,0 +1,3 @@
+{% if link %}Source URL:: {{link}}{% endif %}
+{% if tags|length %}Tags:{%for tag in tags %}
+ - {{tag}}{% endfor %} {% endif %}
