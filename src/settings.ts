@@ -1,5 +1,7 @@
 import {App, Notice, PluginSettingTab, Setting} from 'obsidian';
+import DEFAULT_METADATA_TEMPLATE from './assets/defaultMetadataTemplate.njk';
 import templateInstructions from './templates/templateInstructions.html';
+import metadataTemplateInstructions from './templates/metadataTemplateInstructions.html';
 import datetimeInstructions from './templates/datetimeInstructions.html';
 import appendModeInstructions from './templates/appendModeInstructions.html';
 import type { RaindropAPI } from './api';
@@ -37,6 +39,7 @@ export class RaindropSettingTab extends PluginSettingTab {
 		this.autoSyncInterval();
 		this.dateFormat();
 		this.template();
+		this.metadataTemplate();
 		this.resetSyncHistory();
 	}
 
@@ -76,7 +79,7 @@ export class RaindropSettingTab extends PluginSettingTab {
 			.setName('Only sync bookmarks with highlights')
 			.addToggle((toggle) => {
 				return toggle
-					.setValue(this.plugin.settings.ribbonIcon)
+					.setValue(this.plugin.settings.onlyBookmarksWithHl)
 					.onChange(async (value) => {
 						this.plugin.settings.onlyBookmarksWithHl = value;
 						await this.plugin.saveSettings();
@@ -204,7 +207,7 @@ export class RaindropSettingTab extends PluginSettingTab {
 			.createContextualFragment(templateInstructions);
 
 		new Setting(this.containerEl)
-			.setName('Highlights template')
+			.setName('Content template')
 			.setDesc(templateDescFragment)
 			.addTextArea((text) => {
 				text.inputEl.style.width = '100%';
@@ -224,6 +227,34 @@ export class RaindropSettingTab extends PluginSettingTab {
 				return text;
 			});
 	}
+	private async metadataTemplate(): Promise<void> {
+		const templateDescFragment = document
+			.createRange()
+			.createContextualFragment(metadataTemplateInstructions);
+
+		new Setting(this.containerEl)
+			.setName('Metadata template')
+			.setDesc(templateDescFragment)
+			.addTextArea((text) => {
+				text.inputEl.style.width = '100%';
+				text.inputEl.style.height = '250px';
+				text.inputEl.style.fontSize = '0.8em';
+				text.setPlaceholder(DEFAULT_METADATA_TEMPLATE);
+				text.setValue(this.plugin.settings.metadataTemplate)
+					.onChange(async (value) => {
+						const isValid = this.renderer.validate(value, true);
+
+						if (isValid) {
+							this.plugin.settings.metadataTemplate = value;
+							await this.plugin.saveSettings();
+						}
+
+						text.inputEl.style.border = isValid ? '' : '1px solid red';
+					});
+				return text;
+			});
+	}
+	
 
 	private resetSyncHistory(): void {
 		new Setting(this.containerEl)

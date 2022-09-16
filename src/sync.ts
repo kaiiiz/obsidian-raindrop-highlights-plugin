@@ -97,6 +97,7 @@ export default class RaindropSync {
 	async updateFileAppendMode(file: TFile, bookmark: RaindropBookmark) {
 		console.debug("update file append mode", file.path);
 		const metadata = this.app.metadataCache.getFileCache(file);
+		
 		if (metadata?.frontmatter && 'raindrop_last_update' in metadata.frontmatter) {
 			const localLastUpdate = new Date(metadata.frontmatter.raindrop_last_update);
 			if (localLastUpdate >= bookmark.lastUpdate) {
@@ -109,36 +110,36 @@ export default class RaindropSync {
 			});
 		}
 
-		const newMdContent = this.renderer.renderContent(bookmark, false);
-		await this.app.vault.append(file, newMdContent);
+		const appendedContent = this.renderer.renderContent(bookmark, false);
 
-		// update frontmatter
+		await this.app.vault.append(file, appendedContent);
+
+		// update raindrop_last_update
 		if (metadata?.frontmatter) {
 			// separate content and front matter
 			const fileContent = await this.app.vault.cachedRead(file);
 			const {position: {start, end}} = metadata.frontmatter;
-			const fileContentObj = this.splitFrontmatterAndContent(fileContent, end.line);
+			const article = this.splitFrontmatterAndContent(fileContent, end.line);
 
-			// update frontmatter
-			const frontmatterObj: BookmarkFileFrontMatter = parseYaml(fileContentObj.frontmatter);
+			const frontmatterObj: BookmarkFileFrontMatter = parseYaml(article.frontmatter);
 			frontmatterObj.raindrop_last_update = (new Date()).toISOString();
 
 			// stringify and concat
 			const newFrontmatter = stringifyYaml(frontmatterObj);
-			const newFullFileContent = `---\n${newFrontmatter}---\n${fileContentObj.content}`;
+			const newFullFileContent = `---\n${newFrontmatter}---\n${article.content}`;
 			await this.app.vault.modify(file, newFullFileContent);
 		}
 	}
 
 	async updateFileOverwriteMode(file: TFile, bookmark: RaindropBookmark) {
 		console.debug("update file overwrite mode", file.path);
-		const mdContent = this.renderer.renderFullPost(bookmark);
+		const mdContent = this.renderer.renderFullArticle(bookmark);
 		return this.app.vault.modify(file, mdContent);
 	}
 
 	async createFile(filePath: string, bookmark: RaindropBookmark): Promise<TFile> {
 		console.debug("create file", filePath);
-		const mdContent = this.renderer.renderFullPost(bookmark);
+		const mdContent = this.renderer.renderFullArticle(bookmark);
 		return this.app.vault.create(filePath, mdContent);
 	}
 

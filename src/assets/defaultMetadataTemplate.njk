@@ -1,0 +1,3 @@
+{% if link %}link: {{link}}{% endif %}
+{% if tags|length %}tags: {%for tag in tags %}
+- {{tag}}{% endfor %}{% endif %}
