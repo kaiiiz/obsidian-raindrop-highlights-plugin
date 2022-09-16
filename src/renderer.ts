@@ -80,7 +80,28 @@ export default class Renderer {
 		}
 	}
 
-	renderContent(template:string, bookmark: RaindropBookmark, newArticle = true) {
+	renderContent(bookmark: RaindropBookmark, newArticle: boolean) {
+		return this.renderTemplate(this.plugin.settings.template, bookmark, newArticle);
+	}
+
+	renderFrontmatter(bookmark: RaindropBookmark, newArticle: boolean) {
+		const newMdFrontmatter = this.renderTemplate(this.plugin.settings.metadataTemplate, bookmark, newArticle);
+		const frontmatter: BookmarkFileFrontMatter = {
+			raindrop_id: bookmark.id,
+			raindrop_last_update: (new Date()).toISOString(),
+		};
+		const frontmatterStr = `${stringifyYaml(frontmatter)}\n${newMdFrontmatter}`;
+		return frontmatterStr;
+	}
+
+	renderFullArticle(bookmark: RaindropBookmark) {
+		const newMdContent = this.renderContent(bookmark, true);
+		const newMdFrontmatter = this.renderFrontmatter(bookmark, true);
+		const mdContent = `---\n${newMdFrontmatter}---\n${newMdContent}`;
+		return mdContent;
+	}
+
+	private renderTemplate(template:string, bookmark: RaindropBookmark, newArticle: boolean) {
 		const dateTimeFormat = this.plugin.settings.dateTimeFormat;
 
 		const renderHighlights: RenderHighlight[] = bookmark.highlights.map((hl) => {
@@ -117,17 +138,5 @@ export default class Renderer {
 		
 		const content = nunjucks.renderString(template, context);
 		return content;
-	}
-
-	renderFullPost(bookmark: RaindropBookmark) {
-		let newMdContent = this.renderContent(this.plugin.settings.template, bookmark, true);
-		let newMetadataContent = this.renderContent(this.plugin.settings.metadataTemplate, bookmark, true);
-		const frontmatter: BookmarkFileFrontMatter = {
-			raindrop_id: bookmark.id,
-			raindrop_last_update: (new Date()).toISOString(),
-		};
-		const frontmatterStr = `${newMetadataContent}\n${stringifyYaml(frontmatter)}`;
-		const mdContent = `---\n${frontmatterStr}---\n${newMdContent}`;
-		return mdContent;
 	}
 }

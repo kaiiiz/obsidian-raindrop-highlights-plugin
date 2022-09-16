@@ -110,39 +110,36 @@ export default class RaindropSync {
 			});
 		}
 
-		const newMdContent = this.renderer.renderContent(this.plugin.settings.template, bookmark, false);
+		const appendedContent = this.renderer.renderContent(bookmark, false);
 
-		await this.app.vault.append(file, newMdContent);
+		await this.app.vault.append(file, appendedContent);
 
-		// update frontmatter
+		// update raindrop_last_update
 		if (metadata?.frontmatter) {
 			// separate content and front matter
 			const fileContent = await this.app.vault.cachedRead(file);
 			const {position: {start, end}} = metadata.frontmatter;
-			const fileContentObj = this.splitFrontmatterAndContent(fileContent, end.line);
+			const article = this.splitFrontmatterAndContent(fileContent, end.line);
 
-			const newMetadataContent = this.renderer.renderContent(this.plugin.settings.metadataTemplate, bookmark, true);
-
-			// update frontmatter
-			const frontmatterObj: BookmarkFileFrontMatter = parseYaml(newMetadataContent);
+			const frontmatterObj: BookmarkFileFrontMatter = parseYaml(article.frontmatter);
 			frontmatterObj.raindrop_last_update = (new Date()).toISOString();
-			frontmatterObj.raindrop_id = metadata.frontmatter.raindrop_id
+
 			// stringify and concat
 			const newFrontmatter = stringifyYaml(frontmatterObj);
-			const newFullFileContent = `---\n${newFrontmatter}---\n${fileContentObj.content}`;
+			const newFullFileContent = `---\n${newFrontmatter}---\n${article.content}`;
 			await this.app.vault.modify(file, newFullFileContent);
 		}
 	}
 
 	async updateFileOverwriteMode(file: TFile, bookmark: RaindropBookmark) {
 		console.debug("update file overwrite mode", file.path);
-		const mdContent = this.renderer.renderFullPost(bookmark);
+		const mdContent = this.renderer.renderFullArticle(bookmark);
 		return this.app.vault.modify(file, mdContent);
 	}
 
 	async createFile(filePath: string, bookmark: RaindropBookmark): Promise<TFile> {
 		console.debug("create file", filePath);
-		const mdContent = this.renderer.renderFullPost(bookmark);
+		const mdContent = this.renderer.renderFullArticle(bookmark);
 		return this.app.vault.create(filePath, mdContent);
 	}
 
