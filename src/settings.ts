@@ -79,7 +79,7 @@ export class RaindropSettingTab extends PluginSettingTab {
 			.setName('Only sync bookmarks with highlights')
 			.addToggle((toggle) => {
 				return toggle
-					.setValue(this.plugin.settings.ribbonIcon)
+					.setValue(this.plugin.settings.onlyBookmarksWithHl)
 					.onChange(async (value) => {
 						this.plugin.settings.onlyBookmarksWithHl = value;
 						await this.plugin.saveSettings();
