@@ -2,7 +2,7 @@ import nunjucks from "nunjucks";
 import Moment from "moment";
 import type RaindropPlugin from "./main";
 import type { BookmarkFileFrontMatter, RaindropBookmark } from "./types";
-import { parseYaml, stringifyYaml } from "obsidian";
+import { Notice, parseYaml, stringifyYaml } from "obsidian";
 
 type RenderHighlight = {
 	id: string;
@@ -86,12 +86,20 @@ export default class Renderer {
 
 	renderFrontmatter(bookmark: RaindropBookmark, newArticle: boolean) {
 		const newMdFrontmatter = this.renderTemplate(this.plugin.settings.metadataTemplate, bookmark, newArticle);
-		const frontmatter: BookmarkFileFrontMatter = {
+		let frontmatter: BookmarkFileFrontMatter = {
 			raindrop_id: bookmark.id,
 			raindrop_last_update: (new Date()).toISOString(),
 		};
-		const frontmatterStr = `${stringifyYaml(frontmatter)}\n${newMdFrontmatter}`;
-		return frontmatterStr;
+		try {
+			frontmatter = {
+				...frontmatter,
+				...parseYaml(newMdFrontmatter),
+			};
+		} catch (e) {
+			console.error(e);
+			new Notice(`Failed to parse YAML for ${bookmark.title}: ${e.message}`)
+		}
+		return stringifyYaml(frontmatter);
 	}
 
 	renderFullArticle(bookmark: RaindropBookmark) {
@@ -116,7 +124,7 @@ export default class Renderer {
 			return renderHighlight;
 		});
 
-		// sync() should keep the latest collection data in local in the beginning
+		// the latest collection data is sync from Raindrop at the beginning of `sync` function
 		const renderCollection: RenderCollection = {
 			title: this.plugin.settings.syncCollections[bookmark.collectionId].title,
 		}
