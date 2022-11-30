@@ -43,6 +43,7 @@ This plugin doesn't use the OAuth mechanism. To get your API Token, follow the s
 - `Connect`: Enter API Token in order to pull the highlights from Raindrop
 - `Disconnect`: Remove API Token from Obsidian
 - `Append Mode`: Disabling append mode can keep the synced files with the latest state of the Raindrop articles, but will lose the flexiblity to add or modify the synced files. (i.e. the old file content will be overwritten!)
+-  Enable Collections Folders : Whether to store the articles in folders depending on collections or not
 - `Auto Sync Interval`: Set the interval in minutes to sync Raindrop highlights automatically
 - `Highlights folder`: Specify the folder location for your Raindrop articles
 - `Collection`: Specify the collections to be synced to the vault

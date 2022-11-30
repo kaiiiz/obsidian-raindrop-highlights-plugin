@@ -25,6 +25,7 @@ type RenderTemplate = {
 	link: string;
 	highlights: RenderHighlight[];
 	collection: RenderCollection;
+	collectionTitle: string;
 	tags: string[];
 	cover: string;
 	created: string;
@@ -51,6 +52,7 @@ const FAKE_RENDER_CONTEXT: RenderTemplate = {
 	collection: {
 		title: "fake_collection",
 	},
+	collectionTitle: "fake_collection",
 	tags: ["fake_tag1", "fake_tag2"],
 	cover: "https://example.com",
 	created: "2022-08-10T01:58:27.457Z",
@@ -137,6 +139,7 @@ export default class Renderer {
 			link: bookmark.link,
 			highlights: renderHighlights,
 			collection: renderCollection,
+			collectionTitle: renderCollection.title,
 			tags: bookmark.tags,
 			cover: bookmark.cover,
 			created: Moment(bookmark.created).format(dateTimeFormat),

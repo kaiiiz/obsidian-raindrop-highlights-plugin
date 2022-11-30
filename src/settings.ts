@@ -34,6 +34,7 @@ export class RaindropSettingTab extends PluginSettingTab {
 		this.ribbonIcon();
 		this.onlyBookmarksWithHl();
 		this.appendMode();
+		this.enableCollectionsFolders();
 		this.highlightsFolder();
 		this.collections();
 		this.autoSyncInterval();
@@ -82,6 +83,19 @@ export class RaindropSettingTab extends PluginSettingTab {
 					.setValue(this.plugin.settings.onlyBookmarksWithHl)
 					.onChange(async (value) => {
 						this.plugin.settings.onlyBookmarksWithHl = value;
+						await this.plugin.saveSettings();
+					});
+			});
+	}
+
+	private enableCollectionsFolders(): void {
+		new Setting(this.containerEl)
+			.setName('Store the articles in collections folders')
+			.addToggle((toggle) => {
+				return toggle
+					.setValue(this.plugin.settings.collectionsFoldersEnabled)
+					.onChange(async (value) => {
+						this.plugin.settings.collectionsFoldersEnabled = value;
 						await this.plugin.saveSettings();
 					});
 			});

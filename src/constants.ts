@@ -9,6 +9,7 @@ export const DEFAULT_SETTINGS: RaindropPluginSettings = {
 	isConnected: false,
 	ribbonIcon: true,
 	appendMode: true,
+	collectionsFoldersEnabled: true,
 	onlyBookmarksWithHl: false,
 	highlightsFolder: '/',
 	syncCollections: {},
