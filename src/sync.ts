@@ -33,7 +33,10 @@ export default class RaindropSync {
 	async syncCollection(collection: SyncCollection) {
 		new Notice(`Sync Raindrop collection: ${collection.title}`);
 		const highlightsFolder = this.plugin.settings.highlightsFolder;
-		const collectionFolder = `${highlightsFolder}/${collection["title"]}`;
+		let collectionFolder = `${highlightsFolder}`
+		if (this.plugin.settings.collectionsFolders) {
+			collectionFolder = `${highlightsFolder}/${collection["title"]}`;
+		}
 		const lastSyncDate = this.plugin.settings.syncCollections[collection.id].lastSyncDate;
 
 		let bookmarks: RaindropBookmark[] = [];
