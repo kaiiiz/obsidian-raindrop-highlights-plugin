@@ -1,6 +1,6 @@
 import { Notice, type App } from "obsidian";
 import axios from "axios";
-import type { RaindropBookmark, RaindropCollection, RaindropHighlight, RaindropUser } from "./types";
+import type { RaindropBookmark, RaindropCache, RaindropCollection, RaindropHighlight, RaindropUser } from "./types";
 import TokenManager from "./tokenManager";
 
 const BASEURL = "https://api.raindrop.io/rest/v1"
@@ -181,6 +181,7 @@ export class RaindropAPI {
 			created: new Date(raindrop['created']),
 			type: raindrop['type'],
 			important: raindrop['important'],
+			cache: this.parseCache(raindrop['cache']),
 		};
 		return bookmark;
 	}
@@ -197,5 +198,14 @@ export class RaindropAPI {
 			};
 			return highlight;
 		});
+	}
+
+	private parseCache(cache: any): RaindropCache {
+		const result: RaindropCache = {
+			status: cache['status'],
+			size: cache['size'],
+			created: new Date(cache['created']),
+		};
+		return result;
 	}
 }

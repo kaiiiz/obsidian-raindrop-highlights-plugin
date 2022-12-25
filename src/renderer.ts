@@ -13,6 +13,12 @@ type RenderHighlight = {
 	text: string;
 };
 
+type RenderCache = {
+	status: string;
+	size: number;
+	created: string;
+};
+
 type RenderCollection = {
 	title: string;
 };
@@ -30,6 +36,7 @@ type RenderTemplate = {
 	created: string;
 	type: string;
 	important: boolean;
+	cache: RenderCache;
 };
 
 const FAKE_RENDER_CONTEXT: RenderTemplate = {
@@ -56,6 +63,11 @@ const FAKE_RENDER_CONTEXT: RenderTemplate = {
 	created: "2022-08-10T01:58:27.457Z",
 	type: "link",
 	important: false,
+	cache: {
+		status: "fake_status",
+		size: 1234,
+		created: "2022-08-10T01:58:27.457Z",
+	},
 };
 
 export default class Renderer {
@@ -124,6 +136,12 @@ export default class Renderer {
 			return renderHighlight;
 		});
 
+		const renderCache: RenderCache = {
+			status: bookmark.cache.status,
+			size: bookmark.cache.size,
+			created: Moment(bookmark.cache.created).format(dateTimeFormat),
+		}
+
 		// the latest collection data is sync from Raindrop at the beginning of `sync` function
 		const renderCollection: RenderCollection = {
 			title: this.plugin.settings.syncCollections[bookmark.collectionId].title,
@@ -142,6 +160,7 @@ export default class Renderer {
 			created: Moment(bookmark.created).format(dateTimeFormat),
 			type: bookmark.type,
 			important: bookmark.important,
+			cache: renderCache,
 		};
 		
 		const content = nunjucks.renderString(template, context);

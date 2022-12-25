@@ -3,7 +3,7 @@ import sanitize from "sanitize-filename";
 import type { RaindropAPI } from "./api";
 import type RaindropPlugin from "./main";
 import Renderer from "./renderer";
-import type { BookmarkFile, BookmarkFileFrontMatter, RaindropBookmark, RaindropCollection, SyncCollection } from "./types";
+import type { BookmarkFile, BookmarkFileFrontMatter, RaindropBookmark, RaindropCollection, RaindropCache, SyncCollection } from "./types";
 
 export default class RaindropSync {
 	private app: App;

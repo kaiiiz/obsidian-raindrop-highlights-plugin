@@ -18,6 +18,12 @@ export interface RaindropHighlight { // Remote state
 	text: string,
 }
 
+export interface RaindropCache { // Remote state
+	status: string,
+	size: number,
+	created: Date,
+}
+
 export interface RaindropBookmark { // Remote state
 	id: number,
 	collectionId: number,
@@ -31,6 +37,7 @@ export interface RaindropBookmark { // Remote state
 	created: Date,
 	type: string,
 	important: boolean,
+	cache: RaindropCache,
 }
 
 // ----------
