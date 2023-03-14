@@ -52,6 +52,15 @@ export default class RaindropSync {
 	}
 
 	async syncBookmarks(bookmarks: RaindropBookmark[], folderPath: string) {
+		if (bookmarks.length == 0) return;
+
+		if (this.plugin.settings.onlyBookmarksWithHl) {
+			let requireUpdate = bookmarks.some((bookmark) => {
+				return bookmark.highlights.length != 0;
+			});
+			if (!requireUpdate) return;
+		}
+
 		try {
 			await this.app.vault.createFolder(folderPath);
 		} catch (e) {
