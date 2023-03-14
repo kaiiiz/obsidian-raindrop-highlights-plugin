@@ -63,6 +63,7 @@ export interface RaindropPluginSettings {
 	isConnected: boolean;
 	ribbonIcon: boolean;
 	appendMode: boolean;
+	collectionsFolders: boolean;
 	onlyBookmarksWithHl: boolean;
 	highlightsFolder: string;
 	syncCollections: SyncCollectionSettings;
