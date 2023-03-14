@@ -17,6 +17,11 @@ type RenderCollection = {
 	title: string;
 };
 
+type RenderCreator = {
+	name: string,
+	id: number,
+};
+
 type RenderTemplate = {
 	is_new_article: boolean;
 	id: number;
@@ -30,6 +35,7 @@ type RenderTemplate = {
 	created: string;
 	type: string;
 	important: boolean;
+	creator: RenderCreator;
 };
 
 const FAKE_RENDER_CONTEXT: RenderTemplate = {
@@ -56,6 +62,10 @@ const FAKE_RENDER_CONTEXT: RenderTemplate = {
 	created: "2022-08-10T01:58:27.457Z",
 	type: "link",
 	important: false,
+	creator: {
+		name: 'fake_name',
+		id: 10000,
+	}
 };
 
 export default class Renderer {
@@ -129,6 +139,7 @@ export default class Renderer {
 			created: Moment(bookmark.created).format(dateTimeFormat),
 			type: bookmark.type,
 			important: bookmark.important,
+			creator: bookmark.creator,
 		};
 		
 		const content = nunjucks.renderString(template, context);
