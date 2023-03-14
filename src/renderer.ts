@@ -86,20 +86,7 @@ export default class Renderer {
 
 	renderFrontmatter(bookmark: RaindropBookmark, newArticle: boolean) {
 		const newMdFrontmatter = this.renderTemplate(this.plugin.settings.metadataTemplate, bookmark, newArticle);
-		let frontmatter: BookmarkFileFrontMatter = {
-			raindrop_id: bookmark.id,
-			raindrop_last_update: (new Date()).toISOString(),
-		};
-		try {
-			frontmatter = {
-				...frontmatter,
-				...parseYaml(newMdFrontmatter),
-			};
-		} catch (e) {
-			console.error(e);
-			new Notice(`Failed to parse YAML for ${bookmark.title}: ${e.message}`)
-		}
-		return stringifyYaml(frontmatter);
+		return `raindrop_id: ${bookmark.id}\nraindrop_last_update: ${(new Date()).toISOString()}\n${newMdFrontmatter}\n`
 	}
 
 	renderFullArticle(bookmark: RaindropBookmark) {
