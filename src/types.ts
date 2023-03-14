@@ -18,6 +18,11 @@ export interface RaindropHighlight { // Remote state
 	text: string,
 }
 
+export interface RaindropCreatorRef { // Remote state
+	name: string,
+	id: number,
+};
+
 export interface RaindropBookmark { // Remote state
 	id: number,
 	collectionId: number,
@@ -31,6 +36,7 @@ export interface RaindropBookmark { // Remote state
 	created: Date,
 	type: string,
 	important: boolean,
+	creator: RaindropCreatorRef,
 }
 
 // ----------
@@ -63,6 +69,7 @@ export interface RaindropPluginSettings {
 	isConnected: boolean;
 	ribbonIcon: boolean;
 	appendMode: boolean;
+	collectionsFolders: boolean;
 	onlyBookmarksWithHl: boolean;
 	highlightsFolder: string;
 	syncCollections: SyncCollectionSettings;

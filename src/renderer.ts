@@ -17,6 +17,11 @@ type RenderCollection = {
 	title: string;
 };
 
+type RenderCreator = {
+	name: string,
+	id: number,
+};
+
 type RenderTemplate = {
 	is_new_article: boolean;
 	id: number;
@@ -30,6 +35,7 @@ type RenderTemplate = {
 	created: string;
 	type: string;
 	important: boolean;
+	creator: RenderCreator;
 };
 
 const FAKE_RENDER_CONTEXT: RenderTemplate = {
@@ -56,6 +62,10 @@ const FAKE_RENDER_CONTEXT: RenderTemplate = {
 	created: "2022-08-10T01:58:27.457Z",
 	type: "link",
 	important: false,
+	creator: {
+		name: 'fake_name',
+		id: 10000,
+	}
 };
 
 export default class Renderer {
@@ -86,20 +96,7 @@ export default class Renderer {
 
 	renderFrontmatter(bookmark: RaindropBookmark, newArticle: boolean) {
 		const newMdFrontmatter = this.renderTemplate(this.plugin.settings.metadataTemplate, bookmark, newArticle);
-		let frontmatter: BookmarkFileFrontMatter = {
-			raindrop_id: bookmark.id,
-			raindrop_last_update: (new Date()).toISOString(),
-		};
-		try {
-			frontmatter = {
-				...frontmatter,
-				...parseYaml(newMdFrontmatter),
-			};
-		} catch (e) {
-			console.error(e);
-			new Notice(`Failed to parse YAML for ${bookmark.title}: ${e.message}`)
-		}
-		return stringifyYaml(frontmatter);
+		return `raindrop_id: ${bookmark.id}\nraindrop_last_update: ${(new Date()).toISOString()}\n${newMdFrontmatter}\n`
 	}
 
 	renderFullArticle(bookmark: RaindropBookmark) {
@@ -142,6 +139,7 @@ export default class Renderer {
 			created: Moment(bookmark.created).format(dateTimeFormat),
 			type: bookmark.type,
 			important: bookmark.important,
+			creator: bookmark.creator,
 		};
 		
 		const content = nunjucks.renderString(template, context);

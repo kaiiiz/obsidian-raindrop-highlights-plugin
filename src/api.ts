@@ -181,6 +181,10 @@ export class RaindropAPI {
 			created: new Date(raindrop['created']),
 			type: raindrop['type'],
 			important: raindrop['important'],
+			creator: {
+				name: raindrop['creatorRef']['name'],
+				id: raindrop['creatorRef']['_id'],
+			},
 		};
 		return bookmark;
 	}
