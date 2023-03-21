@@ -2,8 +2,8 @@ import nunjucks from "nunjucks";
 import Moment from "moment";
 import type RaindropPlugin from "./main";
 import sanitize from "sanitize-filename";
-import type { BookmarkFileFrontMatter, RaindropBookmark } from "./types";
-import { Notice, parseYaml, stringifyYaml } from "obsidian";
+import type { RaindropBookmark } from "./types";
+import { parseYaml } from "obsidian";
 
 type RenderHighlight = {
 	id: string;

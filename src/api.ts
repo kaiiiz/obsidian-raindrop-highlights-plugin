@@ -48,7 +48,7 @@ export class RaindropAPI {
 	async getCollections(): Promise<RaindropCollection[]> {
 		let res = await this.get(`${BASEURL}/collections`, {});
 
-		let collections: RaindropCollection[] = [
+		const collections: RaindropCollection[] = [
 			{ id: -1, title: 'Unsorted' },
 			{ id: -99, title: 'Trash' },
 		];
@@ -93,18 +93,18 @@ export class RaindropAPI {
 
 	async getRaindropsAfter(collectionId: number, lastSync?: Date): Promise<RaindropBookmark[]> {
 		const notice = new Notice("Fetch Raindrops highlights", 0);
-		let res = await this.get(`${BASEURL}/raindrops/${collectionId}`, {
+		const res = await this.get(`${BASEURL}/raindrops/${collectionId}`, {
 			"page": 0,
 			"sort": "-lastUpdate"
 		});
-		let raindropsCnt = res.count;
+		const raindropsCnt = res.count;
 		let bookmarks = this.parseRaindrops(res.items);
 		let remainPages = Math.ceil(raindropsCnt / 25) - 1;
-		let totalPages = Math.ceil(raindropsCnt / 25) - 1;
+		const totalPages = Math.ceil(raindropsCnt / 25) - 1;
 		let page = 1;
 
-		let addNewPages = async (page: number) => {
-			let res = await this.get(`${BASEURL}/raindrops/${collectionId}`, {
+		const addNewPages = async (page: number) => {
+			const res = await this.get(`${BASEURL}/raindrops/${collectionId}`, {
 				"page": page,
 				"sort": "-lastUpdate"
 			});
@@ -129,10 +129,10 @@ export class RaindropAPI {
 		}
 
 		// get real highlights (raindrop returns only 3 highlights in /raindrops/${collectionId} endpoint)
-		for (let [idx, bookmark] of bookmarks.entries()) {
+		for (const [idx, bookmark] of bookmarks.entries()) {
 			notice.setMessage(`Sync Raindrop bookmarks: ${idx + 1}/${bookmarks.length}`)
 			if (bookmark.highlights.length == 3) {
-				let res = await this.get(`${BASEURL}/raindrop/${bookmark.id}`, {});
+				const res = await this.get(`${BASEURL}/raindrop/${bookmark.id}`, {});
 				bookmark['highlights'] = this.parseHighlights(res.item.highlights);
 			}
 		}

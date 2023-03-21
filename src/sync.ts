@@ -55,7 +55,7 @@ export default class RaindropSync {
 		if (bookmarks.length == 0) return;
 
 		if (this.plugin.settings.onlyBookmarksWithHl) {
-			let requireUpdate = bookmarks.some((bookmark) => {
+			const requireUpdate = bookmarks.some((bookmark) => {
 				return bookmark.highlights.length != 0;
 			});
 			if (!requireUpdate) return;
@@ -72,7 +72,7 @@ export default class RaindropSync {
 			...this.getBookmarkFiles().map((x) => ({ [x.raindropId]: x.file }))
 		);
 
-		for (let bookmark of bookmarks) {
+		for (const bookmark of bookmarks) {
 			if (this.plugin.settings.onlyBookmarksWithHl && bookmark.highlights.length == 0) {
 				continue;
 			}
@@ -132,8 +132,7 @@ export default class RaindropSync {
 		if (metadata?.frontmatter) {
 			// separate content and front matter
 			const fileContent = await this.app.vault.cachedRead(file);
-			const {position: {start, end}} = metadata.frontmatter;
-			const article = this.splitFrontmatterAndContent(fileContent, end.line);
+			const article = this.splitFrontmatterAndContent(fileContent, metadata.frontmatter.position.end.line);
 
 			const frontmatterObj: BookmarkFileFrontMatter = parseYaml(article.frontmatter);
 			frontmatterObj.raindrop_last_update = (new Date()).toISOString();

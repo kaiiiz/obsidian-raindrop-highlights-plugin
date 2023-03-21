@@ -61,8 +61,8 @@ export class RaindropSettingTab extends PluginSettingTab {
 
 	private appendMode(): void {
 		const descFragment = document
-		  .createRange()
-		  .createContextualFragment(appendModeInstructions);
+			.createRange()
+			.createContextualFragment(appendModeInstructions);
 
 		new Setting(this.containerEl)
 			.setName('Append Mode')
@@ -177,25 +177,25 @@ export class RaindropSettingTab extends PluginSettingTab {
 
 	private highlightsFolder(): void {
 		new Setting(this.containerEl)
-		  .setName('Highlights folder location')
-		  .setDesc('Vault folder to use for storing Raindrop.io highlights')
-		  .addDropdown((dropdown) => {
-			const files = (this.app.vault.adapter as any).files;
-			Object.keys(files).forEach((key) => {
-				if (files[key].type == 'folder') {
-					const folder = files[key].realpath;
-					dropdown.addOption(folder, folder);
-				}
-			})
+			.setName('Highlights folder location')
+			.setDesc('Vault folder to use for storing Raindrop.io highlights')
+			.addDropdown((dropdown) => {
+				const files = (this.app.vault.adapter as any).files;
+				Object.keys(files).forEach((key) => {
+					if (files[key].type == 'folder') {
+						const folder = files[key].realpath;
+						dropdown.addOption(folder, folder);
+					}
+				})
 
-			return dropdown
-				.setValue(this.plugin.settings.highlightsFolder)
-				.onChange(async (value) => {
-					this.plugin.settings.highlightsFolder = value;
-					await this.plugin.saveSettings();
-				});
-		  });
-	  }
+				return dropdown
+					.setValue(this.plugin.settings.highlightsFolder)
+					.onChange(async (value) => {
+						this.plugin.settings.highlightsFolder = value;
+						await this.plugin.saveSettings();
+					});
+			});
+	}
 
 	private async collections(): Promise<void> {
 		new Setting(this.containerEl)
@@ -213,7 +213,7 @@ export class RaindropSettingTab extends PluginSettingTab {
 					const allCollections = await this.api.getCollections();
 					this.plugin.updateCollectionSettings(allCollections);
 
-					const collectionsModal = new CollectionsModal(this.app, this.plugin);
+					new CollectionsModal(this.app, this.plugin);
 					this.display(); // rerender
 				});
 			});
@@ -303,15 +303,15 @@ export class RaindropSettingTab extends PluginSettingTab {
 
 	private resetSyncHistory(): void {
 		new Setting(this.containerEl)
-		  .setName('Reset sync')
-		  .setDesc('Reset last sync time to resync')
-		  .addButton((button) => {
+			.setName('Reset sync')
+			.setDesc('Reset last sync time to resync')
+			.addButton((button) => {
 			return button
 				.setButtonText('Reset')
 				.setDisabled(!this.plugin.settings.isConnected)
 				.setWarning()
 				.onClick(async () => {
-					for (let id in this.plugin.settings.syncCollections) {
+					for (const id in this.plugin.settings.syncCollections) {
 						const collection = this.plugin.settings.syncCollections[id];
 						collection.lastSyncDate = undefined;
 					}
@@ -323,8 +323,8 @@ export class RaindropSettingTab extends PluginSettingTab {
 
 	private dateFormat(): void {
 		const descFragment = document
-		  .createRange()
-		  .createContextualFragment(datetimeInstructions);
+			.createRange()
+			.createContextualFragment(datetimeInstructions);
 	
 		new Setting(this.containerEl)
 			.setName('Date & time format')
