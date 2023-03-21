@@ -1,6 +1,7 @@
 import nunjucks from "nunjucks";
 import Moment from "moment";
 import type RaindropPlugin from "./main";
+import sanitize from "sanitize-filename";
 import type { BookmarkFileFrontMatter, RaindropBookmark } from "./types";
 import { Notice, parseYaml, stringifyYaml } from "obsidian";
 
@@ -108,6 +109,15 @@ export default class Renderer {
 		const newMdFrontmatter = this.renderFrontmatter(bookmark, true);
 		const mdContent = `---\n${newMdFrontmatter}---\n${newMdContent}`;
 		return mdContent;
+	}
+
+	renderFileName(bookmark: RaindropBookmark, newArticle: boolean) {
+		const filename = this.renderTemplate(this.plugin.settings.filenameTemplate, bookmark, newArticle);
+		return this.sanitizeFilename(filename);
+	}
+
+	private sanitizeFilename(filename: string): string {
+		return sanitize(filename.replace(/[':#|]/g, "").trim());
 	}
 
 	private renderTemplate(template:string, bookmark: RaindropBookmark, newArticle: boolean) {

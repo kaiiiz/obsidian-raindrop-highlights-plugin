@@ -2,6 +2,7 @@ import {App, Notice, PluginSettingTab, Setting} from 'obsidian';
 import DEFAULT_METADATA_TEMPLATE from './assets/defaultMetadataTemplate.njk';
 import templateInstructions from './templates/templateInstructions.html';
 import metadataTemplateInstructions from './templates/metadataTemplateInstructions.html';
+import filenameTemplateInstructions from './templates/filenameTemplateInstructions.html';
 import datetimeInstructions from './templates/datetimeInstructions.html';
 import appendModeInstructions from './templates/appendModeInstructions.html';
 import type { RaindropAPI } from './api';
@@ -41,6 +42,7 @@ export class RaindropSettingTab extends PluginSettingTab {
 		this.dateFormat();
 		this.template();
 		this.metadataTemplate();
+		this.filenameTemplate();
 		this.resetSyncHistory();
 	}
 
@@ -243,6 +245,7 @@ export class RaindropSettingTab extends PluginSettingTab {
 				return text;
 			});
 	}
+
 	private async metadataTemplate(): Promise<void> {
 		const templateDescFragment = document
 			.createRange()
@@ -270,7 +273,33 @@ export class RaindropSettingTab extends PluginSettingTab {
 				return text;
 			});
 	}
-	
+
+	private async filenameTemplate(): Promise<void> {
+		const templateDescFragment = document
+			.createRange()
+			.createContextualFragment(filenameTemplateInstructions);
+
+		new Setting(this.containerEl)
+			.setName('Filename template')
+			.setDesc(templateDescFragment)
+			.addTextArea((text) => {
+				text.inputEl.style.width = '100%';
+				text.inputEl.style.height = '250px';
+				text.inputEl.style.fontSize = '0.8em';
+				text.setValue(this.plugin.settings.filenameTemplate)
+					.onChange(async (value) => {
+						const isValid = this.renderer.validate(value, false);
+
+						if (isValid) {
+							this.plugin.settings.filenameTemplate = value;
+							await this.plugin.saveSettings();
+						}
+
+						text.inputEl.style.border = isValid ? '' : '1px solid red';
+					});
+				return text;
+			});
+	}
 
 	private resetSyncHistory(): void {
 		new Setting(this.containerEl)

@@ -15,6 +15,7 @@ export const DEFAULT_SETTINGS: RaindropPluginSettings = {
 	syncCollections: {},
 	template: DEFAULT_TEMPLATE,
 	metadataTemplate: "",
+	filenameTemplate: "{{title}}",
 	dateTimeFormat: 'YYYY/MM/DD HH:mm:ss',
 	autoSyncInterval: 0,
 };
