@@ -96,7 +96,11 @@ export default class Renderer {
 
 	renderFrontmatter(bookmark: RaindropBookmark, newArticle: boolean) {
 		const newMdFrontmatter = this.renderTemplate(this.plugin.settings.metadataTemplate, bookmark, newArticle);
-		return `raindrop_id: ${bookmark.id}\nraindrop_last_update: ${(new Date()).toISOString()}\n${newMdFrontmatter}\n`
+		if (newMdFrontmatter.length > 0) {
+			return `raindrop_id: ${bookmark.id}\nraindrop_last_update: ${(new Date()).toISOString()}\n${newMdFrontmatter}\n`
+		} else {
+			return `raindrop_id: ${bookmark.id}\nraindrop_last_update: ${(new Date()).toISOString()}\n`
+		}
 	}
 
 	renderFullArticle(bookmark: RaindropBookmark) {
