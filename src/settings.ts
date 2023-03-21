@@ -205,6 +205,8 @@ export class RaindropSettingTab extends PluginSettingTab {
 				.setButtonText('Manage')
 				.setCta()
 				.onClick(async () => {
+					button.setButtonText('Loading collections...');
+
 					// update for new collections
 					const allCollections = await this.api.getCollections();
 					this.plugin.updateCollectionSettings(allCollections);
