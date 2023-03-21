@@ -3,7 +3,12 @@ import axios from "axios";
 import type { RaindropBookmark, RaindropCollection, RaindropHighlight, RaindropUser } from "./types";
 import TokenManager from "./tokenManager";
 
-const BASEURL = "https://api.raindrop.io/rest/v1"
+const BASEURL = "https://api.raindrop.io/rest/v1";
+
+interface NestedRaindropCollection {
+	title: string,
+	parentId: number,
+}
 
 export class RaindropAPI {
 	app: App;
@@ -42,16 +47,17 @@ export class RaindropAPI {
 
 	async getCollections(): Promise<RaindropCollection[]> {
 		let res = await this.get(`${BASEURL}/collections`, {});
-		const collectionMap: {[id: number]: string} = {};
 
 		let collections: RaindropCollection[] = [
 			{ id: -1, title: 'Unsorted' },
 			{ id: -99, title: 'Trash' },
 		];
+
+		const rootCollectionMap: {[id: number]: string} = {};
 		res.items.forEach((collection: any) => {
 			const id = collection['_id'];
 			const title = collection['title'];
-			collectionMap[id] = title;
+			rootCollectionMap[id] = title;
 			collections.push({
 				title: title,
 				id: id,
@@ -59,18 +65,27 @@ export class RaindropAPI {
 		});
 
 		res = await this.get(`${BASEURL}/collections/childrens`, {});
+		const nestedCollectionMap: {[id: number]: NestedRaindropCollection} = {};
 		res.items.forEach((collection: any) => {
 			const id = collection['_id'];
-			const parentId = collection['parent']['$id'];
+			nestedCollectionMap[id] = {
+				title: collection['title'],
+				parentId: collection['parent']['$id'],
+			};
+		});
+
+		res.items.forEach((collection: any) => {
+			const id = collection['_id'];
+			let parentId = collection['parent']['$id'];
 			let title = collection['title'];
-			if (parentId in collectionMap) {
-				title = `${collectionMap[parentId]}/${collection['title']}`;
+			while (!(parentId in rootCollectionMap)) {
+				title = `${nestedCollectionMap[parentId].title}/${title}`;
+				parentId = nestedCollectionMap[parentId].parentId;
 			}
 			collections.push({
 				title: title,
 				id: id,
 			});
-			collectionMap[id] = title;
 		});
 
 		return collections;
