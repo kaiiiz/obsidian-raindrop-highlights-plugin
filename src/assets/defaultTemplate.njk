@@ -1,7 +1,7 @@
 {% if is_new_article %}
 # Metadata
 {% if link %}Source URL:: {{link}}{% endif %}
-{% if tags|length %}Topics:: {{ tags | map("#{}") | join(", ") }}{% endif %}
+{% if tags|length %}Topics:: #{{ tags | join(", #") }}{% endif %}
 
 ---
 # {{title}}

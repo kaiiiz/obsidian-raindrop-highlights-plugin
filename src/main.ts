@@ -39,7 +39,7 @@ export default class RaindropPlugin extends Plugin {
 			id: 'raindrop-show-last-sync-time',
 			name: 'Show last sync time',
 			callback: async () => {
-				let message = Object.values(this.settings.syncCollections)
+				const message = Object.values(this.settings.syncCollections)
 					.filter((collection: SyncCollection) => collection.sync)
 					.map((collection: SyncCollection) => {
 						return `${collection.title}: ${collection.lastSyncDate?.toLocaleString()}`;
@@ -81,7 +81,7 @@ export default class RaindropPlugin extends Plugin {
 
 	async loadSettings() {
 		this.settings = Object.assign({}, DEFAULT_SETTINGS, await this.loadData());
-		for (let id in this.settings.syncCollections) {
+		for (const id in this.settings.syncCollections) {
 			const collection = this.settings.syncCollections[id];
 			if (collection.lastSyncDate) {
 				collection.lastSyncDate = new Date(collection.lastSyncDate);

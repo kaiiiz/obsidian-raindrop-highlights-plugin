@@ -2,6 +2,7 @@ import {App, Notice, PluginSettingTab, Setting} from 'obsidian';
 import DEFAULT_METADATA_TEMPLATE from './assets/defaultMetadataTemplate.njk';
 import templateInstructions from './templates/templateInstructions.html';
 import metadataTemplateInstructions from './templates/metadataTemplateInstructions.html';
+import filenameTemplateInstructions from './templates/filenameTemplateInstructions.html';
 import datetimeInstructions from './templates/datetimeInstructions.html';
 import appendModeInstructions from './templates/appendModeInstructions.html';
 import type { RaindropAPI } from './api';
@@ -41,6 +42,7 @@ export class RaindropSettingTab extends PluginSettingTab {
 		this.dateFormat();
 		this.template();
 		this.metadataTemplate();
+		this.filenameTemplate();
 		this.resetSyncHistory();
 	}
 
@@ -59,8 +61,8 @@ export class RaindropSettingTab extends PluginSettingTab {
 
 	private appendMode(): void {
 		const descFragment = document
-		  .createRange()
-		  .createContextualFragment(appendModeInstructions);
+			.createRange()
+			.createContextualFragment(appendModeInstructions);
 
 		new Setting(this.containerEl)
 			.setName('Append Mode')
@@ -175,25 +177,25 @@ export class RaindropSettingTab extends PluginSettingTab {
 
 	private highlightsFolder(): void {
 		new Setting(this.containerEl)
-		  .setName('Highlights folder location')
-		  .setDesc('Vault folder to use for writing Raindrop.io highlights')
-		  .addDropdown((dropdown) => {
-			const files = (this.app.vault.adapter as any).files;
-			Object.keys(files).forEach((key) => {
-				if (files[key].type == 'folder') {
-					const folder = files[key].realpath;
-					dropdown.addOption(folder, folder);
-				}
-			})
+			.setName('Highlights folder location')
+			.setDesc('Vault folder to use for storing Raindrop.io highlights')
+			.addDropdown((dropdown) => {
+				const files = (this.app.vault.adapter as any).files;
+				Object.keys(files).forEach((key) => {
+					if (files[key].type == 'folder') {
+						const folder = files[key].realpath;
+						dropdown.addOption(folder, folder);
+					}
+				})
 
-			return dropdown
-				.setValue(this.plugin.settings.highlightsFolder)
-				.onChange(async (value) => {
-					this.plugin.settings.highlightsFolder = value;
-					await this.plugin.saveSettings();
-				});
-		  });
-	  }
+				return dropdown
+					.setValue(this.plugin.settings.highlightsFolder)
+					.onChange(async (value) => {
+						this.plugin.settings.highlightsFolder = value;
+						await this.plugin.saveSettings();
+					});
+			});
+	}
 
 	private async collections(): Promise<void> {
 		new Setting(this.containerEl)
@@ -205,11 +207,13 @@ export class RaindropSettingTab extends PluginSettingTab {
 				.setButtonText('Manage')
 				.setCta()
 				.onClick(async () => {
+					button.setButtonText('Loading collections...');
+
 					// update for new collections
 					const allCollections = await this.api.getCollections();
 					this.plugin.updateCollectionSettings(allCollections);
 
-					const collectionsModal = new CollectionsModal(this.app, this.plugin);
+					new CollectionsModal(this.app, this.plugin);
 					this.display(); // rerender
 				});
 			});
@@ -241,6 +245,7 @@ export class RaindropSettingTab extends PluginSettingTab {
 				return text;
 			});
 	}
+
 	private async metadataTemplate(): Promise<void> {
 		const templateDescFragment = document
 			.createRange()
@@ -268,19 +273,45 @@ export class RaindropSettingTab extends PluginSettingTab {
 				return text;
 			});
 	}
-	
+
+	private async filenameTemplate(): Promise<void> {
+		const templateDescFragment = document
+			.createRange()
+			.createContextualFragment(filenameTemplateInstructions);
+
+		new Setting(this.containerEl)
+			.setName('Filename template')
+			.setDesc(templateDescFragment)
+			.addTextArea((text) => {
+				text.inputEl.style.width = '100%';
+				text.inputEl.style.height = '250px';
+				text.inputEl.style.fontSize = '0.8em';
+				text.setValue(this.plugin.settings.filenameTemplate)
+					.onChange(async (value) => {
+						const isValid = this.renderer.validate(value, false);
+
+						if (isValid) {
+							this.plugin.settings.filenameTemplate = value;
+							await this.plugin.saveSettings();
+						}
+
+						text.inputEl.style.border = isValid ? '' : '1px solid red';
+					});
+				return text;
+			});
+	}
 
 	private resetSyncHistory(): void {
 		new Setting(this.containerEl)
-		  .setName('Reset sync')
-		  .setDesc('Reset last sync time to resync')
-		  .addButton((button) => {
+			.setName('Reset sync')
+			.setDesc('Reset last sync time to resync')
+			.addButton((button) => {
 			return button
 				.setButtonText('Reset')
 				.setDisabled(!this.plugin.settings.isConnected)
 				.setWarning()
 				.onClick(async () => {
-					for (let id in this.plugin.settings.syncCollections) {
+					for (const id in this.plugin.settings.syncCollections) {
 						const collection = this.plugin.settings.syncCollections[id];
 						collection.lastSyncDate = undefined;
 					}
@@ -292,8 +323,8 @@ export class RaindropSettingTab extends PluginSettingTab {
 
 	private dateFormat(): void {
 		const descFragment = document
-		  .createRange()
-		  .createContextualFragment(datetimeInstructions);
+			.createRange()
+			.createContextualFragment(datetimeInstructions);
 	
 		new Setting(this.containerEl)
 			.setName('Date & time format')

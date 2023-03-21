@@ -1,8 +1,9 @@
 import nunjucks from "nunjucks";
 import Moment from "moment";
 import type RaindropPlugin from "./main";
-import type { BookmarkFileFrontMatter, RaindropBookmark } from "./types";
-import { Notice, parseYaml, stringifyYaml } from "obsidian";
+import sanitize from "sanitize-filename";
+import type { RaindropBookmark } from "./types";
+import { parseYaml } from "obsidian";
 
 type RenderHighlight = {
 	id: string;
@@ -96,7 +97,11 @@ export default class Renderer {
 
 	renderFrontmatter(bookmark: RaindropBookmark, newArticle: boolean) {
 		const newMdFrontmatter = this.renderTemplate(this.plugin.settings.metadataTemplate, bookmark, newArticle);
-		return `raindrop_id: ${bookmark.id}\nraindrop_last_update: ${(new Date()).toISOString()}\n${newMdFrontmatter}\n`
+		if (newMdFrontmatter.length > 0) {
+			return `raindrop_id: ${bookmark.id}\nraindrop_last_update: ${(new Date()).toISOString()}\n${newMdFrontmatter}\n`
+		} else {
+			return `raindrop_id: ${bookmark.id}\nraindrop_last_update: ${(new Date()).toISOString()}\n`
+		}
 	}
 
 	renderFullArticle(bookmark: RaindropBookmark) {
@@ -104,6 +109,15 @@ export default class Renderer {
 		const newMdFrontmatter = this.renderFrontmatter(bookmark, true);
 		const mdContent = `---\n${newMdFrontmatter}---\n${newMdContent}`;
 		return mdContent;
+	}
+
+	renderFileName(bookmark: RaindropBookmark, newArticle: boolean) {
+		const filename = this.renderTemplate(this.plugin.settings.filenameTemplate, bookmark, newArticle);
+		return this.sanitizeFilename(filename);
+	}
+
+	private sanitizeFilename(filename: string): string {
+		return sanitize(filename.replace(/[':#|]/g, "").trim());
 	}
 
 	private renderTemplate(template:string, bookmark: RaindropBookmark, newArticle: boolean) {
