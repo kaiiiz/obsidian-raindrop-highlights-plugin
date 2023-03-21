@@ -1,6 +1,6 @@
 {
 	"name": "obsidian-raindrop-highlights",
-	"version": "0.0.15",
+	"version": "0.0.16",
 	"description": "Sync your Raindrop.io highlights.",
 	"main": "main.js",
 	"scripts": {

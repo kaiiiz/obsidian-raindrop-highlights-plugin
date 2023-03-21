@@ -21,7 +21,7 @@ export interface RaindropHighlight { // Remote state
 export interface RaindropCreatorRef { // Remote state
 	name: string,
 	id: number,
-};
+}
 
 export interface RaindropBookmark { // Remote state
 	id: number,
