@@ -78,9 +78,12 @@ export class RaindropAPI {
 			const id = collection['_id'];
 			let parentId = collection['parent']['$id'];
 			let title = collection['title'];
-			while (!(parentId in rootCollectionMap)) {
+			while (parentId && (parentId in nestedCollectionMap)) {
 				title = `${nestedCollectionMap[parentId].title}/${title}`;
 				parentId = nestedCollectionMap[parentId].parentId;
+			}
+			if (parentId && (parentId in rootCollectionMap)) {
+				title = `${rootCollectionMap[parentId]}/${title}`;
 			}
 			collections.push({
 				title: title,
