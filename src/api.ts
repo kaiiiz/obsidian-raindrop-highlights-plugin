@@ -192,6 +192,7 @@ export class RaindropAPI {
 			title: raindrop['title'],
 			highlights: this.parseHighlights(raindrop['highlights']),
 			excerpt: raindrop['excerpt'],
+			note: raindrop['note'],
 			link: raindrop['link'],
 			lastUpdate: new Date(raindrop['lastUpdate']),
 			tags: raindrop['tags'],

@@ -29,6 +29,7 @@ export interface RaindropBookmark { // Remote state
 	title: string,
 	highlights: RaindropHighlight[],
 	excerpt: string,
+	note: string,
 	link: string,
 	lastUpdate: Date,
 	tags: string[],

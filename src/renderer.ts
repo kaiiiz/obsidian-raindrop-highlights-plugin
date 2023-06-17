@@ -28,6 +28,7 @@ type RenderTemplate = {
 	id: number;
 	title: string;
 	excerpt: string;
+	note: string;
 	link: string;
 	highlights: RenderHighlight[];
 	collection: RenderCollection;
@@ -44,6 +45,7 @@ const FAKE_RENDER_CONTEXT: RenderTemplate = {
 	id: 1000,
 	title: "fake_title",
 	excerpt: "fake_excerpt",
+	note: "fake_note",
 	link: "https://example.com",
 	highlights: [
 		{
@@ -145,6 +147,7 @@ export default class Renderer {
 			id: bookmark.id,
 			title: bookmark.title,
 			excerpt: bookmark.excerpt,
+			note: bookmark.note,
 			link: bookmark.link,
 			highlights: renderHighlights,
 			collection: renderCollection,
