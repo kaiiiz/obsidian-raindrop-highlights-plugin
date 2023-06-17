@@ -3,7 +3,7 @@ import DEFAULT_METADATA_TEMPLATE from './assets/defaultMetadataTemplate.njk';
 import templateInstructions from './templates/templateInstructions.html';
 import metadataTemplateInstructions from './templates/metadataTemplateInstructions.html';
 import filenameTemplateInstructions from './templates/filenameTemplateInstructions.html';
-import datetimeInstructions from './templates/datetimeInstructions.html';
+import collectionGroupsInstructions from './templates/collectionGroupsInstructions.html';
 import appendModeInstructions from './templates/appendModeInstructions.html';
 import type { RaindropAPI } from './api';
 import type RaindropPlugin from './main';
@@ -37,6 +37,7 @@ export class RaindropSettingTab extends PluginSettingTab {
 		this.appendMode();
 		this.collectionsFolders();
 		this.highlightsFolder();
+		this.groups();
 		this.collections();
 		this.autoSyncInterval();
 		this.template();
@@ -195,6 +196,24 @@ export class RaindropSettingTab extends PluginSettingTab {
 					});
 			});
 	}
+
+	private async groups(): Promise<void> {
+		const descFragment = document
+			.createRange()
+			.createContextualFragment(collectionGroupsInstructions);
+
+		new Setting(this.containerEl)
+			.setName('Collection groups')
+			.setDesc(descFragment)
+			.addToggle((toggle) => {
+				return toggle
+					.setValue(this.plugin.settings.collectionGroups)
+					.onChange(async (value) => {
+						this.plugin.settings.collectionGroups = value;
+						await this.plugin.saveSettings();
+					});
+			});
+		}
 
 	private async collections(): Promise<void> {
 		new Setting(this.containerEl)

@@ -73,6 +73,7 @@ export interface RaindropPluginSettings {
 	collectionsFolders: boolean;
 	onlyBookmarksWithHl: boolean;
 	highlightsFolder: string;
+	collectionGroups: boolean;
 	syncCollections: SyncCollectionSettings;
 	template: string;
 	metadataTemplate: string;
