@@ -8,8 +8,8 @@ import { parseYaml } from "obsidian";
 type RenderHighlight = {
 	id: string;
 	color: string;
-	created: string;
-	lastUpdate: string;
+	created: moment.Moment;
+	lastUpdate: moment.Moment;
 	note: string;
 	text: string;
 };
@@ -34,10 +34,11 @@ type RenderTemplate = {
 	collection: RenderCollection;
 	tags: string[];
 	cover: string;
-	created: string;
+	created: moment.Moment;
 	type: string;
 	important: boolean;
 	creator: RenderCreator;
+	now: moment.Moment;
 };
 
 const FAKE_RENDER_CONTEXT: RenderTemplate = {
@@ -51,8 +52,8 @@ const FAKE_RENDER_CONTEXT: RenderTemplate = {
 		{
 			id: "123456789abcdefghijklmno",
 			color: "red",
-			created: "2022-08-11T01:58:27.457Z",
-			lastUpdate: "2022-08-13T01:58:27.457Z",
+			created: Moment(),
+			lastUpdate: Moment(),
 			note: "fake_note",
 			text: "fake_text",
 		}
@@ -62,13 +63,14 @@ const FAKE_RENDER_CONTEXT: RenderTemplate = {
 	},
 	tags: ["fake_tag1", "fake_tag2"],
 	cover: "https://example.com",
-	created: "2022-08-10T01:58:27.457Z",
+	created: Moment(),
 	type: "link",
 	important: false,
 	creator: {
 		name: 'fake_name',
 		id: 10000,
-	}
+	},
+	now: Moment(),
 };
 
 export default class Renderer {
@@ -81,7 +83,8 @@ export default class Renderer {
 
 	validate(template: string, isYaml=false): boolean {
 		try {
-			const fakeContent = nunjucks.renderString(template, FAKE_RENDER_CONTEXT);
+			const env = this.createEnv();
+			const fakeContent = env.renderString(template, FAKE_RENDER_CONTEXT);
 			if (isYaml) {
 				const {id, created} = FAKE_RENDER_CONTEXT;
 				const fakeMetadata = `raindrop_id: ${id}\nraindrop_last_update: ${created}\n${fakeContent}`
@@ -129,8 +132,8 @@ export default class Renderer {
 			const renderHighlight: RenderHighlight = {
 				id: hl.id,
 				color: hl.color,
-				created: Moment(hl.created).format(dateTimeFormat),
-				lastUpdate: Moment(hl.lastUpdate).format(dateTimeFormat),
+				created: Moment(hl.created),
+				lastUpdate: Moment(hl.lastUpdate),
 				note: hl.note,
 				text: hl.text,
 			};
@@ -153,13 +156,23 @@ export default class Renderer {
 			collection: renderCollection,
 			tags: bookmark.tags,
 			cover: bookmark.cover,
-			created: Moment(bookmark.created).format(dateTimeFormat),
+			created: Moment(bookmark.created),
 			type: bookmark.type,
 			important: bookmark.important,
 			creator: bookmark.creator,
+			now: Moment(),
 		};
-		
-		const content = nunjucks.renderString(template, context);
+
+		const env = this.createEnv();
+		const content = env.renderString(template, context);
 		return content;
+	}
+
+	private createEnv(): nunjucks.Environment {
+		const env = new nunjucks.Environment();
+		env.addFilter("date", (date: moment.Moment, format: string) => {
+			return date.format(format);
+		});
+		return env;
 	}
 }

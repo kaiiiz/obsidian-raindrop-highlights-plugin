@@ -5,6 +5,11 @@ rendering every synced Raindrop.io highlights & annotations.
   <b>Available variables to use</b>
 </p>
 
+Metadata
+<ul>
+  <li><span class="u-pop">{{now}}</span> (Moment) - Present time</li>
+</ul>
+
 Article Metadata
 <ul>
   <li><span class="u-pop">{{is_new_article}}</span> (bool) - New file indicator</li>
@@ -18,7 +23,7 @@ Article Metadata
   <li><span class="u-pop">{{creator}}</span> (Creator) - Creator data (Detail attributes refer to the following <span class="u-pop">Creator</span> section</li>
   <li><span class="u-pop">{{tags}}</span> (string) - List of tag</li>
   <li><span class="u-pop">{{cover}}</span> (string) - Article cover</li>
-  <li><span class="u-pop">{{created}}</span> (string) - Created on</li>
+  <li><span class="u-pop">{{created}}</span> (Moment) - Created on</li>
   <li><span class="u-pop">{{type}}</span> (string) - Article type</li>
   <li><span class="u-pop">{{important}}</span> (bool) - Favorite article</li>
 </ul>
@@ -39,7 +44,12 @@ Highlight
   <li><span class="u-pop">{{id}}</span> (string) - Highlight identifier</li>
   <li><span class="u-pop">{{text}}</span> (string) - Text</li>
   <li><span class="u-pop">{{color}}</span> (string) - Highlight color</li>
-  <li><span class="u-pop">{{created}}</span> (string) - Created on</li>
-  <li><span class="u-pop">{{lastUpdate}}</span> (string) - Updated on</li>
+  <li><span class="u-pop">{{created}}</span> (Moment) - Created on</li>
+  <li><span class="u-pop">{{lastUpdate}}</span> (Moment) - Updated on</li>
   <li><span class="u-pop">{{note}}</span> (string) - Annotation</li>
+</ul>
+
+Filter
+<ul>
+  <li><span class="u-pop">date(format: string)</span> Convert Moment object to string - example: <code>{{ now | date("YYYY/MM/DD") }}</code>. For more syntax, refer to <a href="https://momentjs.com/docs/#/displaying/format/">format reference</a>.</li>
 </ul>
