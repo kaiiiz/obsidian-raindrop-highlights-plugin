@@ -6,6 +6,7 @@ import { RaindropAPI } from './api';
 import { VERSION, DEFAULT_SETTINGS } from './constants';
 import BreakingChangeModal from './modal/breakingChange';
 import CollectionsModal from './modal/collections';
+import semver from "semver";
 
 export default class RaindropPlugin extends Plugin {
 	private raindropSync: RaindropSync;
@@ -108,6 +109,14 @@ export default class RaindropPlugin extends Plugin {
 		}
 		// version migration notice
 		new BreakingChangeModal(this.app, this.settings.version);
+
+		// setting migration
+		if (semver.lt(this.settings.version, "0.0.18")) {
+			if ('dateTimeFormat' in this.settings) {
+				// @ts-expect-error
+				delete this.settings['dateTimeFormat'];
+			}
+		}
 
 		this.settings.version = VERSION;
 		await this.saveSettings();
