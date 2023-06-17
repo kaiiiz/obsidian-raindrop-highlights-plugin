@@ -12,7 +12,7 @@ export default class BreadkingChangeModal extends Modal {
 			(resolve) => (this.resolvePromise = resolve)
 		);
 
-		this.titleEl.innerText = "Breaking Changes";
+		this.titleEl.innerText = "Raindrop Highlight - Breaking Changes";
 
 		let breakingChanges = "";
 		if (semver.lt(currentVersion, "0.0.18")) {
