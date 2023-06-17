@@ -226,10 +226,8 @@ export class RaindropSettingTab extends PluginSettingTab {
 		new Setting(this.containerEl)
 			.setName('Content template')
 			.setDesc(templateDescFragment)
+			.setClass("raindrop-content-template")
 			.addTextArea((text) => {
-				text.inputEl.style.width = '100%';
-				text.inputEl.style.height = '450px';
-				text.inputEl.style.fontSize = '0.8em';
 				text.setValue(this.plugin.settings.template)
 					.onChange(async (value) => {
 						const isValid = this.renderer.validate(value);
@@ -253,10 +251,8 @@ export class RaindropSettingTab extends PluginSettingTab {
 		new Setting(this.containerEl)
 			.setName('Metadata template')
 			.setDesc(templateDescFragment)
+			.setClass("raindrop-metadata-template")
 			.addTextArea((text) => {
-				text.inputEl.style.width = '100%';
-				text.inputEl.style.height = '250px';
-				text.inputEl.style.fontSize = '0.8em';
 				text.setPlaceholder(DEFAULT_METADATA_TEMPLATE);
 				text.setValue(this.plugin.settings.metadataTemplate)
 					.onChange(async (value) => {
@@ -281,10 +277,8 @@ export class RaindropSettingTab extends PluginSettingTab {
 		new Setting(this.containerEl)
 			.setName('Filename template')
 			.setDesc(templateDescFragment)
+			.setClass("raindrop-filename-template")
 			.addTextArea((text) => {
-				text.inputEl.style.width = '100%';
-				text.inputEl.style.height = '250px';
-				text.inputEl.style.fontSize = '0.8em';
 				text.setValue(this.plugin.settings.filenameTemplate)
 					.onChange(async (value) => {
 						const isValid = this.renderer.validate(value, false);
