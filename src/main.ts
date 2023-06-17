@@ -5,6 +5,7 @@ import type { RaindropCollection, RaindropPluginSettings, SyncCollection, SyncCo
 import { RaindropAPI } from './api';
 import { VERSION, DEFAULT_SETTINGS } from './constants';
 import BreakingChangeModal from './modal/breakingChange';
+import CollectionsModal from './modal/collections';
 
 export default class RaindropPlugin extends Plugin {
 	private raindropSync: RaindropSync;
@@ -66,6 +67,22 @@ export default class RaindropPlugin extends Plugin {
 				} else {
 					new Notice("No active file");
 				}
+			}
+		});
+
+		this.addCommand({
+			id: 'raindrop-manage-collection',
+			name: 'Manage collections to be synced',
+			callback: async () => {
+				const notice = new Notice('Loading collections...');
+
+				// update for new collections
+				const allCollections = await this.api.getCollections();
+				this.updateCollectionSettings(allCollections);
+
+				notice.hide();
+
+				new CollectionsModal(this.app, this);
 			}
 		});
 
