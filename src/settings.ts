@@ -39,7 +39,6 @@ export class RaindropSettingTab extends PluginSettingTab {
 		this.highlightsFolder();
 		this.collections();
 		this.autoSyncInterval();
-		this.dateFormat();
 		this.template();
 		this.metadataTemplate();
 		this.filenameTemplate();
@@ -319,25 +318,6 @@ export class RaindropSettingTab extends PluginSettingTab {
 					new Notice("Sync history reset successfully");
 			});
 		});
-	}
-
-	private dateFormat(): void {
-		const descFragment = document
-			.createRange()
-			.createContextualFragment(datetimeInstructions);
-	
-		new Setting(this.containerEl)
-			.setName('Date & time format')
-			.setDesc(descFragment)
-			.addText((text) => {
-				return text
-					.setPlaceholder('YYYY-MM-DD HH:mm:ss')
-					.setValue(this.plugin.settings.dateTimeFormat)
-					.onChange(async (value) => {
-					this.plugin.settings.dateTimeFormat = value;
-					await this.plugin.saveSettings();
-					});
-			});
 	}
 
 	private autoSyncInterval(): void {

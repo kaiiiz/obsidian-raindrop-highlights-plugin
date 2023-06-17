@@ -77,6 +77,5 @@ export interface RaindropPluginSettings {
 	template: string;
 	metadataTemplate: string;
 	filenameTemplate: string;
-	dateTimeFormat: string;
 	autoSyncInterval: number;
 }

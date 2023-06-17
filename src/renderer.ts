@@ -126,8 +126,6 @@ export default class Renderer {
 	}
 
 	private renderTemplate(template:string, bookmark: RaindropBookmark, newArticle: boolean) {
-		const dateTimeFormat = this.plugin.settings.dateTimeFormat;
-
 		const renderHighlights: RenderHighlight[] = bookmark.highlights.map((hl) => {
 			const renderHighlight: RenderHighlight = {
 				id: hl.id,

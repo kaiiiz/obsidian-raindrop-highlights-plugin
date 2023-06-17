@@ -4,6 +4,7 @@ import RaindropSync from './sync';
 import type { RaindropCollection, RaindropPluginSettings, SyncCollection, SyncCollectionSettings } from './types';
 import { RaindropAPI } from './api';
 import { VERSION, DEFAULT_SETTINGS } from './constants';
+import BreakingChangeModal from './modal/breakingChange';
 
 export default class RaindropPlugin extends Plugin {
 	private raindropSync: RaindropSync;
@@ -87,10 +88,9 @@ export default class RaindropPlugin extends Plugin {
 				collection.lastSyncDate = new Date(collection.lastSyncDate);
 			}
 		}
-		// if (this.settings.version !== VERSION) {
-		// version migration
-		// new Notice(`Migration Raindrop Highlights from ${this.settings.version} to ${VERSION}`);
-		// }
+		// version migration notice
+		new BreakingChangeModal(this.app, this.settings.version);
+
 		this.settings.version = VERSION;
 		await this.saveSettings();
 	}
