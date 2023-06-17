@@ -121,12 +121,12 @@ export class RaindropAPI {
 					await addNewPages(page++);
 				}
 			} else { // sync article after lastSync
-				while (bookmarks[bookmarks.length - 1].lastUpdate >= lastSync && remainPages--) {
+				while (bookmarks[bookmarks.length - 1].lastUpdate.getTime() >= lastSync.getTime() && remainPages--) {
 					notice.setMessage(`Sync Raindrop pages: ${totalPages - remainPages}/${totalPages}`)
 					await addNewPages(page++);
 				}
 				bookmarks = bookmarks.filter(bookmark => {
-					return bookmark.lastUpdate >= lastSync;
+					return bookmark.lastUpdate.getTime() >= lastSync.getTime();
 				});
 			}
 		}

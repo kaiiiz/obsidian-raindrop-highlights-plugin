@@ -114,13 +114,13 @@ export default class RaindropSync {
 		
 		if (metadata?.frontmatter && 'raindrop_last_update' in metadata.frontmatter) {
 			const localLastUpdate = new Date(metadata.frontmatter.raindrop_last_update);
-			if (localLastUpdate >= bookmark.lastUpdate) {
+			if (localLastUpdate.getTime() >= bookmark.lastUpdate.getTime()) {
 				console.debug('skip update file', file.path);
 				return;
 			}
 
 			bookmark.highlights = bookmark.highlights.filter(hl => {
-				return localLastUpdate < hl.lastUpdate;
+				return localLastUpdate.getTime() < hl.lastUpdate.getTime();
 			});
 		}
 
