@@ -228,7 +228,8 @@ export class RaindropSettingTab extends PluginSettingTab {
 					button.setButtonText('Loading collections...');
 
 					// update for new collections
-					const allCollections = await this.api.getCollections();
+					const collectionGroup = this.plugin.settings.collectionGroups;
+					const allCollections = await this.api.getCollections(collectionGroup);
 					this.plugin.updateCollectionSettings(allCollections);
 
 					new CollectionsModal(this.app, this.plugin);

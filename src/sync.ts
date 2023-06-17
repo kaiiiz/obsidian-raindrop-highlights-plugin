@@ -19,7 +19,8 @@ export default class RaindropSync {
 	}
 
 	async sync() {
-		const allCollections = await this.api.getCollections();
+		const collectionGroup = this.plugin.settings.collectionGroups;
+		const allCollections = await this.api.getCollections(collectionGroup);
 		this.plugin.updateCollectionSettings(allCollections);
 
 		for (const id in this.plugin.settings.syncCollections) {
