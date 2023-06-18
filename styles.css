@@ -27,3 +27,8 @@
 .raindrop-filename-template .setting-item-control textarea {
 	height: 250px;
 }
+
+.collection-entry {
+	display: flex;
+	align-items: center;
+}
