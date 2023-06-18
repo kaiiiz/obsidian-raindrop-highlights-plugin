@@ -1,7 +1,7 @@
 import DEFAULT_TEMPLATE from './assets/defaultTemplate.njk';
 import type { RaindropPluginSettings } from "./types";
 
-export const VERSION = '0.0.17';
+export const VERSION = '0.0.18';
 
 export const DEFAULT_SETTINGS: RaindropPluginSettings = {
 	version: VERSION,
@@ -12,10 +12,10 @@ export const DEFAULT_SETTINGS: RaindropPluginSettings = {
 	collectionsFolders: true,
 	onlyBookmarksWithHl: false,
 	highlightsFolder: '/',
+	collectionGroups: false,
 	syncCollections: {},
 	template: DEFAULT_TEMPLATE,
 	metadataTemplate: "",
 	filenameTemplate: "{{title}}",
-	dateTimeFormat: 'YYYY/MM/DD HH:mm:ss',
 	autoSyncInterval: 0,
 };

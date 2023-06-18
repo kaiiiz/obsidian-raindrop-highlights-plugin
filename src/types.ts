@@ -9,6 +9,11 @@ export interface RaindropCollection { // Remote state
 	id: number,
 }
 
+export interface RaindropCollectionGroup { // Remote state
+	title: string,
+	collections: number[],
+}
+
 export interface RaindropHighlight { // Remote state
 	id: string,
 	color: string,
@@ -29,6 +34,7 @@ export interface RaindropBookmark { // Remote state
 	title: string,
 	highlights: RaindropHighlight[],
 	excerpt: string,
+	note: string,
 	link: string,
 	lastUpdate: Date,
 	tags: string[],
@@ -72,10 +78,10 @@ export interface RaindropPluginSettings {
 	collectionsFolders: boolean;
 	onlyBookmarksWithHl: boolean;
 	highlightsFolder: string;
+	collectionGroups: boolean;
 	syncCollections: SyncCollectionSettings;
 	template: string;
 	metadataTemplate: string;
 	filenameTemplate: string;
-	dateTimeFormat: string;
 	autoSyncInterval: number;
 }

@@ -1,6 +1,6 @@
 import { Notice, type App } from "obsidian";
 import axios from "axios";
-import type { RaindropBookmark, RaindropCollection, RaindropHighlight, RaindropUser } from "./types";
+import type { RaindropBookmark, RaindropCollection, RaindropCollectionGroup, RaindropHighlight, RaindropUser } from "./types";
 import TokenManager from "./tokenManager";
 
 const BASEURL = "https://api.raindrop.io/rest/v1";
@@ -45,18 +45,35 @@ export class RaindropAPI {
 		return result.data;
 	}
 
-	async getCollections(): Promise<RaindropCollection[]> {
-		let res = await this.get(`${BASEURL}/collections`, {});
+	async getCollections(enableCollectionGroup: boolean): Promise<RaindropCollection[]> {
+		const rootCollectionPromise = this.get(`${BASEURL}/collections`, {});
+		const nestedCollectionPromise = this.get(`${BASEURL}/collections/childrens`, {});
 
 		const collections: RaindropCollection[] = [
 			{ id: -1, title: 'Unsorted' },
+			{ id: 0, title: 'All bookmarks' },
 			{ id: -99, title: 'Trash' },
 		];
 
+		const collectionGroupMap: {[id: number]: string} = {};
+		if (enableCollectionGroup) {
+			const res = await this.get(`${BASEURL}/user`, {});
+			const groups = this.parseGroups(res.user.groups);
+			groups.forEach((g) => {
+				g.collections.forEach((cid) => {
+					collectionGroupMap[cid] = g.title;
+				});
+			});
+		}
+
 		const rootCollectionMap: {[id: number]: string} = {};
-		res.items.forEach((collection: any) => {
+		const rootCollections = await rootCollectionPromise;
+		rootCollections.items.forEach((collection: any) => {
 			const id = collection['_id'];
-			const title = collection['title'];
+			let title = collection['title'];
+			if (enableCollectionGroup) {
+				title = `${collectionGroupMap[id]}/${title}`;
+			}
 			rootCollectionMap[id] = title;
 			collections.push({
 				title: title,
@@ -64,9 +81,9 @@ export class RaindropAPI {
 			});
 		});
 
-		res = await this.get(`${BASEURL}/collections/childrens`, {});
 		const nestedCollectionMap: {[id: number]: NestedRaindropCollection} = {};
-		res.items.forEach((collection: any) => {
+		const nestedCollections = await nestedCollectionPromise;
+		nestedCollections.items.forEach((collection: any) => {
 			const id = collection['_id'];
 			nestedCollectionMap[id] = {
 				title: collection['title'],
@@ -74,13 +91,16 @@ export class RaindropAPI {
 			};
 		});
 
-		res.items.forEach((collection: any) => {
+		nestedCollections.items.forEach((collection: any) => {
 			const id = collection['_id'];
 			let parentId = collection['parent']['$id'];
 			let title = collection['title'];
-			while (!(parentId in rootCollectionMap)) {
+			while (parentId && (parentId in nestedCollectionMap)) {
 				title = `${nestedCollectionMap[parentId].title}/${title}`;
 				parentId = nestedCollectionMap[parentId].parentId;
+			}
+			if (parentId && (parentId in rootCollectionMap)) {
+				title = `${rootCollectionMap[parentId]}/${title}`;
 			}
 			collections.push({
 				title: title,
@@ -118,12 +138,12 @@ export class RaindropAPI {
 					await addNewPages(page++);
 				}
 			} else { // sync article after lastSync
-				while (bookmarks[bookmarks.length - 1].lastUpdate >= lastSync && remainPages--) {
+				while (bookmarks[bookmarks.length - 1].lastUpdate.getTime() >= lastSync.getTime() && remainPages--) {
 					notice.setMessage(`Sync Raindrop pages: ${totalPages - remainPages}/${totalPages}`)
 					await addNewPages(page++);
 				}
 				bookmarks = bookmarks.filter(bookmark => {
-					return bookmark.lastUpdate >= lastSync;
+					return bookmark.lastUpdate.getTime() >= lastSync.getTime();
 				});
 			}
 		}
@@ -189,6 +209,7 @@ export class RaindropAPI {
 			title: raindrop['title'],
 			highlights: this.parseHighlights(raindrop['highlights']),
 			excerpt: raindrop['excerpt'],
+			note: raindrop['note'],
 			link: raindrop['link'],
 			lastUpdate: new Date(raindrop['lastUpdate']),
 			tags: raindrop['tags'],
@@ -215,6 +236,16 @@ export class RaindropAPI {
 				note: hl['note'],
 			};
 			return highlight;
+		});
+	}
+
+	private parseGroups(groups: any): RaindropCollectionGroup[] {
+		return groups.map((g: any) => {
+			const group: RaindropCollectionGroup = {
+				title: g['title'],
+				collections: g['collections'],
+			};
+			return group;
 		});
 	}
 }

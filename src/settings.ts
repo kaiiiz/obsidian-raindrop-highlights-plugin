@@ -3,7 +3,7 @@ import DEFAULT_METADATA_TEMPLATE from './assets/defaultMetadataTemplate.njk';
 import templateInstructions from './templates/templateInstructions.html';
 import metadataTemplateInstructions from './templates/metadataTemplateInstructions.html';
 import filenameTemplateInstructions from './templates/filenameTemplateInstructions.html';
-import datetimeInstructions from './templates/datetimeInstructions.html';
+import collectionGroupsInstructions from './templates/collectionGroupsInstructions.html';
 import appendModeInstructions from './templates/appendModeInstructions.html';
 import type { RaindropAPI } from './api';
 import type RaindropPlugin from './main';
@@ -37,9 +37,9 @@ export class RaindropSettingTab extends PluginSettingTab {
 		this.appendMode();
 		this.collectionsFolders();
 		this.highlightsFolder();
+		this.groups();
 		this.collections();
 		this.autoSyncInterval();
-		this.dateFormat();
 		this.template();
 		this.metadataTemplate();
 		this.filenameTemplate();
@@ -197,6 +197,24 @@ export class RaindropSettingTab extends PluginSettingTab {
 			});
 	}
 
+	private async groups(): Promise<void> {
+		const descFragment = document
+			.createRange()
+			.createContextualFragment(collectionGroupsInstructions);
+
+		new Setting(this.containerEl)
+			.setName('Collection groups')
+			.setDesc(descFragment)
+			.addToggle((toggle) => {
+				return toggle
+					.setValue(this.plugin.settings.collectionGroups)
+					.onChange(async (value) => {
+						this.plugin.settings.collectionGroups = value;
+						await this.plugin.saveSettings();
+					});
+			});
+		}
+
 	private async collections(): Promise<void> {
 		new Setting(this.containerEl)
 			.setName('Collections')
@@ -210,7 +228,8 @@ export class RaindropSettingTab extends PluginSettingTab {
 					button.setButtonText('Loading collections...');
 
 					// update for new collections
-					const allCollections = await this.api.getCollections();
+					const collectionGroup = this.plugin.settings.collectionGroups;
+					const allCollections = await this.api.getCollections(collectionGroup);
 					this.plugin.updateCollectionSettings(allCollections);
 
 					new CollectionsModal(this.app, this.plugin);
@@ -227,10 +246,8 @@ export class RaindropSettingTab extends PluginSettingTab {
 		new Setting(this.containerEl)
 			.setName('Content template')
 			.setDesc(templateDescFragment)
+			.setClass("raindrop-content-template")
 			.addTextArea((text) => {
-				text.inputEl.style.width = '100%';
-				text.inputEl.style.height = '450px';
-				text.inputEl.style.fontSize = '0.8em';
 				text.setValue(this.plugin.settings.template)
 					.onChange(async (value) => {
 						const isValid = this.renderer.validate(value);
@@ -254,10 +271,8 @@ export class RaindropSettingTab extends PluginSettingTab {
 		new Setting(this.containerEl)
 			.setName('Metadata template')
 			.setDesc(templateDescFragment)
+			.setClass("raindrop-metadata-template")
 			.addTextArea((text) => {
-				text.inputEl.style.width = '100%';
-				text.inputEl.style.height = '250px';
-				text.inputEl.style.fontSize = '0.8em';
 				text.setPlaceholder(DEFAULT_METADATA_TEMPLATE);
 				text.setValue(this.plugin.settings.metadataTemplate)
 					.onChange(async (value) => {
@@ -282,10 +297,8 @@ export class RaindropSettingTab extends PluginSettingTab {
 		new Setting(this.containerEl)
 			.setName('Filename template')
 			.setDesc(templateDescFragment)
+			.setClass("raindrop-filename-template")
 			.addTextArea((text) => {
-				text.inputEl.style.width = '100%';
-				text.inputEl.style.height = '250px';
-				text.inputEl.style.fontSize = '0.8em';
 				text.setValue(this.plugin.settings.filenameTemplate)
 					.onChange(async (value) => {
 						const isValid = this.renderer.validate(value, false);
@@ -319,25 +332,6 @@ export class RaindropSettingTab extends PluginSettingTab {
 					new Notice("Sync history reset successfully");
 			});
 		});
-	}
-
-	private dateFormat(): void {
-		const descFragment = document
-			.createRange()
-			.createContextualFragment(datetimeInstructions);
-	
-		new Setting(this.containerEl)
-			.setName('Date & time format')
-			.setDesc(descFragment)
-			.addText((text) => {
-				return text
-					.setPlaceholder('YYYY-MM-DD HH:mm:ss')
-					.setValue(this.plugin.settings.dateTimeFormat)
-					.onChange(async (value) => {
-					this.plugin.settings.dateTimeFormat = value;
-					await this.plugin.saveSettings();
-					});
-			});
 	}
 
 	private autoSyncInterval(): void {

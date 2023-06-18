@@ -2,3 +2,33 @@
 /* body {
     color: red;
 } */
+.raindrop-content-template .setting-item-info,
+.raindrop-content-template .setting-item-control,
+.raindrop-metadata-template .setting-item-info,
+.raindrop-metadata-template .setting-item-control,
+.raindrop-filename-template .setting-item-info,
+.raindrop-filename-template .setting-item-control {
+	width: 0;
+}
+
+.raindrop-content-template .setting-item-control textarea,
+.raindrop-metadata-template .setting-item-control textarea,
+.raindrop-filename-template .setting-item-control textarea {
+	width: 100%;
+	font-size: 0.75em;
+	font-family: var(--font-monospace);
+}
+
+.raindrop-content-template .setting-item-control textarea {
+	height: 600px;
+}
+
+.raindrop-metadata-template .setting-item-control textarea,
+.raindrop-filename-template .setting-item-control textarea {
+	height: 250px;
+}
+
+.collection-entry {
+	display: flex;
+	align-items: center;
+}

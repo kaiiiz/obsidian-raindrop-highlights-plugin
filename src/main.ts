@@ -4,6 +4,9 @@ import RaindropSync from './sync';
 import type { RaindropCollection, RaindropPluginSettings, SyncCollection, SyncCollectionSettings } from './types';
 import { RaindropAPI } from './api';
 import { VERSION, DEFAULT_SETTINGS } from './constants';
+import BreakingChangeModal from './modal/breakingChange';
+import CollectionsModal from './modal/collections';
+import semver from "semver";
 
 export default class RaindropPlugin extends Plugin {
 	private raindropSync: RaindropSync;
@@ -68,6 +71,23 @@ export default class RaindropPlugin extends Plugin {
 			}
 		});
 
+		this.addCommand({
+			id: 'raindrop-manage-collection',
+			name: 'Manage collections to be synced',
+			callback: async () => {
+				const notice = new Notice('Loading collections...');
+
+				// update for new collections
+				const collectionGroup = this.settings.collectionGroups;
+				const allCollections = await this.api.getCollections(collectionGroup);
+				this.updateCollectionSettings(allCollections);
+
+				notice.hide();
+
+				new CollectionsModal(this.app, this);
+			}
+		});
+
 		this.addSettingTab(new RaindropSettingTab(this.app, this, this.api));
 
 		if (this.settings.autoSyncInterval) {
@@ -87,10 +107,17 @@ export default class RaindropPlugin extends Plugin {
 				collection.lastSyncDate = new Date(collection.lastSyncDate);
 			}
 		}
-		// if (this.settings.version !== VERSION) {
-		// version migration
-		// new Notice(`Migration Raindrop Highlights from ${this.settings.version} to ${VERSION}`);
-		// }
+		// version migration notice
+		new BreakingChangeModal(this.app, this.settings.version);
+
+		// setting migration
+		if (semver.lt(this.settings.version, "0.0.18")) {
+			if ('dateTimeFormat' in this.settings) {
+				// @ts-expect-error
+				delete this.settings['dateTimeFormat'];
+			}
+		}
+
 		this.settings.version = VERSION;
 		await this.saveSettings();
 	}
