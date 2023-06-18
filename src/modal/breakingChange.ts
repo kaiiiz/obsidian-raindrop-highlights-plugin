@@ -18,7 +18,7 @@ export default class BreadkingChangeModal extends Modal {
 		if (semver.lt(currentVersion, "0.0.18")) {
 			breakingChanges += `<p>v0.0.18</p>
 <ul>
-<li>Date &amp; time format field is replaced by the <code>date</code> filter. Update <code>created</code> and <code>lastUpdate</code> in template accordingly.</li>
+<li>Date &amp; time format field is replaced by the <code>date</code> filter in template. Update <code>created</code> and <code>lastUpdate</code> in template accordingly.</li>
 </ul>
 `
 		}
