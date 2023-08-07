@@ -111,8 +111,11 @@ export class RaindropAPI {
 		return collections;
 	}
 
-	async getRaindropsAfter(collectionId: number, lastSync?: Date): Promise<RaindropBookmark[]> {
-		const notice = new Notice("Fetch Raindrops highlights", 0);
+	async getRaindropsAfter(collectionId: number, lastSync?: Date, showNotice?: boolean): Promise<RaindropBookmark[]> {
+		let notice;
+		if (showNotice) {
+			notice = new Notice("Fetch Raindrops highlights", 0);
+		}
 		const res = await this.get(`${BASEURL}/raindrops/${collectionId}`, {
 			"page": 0,
 			"sort": "-lastUpdate"
@@ -134,12 +137,12 @@ export class RaindropAPI {
 		if (bookmarks.length > 0) {
 			if (lastSync === undefined) { // sync all
 				while (remainPages--) {
-					notice.setMessage(`Sync Raindrop pages: ${totalPages - remainPages}/${totalPages}`)
+					notice?.setMessage(`Sync Raindrop pages: ${totalPages - remainPages}/${totalPages}`)
 					await addNewPages(page++);
 				}
 			} else { // sync article after lastSync
 				while (bookmarks[bookmarks.length - 1].lastUpdate.getTime() >= lastSync.getTime() && remainPages--) {
-					notice.setMessage(`Sync Raindrop pages: ${totalPages - remainPages}/${totalPages}`)
+					notice?.setMessage(`Sync Raindrop pages: ${totalPages - remainPages}/${totalPages}`)
 					await addNewPages(page++);
 				}
 				bookmarks = bookmarks.filter(bookmark => {
@@ -150,14 +153,14 @@ export class RaindropAPI {
 
 		// get real highlights (raindrop returns only 3 highlights in /raindrops/${collectionId} endpoint)
 		for (const [idx, bookmark] of bookmarks.entries()) {
-			notice.setMessage(`Sync Raindrop bookmarks: ${idx + 1}/${bookmarks.length}`)
+			notice?.setMessage(`Sync Raindrop bookmarks: ${idx + 1}/${bookmarks.length}`)
 			if (bookmark.highlights.length == 3) {
 				const res = await this.get(`${BASEURL}/raindrop/${bookmark.id}`, {});
 				bookmark['highlights'] = this.parseHighlights(res.item.highlights);
 			}
 		}
 
-		notice.hide();
+		notice?.hide();
 		return bookmarks;
 	}
 
