@@ -40,6 +40,7 @@ export class RaindropSettingTab extends PluginSettingTab {
 		this.groups();
 		this.collections();
 		this.autoSyncInterval();
+		this.autoSyncSuccessNotice();
 		this.template();
 		this.metadataTemplate();
 		this.filenameTemplate();
@@ -360,6 +361,19 @@ export class RaindropSettingTab extends PluginSettingTab {
 						}
 					}
 				});
+			});
+	}
+
+	private autoSyncSuccessNotice(): void {
+		new Setting(this.containerEl)
+			.setName('Display a notification when a collection is synced')
+			.addToggle((toggle) => {
+				return toggle
+					.setValue(this.plugin.settings.autoSyncSuccessNotice)
+					.onChange(async (value) => {
+						this.plugin.settings.autoSyncSuccessNotice = value;
+						await this.plugin.saveSettings();
+					});
 			});
 	}
 }
