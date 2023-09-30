@@ -22,7 +22,7 @@
 		"builtin-modules": "3.3.0",
 		"esbuild": "0.14.47",
 		"esbuild-svelte": "0.7.1",
-		"obsidian": "^1.2.8",
+		"obsidian": "^1.4.11",
 		"svelte": "3.49.0",
 		"svelte-preprocess": "4.10.7",
 		"tslib": "2.4.0",
