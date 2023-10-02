@@ -124,17 +124,19 @@ export class RaindropAPI {
 		}
 		const res = await this.get(`${BASEURL}/raindrops/${collectionId}`, {
 			page: 0,
+			perpage: 50,
 			sort: "-lastUpdate",
 		});
 		const raindropsCnt = res.count;
 		let bookmarks = this.parseRaindrops(res.items);
-		let remainPages = Math.ceil(raindropsCnt / 25) - 1;
-		const totalPages = Math.ceil(raindropsCnt / 25) - 1;
+		let remainPages = Math.ceil(raindropsCnt / 50) - 1;
+		const totalPages = Math.ceil(raindropsCnt / 50) - 1;
 		let page = 1;
 
 		const addNewPages = async (page: number) => {
 			const res = await this.get(`${BASEURL}/raindrops/${collectionId}`, {
 				page: page,
+				perpage: 50,
 				sort: "-lastUpdate",
 			});
 			bookmarks = bookmarks.concat(this.parseRaindrops(res.items));
