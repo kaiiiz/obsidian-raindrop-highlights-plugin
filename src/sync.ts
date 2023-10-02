@@ -1,4 +1,4 @@
-import { App, Notice, parseYaml, stringifyYaml, TFile } from "obsidian";
+import { App, normalizePath, Notice, parseYaml, stringifyYaml, TFile } from "obsidian";
 import type { RaindropAPI } from "./api";
 import type RaindropPlugin from "./main";
 import Renderer from "./renderer";
@@ -36,7 +36,7 @@ export default class RaindropSync {
 			new Notice(`Sync Raindrop collection: ${collection.title}`);
 		}
 		const highlightsFolder = this.plugin.settings.highlightsFolder;
-		let collectionFolder = `${highlightsFolder}`
+		let collectionFolder = highlightsFolder;
 		if (this.plugin.settings.collectionsFolders) {
 			collectionFolder = `${highlightsFolder}/${collection["title"]}`;
 		}
@@ -81,21 +81,34 @@ export default class RaindropSync {
 			}
 
 			if (bookmark.id in bookmarkFilesMap) {
-				await this.updateFile(bookmarkFilesMap[bookmark.id], bookmark);
+				await this.updateFileContent(bookmarkFilesMap[bookmark.id], bookmark);
+				await this.updateFileName(bookmarkFilesMap[bookmark.id], bookmark, folderPath);
 			} else {
 				const renderedFilename = this.renderer.renderFileName(bookmark, true);
-				let fileName = truncate(`${renderedFilename}`, 252) + ".md";
-				let filePath = `${folderPath}/${fileName}`;
-				let suffix = 1;
-				while (await this.app.vault.adapter.exists(filePath)) {
-					console.debug(`${filePath} alreay exists`);
-					const fileSuffix = ` (${suffix++}).md`;
-					fileName = truncate(`${renderedFilename}`, 255 - fileSuffix.length) + fileSuffix;
-					filePath = `${folderPath}/${fileName}`;
-				}
+				const filePath = await this.buildNonDupFilePath(folderPath, renderedFilename);
 				bookmarkFilesMap[bookmark.id] = await this.createFile(filePath, bookmark);
 			}
 		}
+	}
+
+	buildFilePath(folderPath: string, renderedFilename: string, suffix?: number): string {
+		let fileSuffix = ".md";
+		let fileName = truncate(`${renderedFilename}`, 255 - fileSuffix.length) + fileSuffix;
+		if (suffix) {
+			fileSuffix = ` (${suffix++}).md`;
+			fileName = truncate(`${renderedFilename}`, 255 - fileSuffix.length) + fileSuffix;
+		}
+		return normalizePath(`${folderPath}/${fileName}`);
+	}
+
+	async buildNonDupFilePath(folderPath: string, renderedFilename: string): Promise<string> {
+		let filePath = this.buildFilePath(folderPath, renderedFilename);
+		let suffix = 1;
+		while (await this.app.vault.adapter.exists(filePath)) {
+			console.debug(`${filePath} alreay exists`);
+			filePath = this.buildFilePath(folderPath, renderedFilename, suffix++);
+		}
+		return filePath;
 	}
 
 	async syncCollectionComplete(collection: RaindropCollection) {
@@ -103,7 +116,25 @@ export default class RaindropSync {
 		await this.plugin.saveSettings();
 	}
 
-	async updateFile(file: TFile, bookmark: RaindropBookmark) {
+	async updateFileName(file: TFile, bookmark: RaindropBookmark, folderPath: string) {
+		const renderedFilename = this.renderer.renderFileName(bookmark, true);
+		let newFilePath = this.buildFilePath(folderPath, renderedFilename);
+		const metadata = this.app.metadataCache.getCache(newFilePath);
+		console.log(metadata, newFilePath);
+		// check new file is the same as the old file
+		if (metadata) {
+			if (metadata?.frontmatter && 'raindrop_id' in metadata.frontmatter && metadata.frontmatter.raindrop_id == bookmark.id) {
+				console.debug(`file name of "${file.path}" is not changed`);
+				return;
+			}
+		}
+		// other cases: move to the non existing path
+		newFilePath = await this.buildNonDupFilePath(folderPath, renderedFilename);
+		console.debug(`file name change detected, rename "${file.path}" to "${newFilePath}"`);
+		await this.app.vault.adapter.rename(file.path, newFilePath);
+	}
+
+	async updateFileContent(file: TFile, bookmark: RaindropBookmark) {
 		if (this.plugin.settings.appendMode) {
 			await this.updateFileAppendMode(file, bookmark);
 		} else {
