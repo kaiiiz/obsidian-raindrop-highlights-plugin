@@ -1,11 +1,11 @@
-import { Notice, Plugin } from 'obsidian';
-import { RaindropSettingTab } from './settings';
-import RaindropSync from './sync';
-import type { RaindropCollection, RaindropPluginSettings, SyncCollection, SyncCollectionSettings } from './types';
-import { RaindropAPI } from './api';
-import { VERSION, DEFAULT_SETTINGS } from './constants';
-import BreakingChangeModal from './modal/breakingChange';
-import CollectionsModal from './modal/collections';
+import { Notice, Plugin } from "obsidian";
+import { RaindropSettingTab } from "./settings";
+import RaindropSync from "./sync";
+import type { RaindropCollection, RaindropPluginSettings, SyncCollection, SyncCollectionSettings } from "./types";
+import { RaindropAPI } from "./api";
+import { VERSION, DEFAULT_SETTINGS } from "./constants";
+import BreakingChangeModal from "./modal/breakingChange";
+import CollectionsModal from "./modal/collections";
 import semver from "semver";
 
 export default class RaindropPlugin extends Plugin {
@@ -21,9 +21,9 @@ export default class RaindropPlugin extends Plugin {
 		this.raindropSync = new RaindropSync(this.app, this, this.api);
 
 		if (this.settings.ribbonIcon) {
-			this.addRibbonIcon('cloud', 'Sync your Raindrop highlights', () => {
+			this.addRibbonIcon("cloud", "Sync your Raindrop highlights", () => {
 				if (!this.settings.isConnected) {
-					new Notice('Please configure Raindrop API token in the plugin setting');
+					new Notice("Please configure Raindrop API token in the plugin setting");
 				} else {
 					this.raindropSync.sync();
 				}
@@ -31,16 +31,16 @@ export default class RaindropPlugin extends Plugin {
 		}
 
 		this.addCommand({
-			id: 'raindrop-sync',
-			name: 'Sync highlights',
+			id: "raindrop-sync",
+			name: "Sync highlights",
 			callback: async () => {
 				await this.raindropSync.sync();
-			}
+			},
 		});
 
 		this.addCommand({
-			id: 'raindrop-show-last-sync-time',
-			name: 'Show last sync time',
+			id: "raindrop-show-last-sync-time",
+			name: "Show last sync time",
 			callback: async () => {
 				const message = Object.values(this.settings.syncCollections)
 					.filter((collection: SyncCollection) => collection.sync)
@@ -49,12 +49,12 @@ export default class RaindropPlugin extends Plugin {
 					})
 					.join("\n");
 				new Notice(message);
-			}
+			},
 		});
 
 		this.addCommand({
-			id: 'raindrop-open-link',
-			name: 'Open link in Raindrop',
+			id: "raindrop-open-link",
+			name: "Open link in Raindrop",
 			callback: async () => {
 				const file = app.workspace.getActiveFile();
 				if (file) {
@@ -63,19 +63,19 @@ export default class RaindropPlugin extends Plugin {
 						const bookmark = await this.api.getRaindrop(fmc.raindrop_id);
 						window.open(`https://app.raindrop.io/my/${bookmark.collectionId}/item/${bookmark.id}/edit`);
 					} else {
-						new Notice("This is not a Raindrop article file")
+						new Notice("This is not a Raindrop article file");
 					}
 				} else {
 					new Notice("No active file");
 				}
-			}
+			},
 		});
 
 		this.addCommand({
-			id: 'raindrop-manage-collection',
-			name: 'Manage collections to be synced',
+			id: "raindrop-manage-collection",
+			name: "Manage collections to be synced",
 			callback: async () => {
-				const notice = new Notice('Loading collections...');
+				const notice = new Notice("Loading collections...");
 
 				// update for new collections
 				const collectionGroup = this.settings.collectionGroups;
@@ -85,7 +85,7 @@ export default class RaindropPlugin extends Plugin {
 				notice.hide();
 
 				new CollectionsModal(this.app, this);
-			}
+			},
 		});
 
 		this.addSettingTab(new RaindropSettingTab(this.app, this, this.api));
@@ -112,9 +112,9 @@ export default class RaindropPlugin extends Plugin {
 
 		// setting migration
 		if (semver.lt(this.settings.version, "0.0.18")) {
-			if ('dateTimeFormat' in this.settings) {
+			if ("dateTimeFormat" in this.settings) {
 				// @ts-expect-error
-				delete this.settings['dateTimeFormat'];
+				delete this.settings["dateTimeFormat"];
 			}
 		}
 
@@ -129,7 +129,7 @@ export default class RaindropPlugin extends Plugin {
 	async updateCollectionSettings(collections: RaindropCollection[]) {
 		const syncCollections: SyncCollectionSettings = {};
 		collections.forEach(async (collection) => {
-			const {id, title} = collection;
+			const { id, title } = collection;
 
 			if (!(id in this.settings.syncCollections)) {
 				syncCollections[id] = {
@@ -152,19 +152,16 @@ export default class RaindropPlugin extends Plugin {
 			window.clearTimeout(this.timeoutIDAutoSync);
 			this.timeoutIDAutoSync = undefined;
 		}
-		console.info('Clearing auto sync...');
+		console.info("Clearing auto sync...");
 	}
 
 	async startAutoSync(minutes?: number): Promise<void> {
 		const minutesToSync = minutes ?? this.settings.autoSyncInterval;
 		if (minutesToSync > 0) {
-			this.timeoutIDAutoSync = window.setTimeout(
-				() => {
-					this.raindropSync.sync();
-					this.startAutoSync();
-				},
-				minutesToSync * 60000
-			);
+			this.timeoutIDAutoSync = window.setTimeout(() => {
+				this.raindropSync.sync();
+				this.startAutoSync();
+			}, minutesToSync * 60000);
 		}
 		console.info(`StartAutoSync: this.timeoutIDAutoSync ${this.timeoutIDAutoSync} with ${minutesToSync} minutes`);
 	}

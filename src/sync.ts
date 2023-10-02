@@ -3,7 +3,18 @@ import type { RaindropAPI } from "./api";
 import type RaindropPlugin from "./main";
 import Renderer from "./renderer";
 import truncate from "truncate-utf8-bytes";
-import type { BookmarkFile, BookmarkFileFrontMatter, RaindropBookmark, RaindropCollection, SyncCollection } from "./types";
+import type {
+	BookmarkFile,
+	BookmarkFileFrontMatter,
+	RaindropBookmark,
+	RaindropCollection,
+	SyncCollection,
+} from "./types";
+
+interface SplitedMarkdown {
+	content: string;
+	frontmatter: string;
+}
 
 export default class RaindropSync {
 	private app: App;
@@ -44,8 +55,12 @@ export default class RaindropSync {
 
 		let bookmarks: RaindropBookmark[] = [];
 		try {
-			console.debug('start sync collection:', collection.title, "last sync at:", lastSyncDate);
-			bookmarks = await this.api.getRaindropsAfter(collection.id, lastSyncDate, this.plugin.settings.autoSyncSuccessNotice);
+			console.debug(`start sync collection: ${collection.title}, last sync at: ${lastSyncDate}`);
+			bookmarks = await this.api.getRaindropsAfter(
+				collection.id,
+				lastSyncDate,
+				this.plugin.settings.autoSyncSuccessNotice
+			);
 			await this.syncBookmarks(bookmarks, collectionFolder);
 			await this.syncCollectionComplete(collection);
 		} catch (e) {
@@ -119,14 +134,15 @@ export default class RaindropSync {
 	async updateFileName(file: TFile, bookmark: RaindropBookmark, folderPath: string) {
 		const renderedFilename = this.renderer.renderFileName(bookmark, true);
 		let newFilePath = this.buildFilePath(folderPath, renderedFilename);
-		const metadata = this.app.metadataCache.getCache(newFilePath);
-		console.log(metadata, newFilePath);
+		const newFileMeta = this.app.metadataCache.getCache(newFilePath);
 		// check new file is the same as the old file
-		if (metadata) {
-			if (metadata?.frontmatter && 'raindrop_id' in metadata.frontmatter && metadata.frontmatter.raindrop_id == bookmark.id) {
-				console.debug(`file name of "${file.path}" is not changed`);
-				return;
-			}
+		if (
+			newFileMeta?.frontmatter &&
+			"raindrop_id" in newFileMeta.frontmatter &&
+			newFileMeta.frontmatter.raindrop_id == bookmark.id
+		) {
+			console.debug(`file name of "${file.path}" is not changed`);
+			return;
 		}
 		// other cases: move to the non existing path
 		newFilePath = await this.buildNonDupFilePath(folderPath, renderedFilename);
@@ -143,17 +159,17 @@ export default class RaindropSync {
 	}
 
 	async updateFileAppendMode(file: TFile, bookmark: RaindropBookmark) {
-		console.debug("update file append mode", file.path);
+		console.debug(`update file append mode ${file.path}`);
 		const metadata = this.app.metadataCache.getFileCache(file);
-		
-		if (metadata?.frontmatter && 'raindrop_last_update' in metadata.frontmatter) {
+
+		if (metadata?.frontmatter && "raindrop_last_update" in metadata.frontmatter) {
 			const localLastUpdate = new Date(metadata.frontmatter.raindrop_last_update);
 			if (localLastUpdate.getTime() >= bookmark.lastUpdate.getTime()) {
-				console.debug('skip update file', file.path);
+				console.debug("skip update file", file.path);
 				return;
 			}
 
-			bookmark.highlights = bookmark.highlights.filter(hl => {
+			bookmark.highlights = bookmark.highlights.filter((hl) => {
 				return localLastUpdate.getTime() < hl.lastUpdate.getTime();
 			});
 		}
@@ -169,7 +185,7 @@ export default class RaindropSync {
 			const article = this.splitFrontmatterAndContent(fileContent, metadata.frontmatter.position.end.line);
 
 			const frontmatterObj: BookmarkFileFrontMatter = parseYaml(article.frontmatter);
-			frontmatterObj.raindrop_last_update = (new Date()).toISOString();
+			frontmatterObj.raindrop_last_update = new Date().toISOString();
 
 			// stringify and concat
 			const newFrontmatter = stringifyYaml(frontmatterObj);
@@ -203,10 +219,7 @@ export default class RaindropSync {
 			});
 	}
 
-	private splitFrontmatterAndContent(content: string, fmEndLine: number): {
-		content: string,
-		frontmatter: string,
-	} {
+	private splitFrontmatterAndContent(content: string, fmEndLine: number): SplitedMarkdown {
 		// split content to -> [0, fmEndLine), [fmEndLine + 1, EOL)
 		let splitPosFm = -1;
 		while (fmEndLine-- && splitPosFm++ < content.length) {
