@@ -91,7 +91,7 @@ export default class RaindropPlugin extends Plugin {
 		this.addSettingTab(new RaindropSettingTab(this.app, this, this.api));
 
 		if (this.settings.autoSyncInterval) {
-			this.startAutoSync();
+			await this.startAutoSync();
 		}
 	}
 
