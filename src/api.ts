@@ -161,15 +161,6 @@ export class RaindropAPI {
 			}
 		}
 
-		// get real highlights (raindrop returns only 3 highlights in /raindrops/${collectionId} endpoint)
-		for (const [idx, bookmark] of bookmarks.entries()) {
-			notice?.setMessage(`Sync Raindrop bookmarks: ${idx + 1}/${bookmarks.length}`);
-			if (bookmark.highlights.length == 3) {
-				const res = await this.get(`${BASEURL}/raindrop/${bookmark.id}`, {});
-				bookmark["highlights"] = this.parseHighlights(res.item.highlights);
-			}
-		}
-
 		notice?.hide();
 		return bookmarks;
 	}
