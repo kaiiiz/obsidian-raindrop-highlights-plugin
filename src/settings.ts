@@ -283,8 +283,8 @@ export class RaindropSettingTab extends PluginSettingTab {
 
 	private resetSyncHistory(): void {
 		new Setting(this.containerEl)
-			.setName("Reset sync")
-			.setDesc("Reset last sync time to resync")
+			.setName("Reset the last sync time for each collection")
+			.setDesc("This is useful if you want to resync all bookmarks.")
 			.addButton((button) => {
 				return button
 					.setButtonText("Reset")
