@@ -15,6 +15,15 @@ export default class BreadkingChangeModal extends Modal {
 		this.titleEl.innerText = "Raindrop Highlight - Breaking Changes";
 
 		let breakingChanges = "";
+		if (semver.lt(currentVersion, "0.0.19")) {
+			breakingChanges += `<p>v0.0.19</p>
+<ul>
+<li>The front matter property <code>raindrop_last_update</code> has now been replaced by <code>raindrop_highlights</code>, which stores the highlight signature for each highlight entry to fix the duplicate highlight entry bug in append mode.</li>
+<li>The file name and front matter are now synced with templates while performing updates.</li>
+</ul>
+`
+		}
+
 		if (semver.lt(currentVersion, "0.0.18")) {
 			breakingChanges += `<p>v0.0.18</p>
 <ul>
