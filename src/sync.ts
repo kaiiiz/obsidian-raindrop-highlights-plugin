@@ -3,13 +3,7 @@ import type { RaindropAPI } from "./api";
 import type RaindropPlugin from "./main";
 import Renderer from "./renderer";
 import truncate from "truncate-utf8-bytes";
-import type {
-	BookmarkFile,
-	BookmarkFileFrontMatter,
-	RaindropBookmark,
-	RaindropCollection,
-	SyncCollection,
-} from "./types";
+import type { BookmarkFile, BookmarkFileFrontMatter, RaindropBookmark, RaindropCollection, SyncCollection } from "./types";
 
 interface SplitedMarkdown {
 	content: string;
@@ -56,11 +50,7 @@ export default class RaindropSync {
 		let bookmarks: RaindropBookmark[] = [];
 		try {
 			console.debug(`start sync collection: ${collection.title}, last sync at: ${lastSyncDate}`);
-			bookmarks = await this.api.getRaindropsAfter(
-				collection.id,
-				lastSyncDate,
-				this.plugin.settings.autoSyncSuccessNotice
-			);
+			bookmarks = await this.api.getRaindropsAfter(collection.id, lastSyncDate, this.plugin.settings.autoSyncSuccessNotice);
 			await this.syncBookmarks(bookmarks, collectionFolder);
 			await this.syncCollectionComplete(collection);
 		} catch (e) {
@@ -85,10 +75,7 @@ export default class RaindropSync {
 			/* ignore folder already exists error */
 		}
 
-		const bookmarkFilesMap: { [id: number]: TFile } = Object.assign(
-			{},
-			...this.getBookmarkFiles().map((x) => ({ [x.raindropId]: x.file }))
-		);
+		const bookmarkFilesMap: { [id: number]: TFile } = Object.assign({}, ...this.getBookmarkFiles().map((x) => ({ [x.raindropId]: x.file })));
 
 		for (const bookmark of bookmarks) {
 			if (this.plugin.settings.onlyBookmarksWithHl && bookmark.highlights.length == 0) {
@@ -136,11 +123,7 @@ export default class RaindropSync {
 		let newFilePath = this.buildFilePath(folderPath, renderedFilename);
 		const newFileMeta = this.app.metadataCache.getCache(newFilePath);
 		// check new file is the same as the old file
-		if (
-			newFileMeta?.frontmatter &&
-			"raindrop_id" in newFileMeta.frontmatter &&
-			newFileMeta.frontmatter.raindrop_id == bookmark.id
-		) {
+		if (newFileMeta?.frontmatter && "raindrop_id" in newFileMeta.frontmatter && newFileMeta.frontmatter.raindrop_id == bookmark.id) {
 			console.debug(`file name of "${file.path}" is not changed`);
 			return;
 		}
@@ -161,16 +144,12 @@ export default class RaindropSync {
 	async updateFileAppendMode(file: TFile, bookmark: RaindropBookmark) {
 		console.debug(`update file append mode ${file.path}`);
 		const metadata = this.app.metadataCache.getFileCache(file);
+		const highlightSigs = Object.fromEntries(bookmark.highlights.map((hl) => [hl.id, hl.signature]));
 
-		if (metadata?.frontmatter && "raindrop_last_update" in metadata.frontmatter) {
-			const localLastUpdate = new Date(metadata.frontmatter.raindrop_last_update);
-			if (localLastUpdate.getTime() >= bookmark.lastUpdate.getTime()) {
-				console.debug("skip update file", file.path);
-				return;
-			}
-
+		if (metadata?.frontmatter && "raindrop_highlights" in metadata.frontmatter) {
+			const localHighlights = metadata.frontmatter.raindrop_highlights;
 			bookmark.highlights = bookmark.highlights.filter((hl) => {
-				return localLastUpdate.getTime() < hl.lastUpdate.getTime();
+				return !(hl.id in localHighlights && hl.signature === localHighlights[hl.id]);
 			});
 		}
 
@@ -178,14 +157,16 @@ export default class RaindropSync {
 
 		await this.app.vault.append(file, appendedContent);
 
-		// update raindrop_last_update
-		if (metadata?.frontmatter) {
+		// update raindrop_highlights
+		if (metadata?.frontmatter && metadata?.frontmatterPosition) {
 			// separate content and front matter
 			const fileContent = await this.app.vault.cachedRead(file);
-			const article = this.splitFrontmatterAndContent(fileContent, metadata.frontmatter.position.end.line);
+			const article = this.splitFrontmatterAndContent(fileContent, metadata.frontmatterPosition.end.line);
 
 			const frontmatterObj: BookmarkFileFrontMatter = parseYaml(article.frontmatter);
-			frontmatterObj.raindrop_last_update = new Date().toISOString();
+			if (Object.keys(highlightSigs).length > 0) {
+				frontmatterObj.raindrop_highlights = highlightSigs;
+			}
 
 			// stringify and concat
 			const newFrontmatter = stringifyYaml(frontmatterObj);

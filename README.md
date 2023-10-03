@@ -29,7 +29,7 @@ Use `Raindrop Highlights: Open link in Raindrop` command to open the correspondi
 
 Use `Raindrop Highlights: Manage collections to be synced` command to quickly open the collection management modal.
 
-**NOTE**: Do not touch the front matter properties: `raindrop_id` and `raindrop_last_update`. These properties are used to identify the existing article to prevent file and highlights duplication.
+**NOTE**: Do not touch the front matter properties: `raindrop_id` and `raindrop_highlights`. These properties are used to identify the existing article to prevent file and highlights duplication.
 
 ### API Token
 

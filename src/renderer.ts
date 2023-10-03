@@ -2,8 +2,8 @@ import nunjucks from "nunjucks";
 import Moment from "moment";
 import type RaindropPlugin from "./main";
 import sanitize from "sanitize-filename";
-import type { RaindropBookmark } from "./types";
-import { parseYaml } from "obsidian";
+import type { BookmarkFileFrontMatter, RaindropBookmark } from "./types";
+import { parseYaml, stringifyYaml } from "obsidian";
 
 type RenderHighlight = {
 	id: string;
@@ -86,9 +86,8 @@ export default class Renderer {
 			const env = this.createEnv();
 			const fakeContent = env.renderString(template, FAKE_RENDER_CONTEXT);
 			if (isYaml) {
-				const { id, created } = FAKE_RENDER_CONTEXT;
+				const { id } = FAKE_RENDER_CONTEXT;
 				const fakeMetadata = `raindrop_id: ${id}
-raindrop_last_update: ${created}
 ${fakeContent}`;
 				parseYaml(fakeMetadata);
 			}
@@ -104,20 +103,29 @@ ${fakeContent}`;
 
 	renderFrontmatter(bookmark: RaindropBookmark, newArticle: boolean) {
 		const newMdFrontmatter = this.renderTemplate(this.plugin.settings.metadataTemplate, bookmark, newArticle);
+		const frontmatterObj: BookmarkFileFrontMatter = {
+			raindrop_id: bookmark.id,
+		};
+
+		if (bookmark.highlights.length > 0) {
+			frontmatterObj.raindrop_highlights = Object.fromEntries(
+				bookmark.highlights.map((hl) => {
+					return [hl.id, hl.signature];
+				})
+			);
+		}
+
 		if (newMdFrontmatter.length > 0) {
-			return `raindrop_id: ${bookmark.id}
-raindrop_last_update: ${new Date().toISOString()}
-${newMdFrontmatter}\n`;
+			return `${stringifyYaml(frontmatterObj)}${newMdFrontmatter}`;
 		} else {
-			return `raindrop_id: ${bookmark.id}
-raindrop_last_update: ${new Date().toISOString()}\n`;
+			return stringifyYaml(frontmatterObj);
 		}
 	}
 
 	renderFullArticle(bookmark: RaindropBookmark) {
 		const newMdContent = this.renderContent(bookmark, true);
 		const newMdFrontmatter = this.renderFrontmatter(bookmark, true);
-		const mdContent = `---\n${newMdFrontmatter}---\n${newMdContent}`;
+		const mdContent = `---\n${newMdFrontmatter}\n---\n${newMdContent}`;
 		return mdContent;
 	}
 

@@ -1,13 +1,8 @@
 import { Notice, type App } from "obsidian";
 import axios from "axios";
-import type {
-	RaindropBookmark,
-	RaindropCollection,
-	RaindropCollectionGroup,
-	RaindropHighlight,
-	RaindropUser,
-} from "./types";
+import type { RaindropBookmark, RaindropCollection, RaindropCollectionGroup, RaindropHighlight, RaindropUser } from "./types";
 import TokenManager from "./tokenManager";
+import { Md5 } from "ts-md5";
 
 const BASEURL = "https://api.raindrop.io/rest/v1";
 
@@ -238,6 +233,7 @@ export class RaindropAPI {
 				lastUpdate: new Date(hl["lastUpdate"]),
 				created: new Date(hl["created"]),
 				note: hl["note"],
+				signature: Md5.hashStr(`${hl["color"]},${hl["text"]},${hl["note"]}`),
 			};
 			return highlight;
 		});

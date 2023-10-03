@@ -18,13 +18,13 @@ export interface RaindropCollectionGroup {
 }
 
 export interface RaindropHighlight {
-	// Remote state
 	id: string;
 	color: string;
 	created: Date;
 	lastUpdate: Date;
 	note: string;
 	text: string;
+	signature: string;
 }
 
 export interface RaindropCreatorRef {
@@ -61,7 +61,7 @@ export interface BookmarkFile {
 export interface BookmarkFileFrontMatter {
 	// use snake_case in front matter
 	raindrop_id: number;
-	raindrop_last_update: string;
+	raindrop_highlights?: { [id: string]: string };
 	[key: string]: any;
 }
 
