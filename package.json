@@ -30,6 +30,7 @@
 	},
 	"dependencies": {
 		"axios": "0.27.2",
+		"axios-retry": "^3.8.0",
 		"nunjucks": "3.2.4",
 		"sanitize-filename": "1.6.3",
 		"semver": "^7.5.2",

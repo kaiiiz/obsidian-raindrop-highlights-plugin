@@ -1,5 +1,6 @@
 import { Notice, type App } from "obsidian";
-import axios from "axios";
+import axios, { AxiosError } from "axios";
+import axiosRetry from "axios-retry";
 import type { RaindropBookmark, RaindropCollection, RaindropCollectionGroup, RaindropHighlight, RaindropUser } from "./types";
 import TokenManager from "./tokenManager";
 import { Md5 } from "ts-md5";
@@ -10,6 +11,26 @@ interface NestedRaindropCollection {
 	title: string;
 	parentId: number;
 }
+
+axiosRetry(axios, {
+	retries: 3,
+	retryCondition: (error: AxiosError) => {
+		if (error.response && error.response.status === 429) {
+			new Notice("Too many requests, will retry sync after 1 minute", 5);
+			console.warn(`Too many requests, will retry sync after 1 minute`);
+			return true;
+		} else {
+			console.error(`request error: ${error}`);
+		}
+		return false;
+	},
+	retryDelay: () => {
+		return 60000;
+	},
+	onRetry: (retryCount) => {
+		new Notice(`Retry sync ${retryCount}/3`);
+	},
+});
 
 export class RaindropAPI {
 	app: App;
@@ -152,7 +173,7 @@ export class RaindropAPI {
 				return bookmarks.filter((bookmark) => {
 					return bookmark.lastUpdate.getTime() >= lastSync.getTime();
 				});
-			}
+			};
 			const filteredBookmark = filterLastUpdate(bookmarks);
 			if (filteredBookmark.length > 0) {
 				yield filteredBookmark;
