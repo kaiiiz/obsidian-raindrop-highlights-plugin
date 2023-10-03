@@ -157,20 +157,33 @@ export default class RaindropSync {
 
 		await this.app.vault.append(file, appendedContent);
 
-		// update raindrop_highlights
-		if (metadata?.frontmatter && metadata?.frontmatterPosition) {
-			// separate content and front matter
-			const fileContent = await this.app.vault.cachedRead(file);
+		// update front matter
+		const fileContent = await this.app.vault.cachedRead(file);
+		const bookmarkFm = this.renderer.renderFrontmatter(bookmark, false);
+		const bookmarkFmObj: BookmarkFileFrontMatter = parseYaml(bookmarkFm);
+		bookmarkFmObj.raindrop_highlights = highlightSigs;
+		if (metadata?.frontmatterPosition) {
+			// merge with existing front matter
 			const article = this.splitFrontmatterAndContent(fileContent, metadata.frontmatterPosition.end.line);
 
-			const frontmatterObj: BookmarkFileFrontMatter = parseYaml(article.frontmatter);
-			if (Object.keys(highlightSigs).length > 0) {
-				frontmatterObj.raindrop_highlights = highlightSigs;
+			// merge bookmark front matter and file front matter
+			const fileFmObj: BookmarkFileFrontMatter = parseYaml(article.frontmatter);
+			const newFmObj: BookmarkFileFrontMatter = { ...fileFmObj, ...bookmarkFmObj };
+
+			if (Object.keys(highlightSigs).length == 0 && "raindrop_highlights" in newFmObj) {
+				delete newFmObj["raindrop_highlights"];
 			}
 
 			// stringify and concat
-			const newFrontmatter = stringifyYaml(frontmatterObj);
+			const newFrontmatter = stringifyYaml(newFmObj);
 			const newFullFileContent = `---\n${newFrontmatter}---\n${article.content}`;
+			await this.app.vault.modify(file, newFullFileContent);
+		} else {
+			if (Object.keys(highlightSigs).length == 0 && "raindrop_highlights" in bookmarkFmObj) {
+				delete bookmarkFmObj["raindrop_highlights"];
+			}
+			const newFrontmatter = stringifyYaml(bookmarkFmObj);
+			const newFullFileContent = `---\n${newFrontmatter}---\n${fileContent}`;
 			await this.app.vault.modify(file, newFullFileContent);
 		}
 	}
