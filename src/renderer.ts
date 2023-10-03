@@ -2,8 +2,8 @@ import nunjucks from "nunjucks";
 import Moment from "moment";
 import type RaindropPlugin from "./main";
 import sanitize from "sanitize-filename";
-import type { RaindropBookmark } from "./types";
-import { parseYaml } from "obsidian";
+import type { BookmarkFileFrontMatter, RaindropBookmark } from "./types";
+import { parseYaml, stringifyYaml } from "obsidian";
 
 type RenderHighlight = {
 	id: string;
@@ -19,8 +19,8 @@ type RenderCollection = {
 };
 
 type RenderCreator = {
-	name: string,
-	id: number,
+	name: string;
+	id: number;
 };
 
 type RenderTemplate = {
@@ -56,7 +56,7 @@ const FAKE_RENDER_CONTEXT: RenderTemplate = {
 			lastUpdate: Moment(),
 			note: "fake_note",
 			text: "fake_text",
-		}
+		},
 	],
 	collection: {
 		title: "fake_collection",
@@ -67,7 +67,7 @@ const FAKE_RENDER_CONTEXT: RenderTemplate = {
 	type: "link",
 	important: false,
 	creator: {
-		name: 'fake_name',
+		name: "fake_name",
 		id: 10000,
 	},
 	now: Moment(),
@@ -78,16 +78,16 @@ export default class Renderer {
 
 	constructor(plugin: RaindropPlugin) {
 		this.plugin = plugin;
-		nunjucks.configure({ autoescape: false });
 	}
 
-	validate(template: string, isYaml=false): boolean {
+	validate(template: string, isYaml = false): boolean {
 		try {
 			const env = this.createEnv();
 			const fakeContent = env.renderString(template, FAKE_RENDER_CONTEXT);
 			if (isYaml) {
-				const {id, created} = FAKE_RENDER_CONTEXT;
-				const fakeMetadata = `raindrop_id: ${id}\nraindrop_last_update: ${created}\n${fakeContent}`
+				const { id } = FAKE_RENDER_CONTEXT;
+				const fakeMetadata = `raindrop_id: ${id}
+${fakeContent}`;
 				parseYaml(fakeMetadata);
 			}
 			return true;
@@ -102,17 +102,29 @@ export default class Renderer {
 
 	renderFrontmatter(bookmark: RaindropBookmark, newArticle: boolean) {
 		const newMdFrontmatter = this.renderTemplate(this.plugin.settings.metadataTemplate, bookmark, newArticle);
+		const frontmatterObj: BookmarkFileFrontMatter = {
+			raindrop_id: bookmark.id,
+		};
+
+		if (bookmark.highlights.length > 0) {
+			frontmatterObj.raindrop_highlights = Object.fromEntries(
+				bookmark.highlights.map((hl) => {
+					return [hl.id, hl.signature];
+				})
+			);
+		}
+
 		if (newMdFrontmatter.length > 0) {
-			return `raindrop_id: ${bookmark.id}\nraindrop_last_update: ${(new Date()).toISOString()}\n${newMdFrontmatter}\n`
+			return `${stringifyYaml(frontmatterObj)}${newMdFrontmatter}`;
 		} else {
-			return `raindrop_id: ${bookmark.id}\nraindrop_last_update: ${(new Date()).toISOString()}\n`
+			return stringifyYaml(frontmatterObj);
 		}
 	}
 
 	renderFullArticle(bookmark: RaindropBookmark) {
 		const newMdContent = this.renderContent(bookmark, true);
 		const newMdFrontmatter = this.renderFrontmatter(bookmark, true);
-		const mdContent = `---\n${newMdFrontmatter}---\n${newMdContent}`;
+		const mdContent = `---\n${newMdFrontmatter}\n---\n${newMdContent}`;
 		return mdContent;
 	}
 
@@ -125,7 +137,7 @@ export default class Renderer {
 		return sanitize(filename.replace(/[':#|]/g, "").trim());
 	}
 
-	private renderTemplate(template:string, bookmark: RaindropBookmark, newArticle: boolean) {
+	private renderTemplate(template: string, bookmark: RaindropBookmark, newArticle: boolean) {
 		const renderHighlights: RenderHighlight[] = bookmark.highlights.map((hl) => {
 			const renderHighlight: RenderHighlight = {
 				id: hl.id,
@@ -141,7 +153,7 @@ export default class Renderer {
 		// the latest collection data is sync from Raindrop at the beginning of `sync` function
 		const renderCollection: RenderCollection = {
 			title: this.plugin.settings.syncCollections[bookmark.collectionId].title,
-		}
+		};
 
 		const context: RenderTemplate = {
 			is_new_article: newArticle,
@@ -167,7 +179,7 @@ export default class Renderer {
 	}
 
 	private createEnv(): nunjucks.Environment {
-		const env = new nunjucks.Environment();
+		const env = new nunjucks.Environment(undefined, { autoescape: this.plugin.settings.autoescape });
 		env.addFilter("date", (date: moment.Moment, format: string) => {
 			return date.format(format);
 		});
