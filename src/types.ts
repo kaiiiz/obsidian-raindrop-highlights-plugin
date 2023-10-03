@@ -95,4 +95,5 @@ export interface RaindropPluginSettings {
 	filenameTemplate: string;
 	autoSyncInterval: number;
 	autoSyncSuccessNotice: boolean;
+	autoescape: boolean;
 }

@@ -78,7 +78,6 @@ export default class Renderer {
 
 	constructor(plugin: RaindropPlugin) {
 		this.plugin = plugin;
-		nunjucks.configure({ autoescape: false });
 	}
 
 	validate(template: string, isYaml = false): boolean {
@@ -180,7 +179,7 @@ ${fakeContent}`;
 	}
 
 	private createEnv(): nunjucks.Environment {
-		const env = new nunjucks.Environment();
+		const env = new nunjucks.Environment(undefined, { autoescape: this.plugin.settings.autoescape });
 		env.addFilter("date", (date: moment.Moment, format: string) => {
 			return date.format(format);
 		});

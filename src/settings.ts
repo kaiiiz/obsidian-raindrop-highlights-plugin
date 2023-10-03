@@ -5,6 +5,7 @@ import metadataTemplateInstructions from "./templates/metadataTemplateInstructio
 import filenameTemplateInstructions from "./templates/filenameTemplateInstructions.html";
 import collectionGroupsInstructions from "./templates/collectionGroupsInstructions.html";
 import appendModeInstructions from "./templates/appendModeInstructions.html";
+import autoescapingInstructions from "./templates/autoescapingInstructions.html";
 import type { RaindropAPI } from "./api";
 import type RaindropPlugin from "./main";
 import CollectionsModal from "./modal/collections";
@@ -44,6 +45,7 @@ export class RaindropSettingTab extends PluginSettingTab {
 		this.template();
 		this.metadataTemplate();
 		this.filenameTemplate();
+		this.autoescape();
 		this.resetSyncHistory();
 	}
 
@@ -332,5 +334,19 @@ export class RaindropSettingTab extends PluginSettingTab {
 				await this.plugin.saveSettings();
 			});
 		});
+	}
+
+	private autoescape(): void {
+		const templateDescFragment = document.createRange().createContextualFragment(autoescapingInstructions);
+
+		new Setting(this.containerEl)
+			.setName("Enable autoescaping for nunjucks")
+			.setDesc(templateDescFragment)
+			.addToggle((toggle) => {
+				return toggle.setValue(this.plugin.settings.autoescape).onChange(async (value) => {
+					this.plugin.settings.autoescape = value;
+					await this.plugin.saveSettings();
+				});
+			});
 	}
 }

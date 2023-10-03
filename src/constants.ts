@@ -19,4 +19,5 @@ export const DEFAULT_SETTINGS: RaindropPluginSettings = {
 	metadataTemplate: "",
 	filenameTemplate: "{{title}}",
 	autoSyncInterval: 0,
+	autoescape: true,
 };
