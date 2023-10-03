@@ -47,11 +47,11 @@ export default class RaindropSync {
 		}
 		const lastSyncDate = this.plugin.settings.syncCollections[collection.id].lastSyncDate;
 
-		let bookmarks: RaindropBookmark[] = [];
 		try {
 			console.debug(`start sync collection: ${collection.title}, last sync at: ${lastSyncDate}`);
-			bookmarks = await this.api.getRaindropsAfter(collection.id, lastSyncDate, this.plugin.settings.autoSyncSuccessNotice);
-			await this.syncBookmarks(bookmarks, collectionFolder);
+			for await (const bookmarks of this.api.getRaindropsAfter(collection.id, this.plugin.settings.autoSyncSuccessNotice, lastSyncDate)) {
+				await this.syncBookmarks(bookmarks, collectionFolder);
+			}
 			await this.syncCollectionComplete(collection);
 		} catch (e) {
 			console.error(e);

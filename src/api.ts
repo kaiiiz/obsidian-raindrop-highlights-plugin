@@ -112,52 +112,59 @@ export class RaindropAPI {
 		return collections;
 	}
 
-	async getRaindropsAfter(collectionId: number, lastSync?: Date, showNotice?: boolean): Promise<RaindropBookmark[]> {
+	async *getRaindropsAfter(collectionId: number, showNotice: boolean, lastSync?: Date): AsyncGenerator<RaindropBookmark[]> {
 		let notice;
 		if (showNotice) {
 			notice = new Notice("Fetch Raindrops highlights", 0);
 		}
+
+		const pageSize = 50;
 		const res = await this.get(`${BASEURL}/raindrops/${collectionId}`, {
 			page: 0,
-			perpage: 50,
+			perpage: pageSize,
 			sort: "-lastUpdate",
 		});
 		const raindropsCnt = res.count;
 		let bookmarks = this.parseRaindrops(res.items);
-		let remainPages = Math.ceil(raindropsCnt / 50) - 1;
-		const totalPages = Math.ceil(raindropsCnt / 50) - 1;
+		const totalPages = Math.ceil(raindropsCnt / pageSize);
+		let remainPages = totalPages - 1;
 		let page = 1;
 
-		const addNewPages = async (page: number) => {
+		const getPage = async (page: number) => {
 			const res = await this.get(`${BASEURL}/raindrops/${collectionId}`, {
 				page: page,
-				perpage: 50,
+				perpage: pageSize,
 				sort: "-lastUpdate",
 			});
-			bookmarks = bookmarks.concat(this.parseRaindrops(res.items));
+			return this.parseRaindrops(res.items);
 		};
 
-		if (bookmarks.length > 0) {
-			if (lastSync === undefined) {
-				// sync all
+		if (lastSync === undefined) {
+			if (bookmarks.length > 0) {
+				yield bookmarks;
 				while (remainPages--) {
-					notice?.setMessage(`Sync Raindrop pages: ${totalPages - remainPages}/${totalPages}`);
-					await addNewPages(page++);
+					notice?.setMessage(`Sync Raindrop pages: ${page + 1}/${totalPages}`);
+					yield await getPage(page++);
 				}
-			} else {
-				// sync article after lastSync
-				while (bookmarks[bookmarks.length - 1].lastUpdate.getTime() >= lastSync.getTime() && remainPages--) {
-					notice?.setMessage(`Sync Raindrop pages: ${totalPages - remainPages}/${totalPages}`);
-					await addNewPages(page++);
-				}
-				bookmarks = bookmarks.filter((bookmark) => {
+			}
+		} else {
+			const filterLastUpdate = (bookmarks: RaindropBookmark[]) => {
+				return bookmarks.filter((bookmark) => {
 					return bookmark.lastUpdate.getTime() >= lastSync.getTime();
 				});
+			}
+			const filteredBookmark = filterLastUpdate(bookmarks);
+			if (filteredBookmark.length > 0) {
+				yield filteredBookmark;
+				while (bookmarks[bookmarks.length - 1].lastUpdate.getTime() >= lastSync.getTime() && remainPages--) {
+					notice?.setMessage(`Sync Raindrop pages: ${page + 1}/${totalPages}`);
+					let bookmarks = await getPage(page++);
+					yield filterLastUpdate(bookmarks);
+				}
 			}
 		}
 
 		notice?.hide();
-		return bookmarks;
 	}
 
 	async getUser(): Promise<RaindropUser> {
