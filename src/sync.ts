@@ -130,7 +130,7 @@ export default class RaindropSync {
 		// other cases: move to the non existing path
 		newFilePath = await this.buildNonDupFilePath(folderPath, renderedFilename);
 		console.debug(`file name change detected, rename "${file.path}" to "${newFilePath}"`);
-		await this.app.vault.adapter.rename(file.path, newFilePath);
+		await this.app.fileManager.renameFile(file, newFilePath);
 	}
 
 	async updateFileContent(file: TFile, bookmark: RaindropBookmark) {
