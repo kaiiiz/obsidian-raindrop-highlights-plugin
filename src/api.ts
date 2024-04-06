@@ -143,7 +143,7 @@ export class RaindropAPI {
 		const res = await this.get(`${BASEURL}/raindrops/${collectionId}`, {
 			page: 0,
 			perpage: pageSize,
-			sort: "-lastUpdate",
+			// sort: "-lastUpdate",
 		});
 		const raindropsCnt = res.count;
 		let bookmarks = this.parseRaindrops(res.items);
@@ -155,7 +155,7 @@ export class RaindropAPI {
 			const res = await this.get(`${BASEURL}/raindrops/${collectionId}`, {
 				page: page,
 				perpage: pageSize,
-				sort: "-lastUpdate",
+				// sort: "-lastUpdate",
 			});
 			return this.parseRaindrops(res.items);
 		};
