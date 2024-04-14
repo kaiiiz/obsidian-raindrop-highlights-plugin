@@ -23,7 +23,11 @@ export default class RaindropSync {
 		this.renderer = new Renderer(plugin);
 	}
 
-	async sync() {
+	async sync({
+		fullSync
+	}: {
+		fullSync: boolean
+	}) {
 		const collectionGroup = this.plugin.settings.collectionGroups;
 		const allCollections = await this.api.getCollections(collectionGroup);
 		this.plugin.updateCollectionSettings(allCollections);
@@ -31,12 +35,12 @@ export default class RaindropSync {
 		for (const id in this.plugin.settings.syncCollections) {
 			const collection = this.plugin.settings.syncCollections[id];
 			if (collection.sync) {
-				await this.syncCollection(collection);
+				await this.syncCollection(collection, fullSync);
 			}
 		}
 	}
 
-	private async syncCollection(collection: SyncCollection) {
+	private async syncCollection(collection: SyncCollection, fullSync: boolean) {
 		if (this.plugin.settings.autoSyncSuccessNotice) {
 			new Notice(`Sync Raindrop collection: ${collection.title}`);
 		}
@@ -45,10 +49,14 @@ export default class RaindropSync {
 		if (this.plugin.settings.collectionsFolders) {
 			collectionFolder = `${highlightsFolder}/${collection["title"]}`;
 		}
-		const lastSyncDate = this.plugin.settings.syncCollections[collection.id].lastSyncDate;
+		const lastSyncDate = fullSync ? undefined : this.plugin.settings.syncCollections[collection.id].lastSyncDate;
 
 		try {
-			console.debug(`start sync collection: ${collection.title}, last sync at: ${lastSyncDate}`);
+			if (lastSyncDate === undefined) {
+				console.debug(`start sync collection: ${collection.title}, full sync`);
+			} else {
+				console.debug(`start sync collection: ${collection.title}, last sync at: ${lastSyncDate}`);
+			}
 			for await (const bookmarks of this.api.getRaindropsAfter(collection.id, this.plugin.settings.autoSyncSuccessNotice, lastSyncDate)) {
 				await this.syncBookmarks(bookmarks, collectionFolder);
 			}

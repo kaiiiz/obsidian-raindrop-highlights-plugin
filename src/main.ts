@@ -21,20 +21,28 @@ export default class RaindropPlugin extends Plugin {
 		this.raindropSync = new RaindropSync(this.app, this, this.api);
 
 		if (this.settings.ribbonIcon) {
-			this.addRibbonIcon("cloud", "Sync your Raindrop highlights", () => {
+			this.addRibbonIcon("cloud", "Sync your Raindrop bookmarks", () => {
 				if (!this.settings.isConnected) {
 					new Notice("Please configure Raindrop API token in the plugin setting");
 				} else {
-					this.raindropSync.sync();
+					this.raindropSync.sync({fullSync: false});
 				}
 			});
 		}
 
 		this.addCommand({
-			id: "raindrop-sync",
-			name: "Sync highlights",
+			id: "raindrop-sync-new",
+			name: "Sync newly created bookmarks (sync from last sync date)",
 			callback: async () => {
-				await this.raindropSync.sync();
+				await this.raindropSync.sync({fullSync: false});
+			},
+		});
+
+		this.addCommand({
+			id: "raindrop-sync-all",
+			name: "Sync all bookmarks (full sync)",
+			callback: async () => {
+				await this.raindropSync.sync({fullSync: true});
 			},
 		});
 
@@ -159,7 +167,7 @@ export default class RaindropPlugin extends Plugin {
 		const minutesToSync = minutes ?? this.settings.autoSyncInterval;
 		if (minutesToSync > 0) {
 			this.timeoutIDAutoSync = window.setTimeout(() => {
-				this.raindropSync.sync();
+				this.raindropSync.sync({fullSync: false});
 				this.startAutoSync();
 			}, minutesToSync * 60000);
 		}
