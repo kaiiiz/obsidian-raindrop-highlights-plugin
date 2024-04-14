@@ -36,7 +36,7 @@ export default class RaindropSync {
 		}
 	}
 
-	async syncCollection(collection: SyncCollection) {
+	private async syncCollection(collection: SyncCollection) {
 		if (this.plugin.settings.autoSyncSuccessNotice) {
 			new Notice(`Sync Raindrop collection: ${collection.title}`);
 		}
@@ -59,7 +59,7 @@ export default class RaindropSync {
 		}
 	}
 
-	async syncBookmarks(bookmarks: RaindropBookmark[], folderPath: string) {
+	private async syncBookmarks(bookmarks: RaindropBookmark[], folderPath: string) {
 		if (bookmarks.length == 0) return;
 
 		if (this.plugin.settings.onlyBookmarksWithHl) {
@@ -93,7 +93,7 @@ export default class RaindropSync {
 		}
 	}
 
-	buildFilePath(folderPath: string, renderedFilename: string, suffix?: number): string {
+	private buildFilePath(folderPath: string, renderedFilename: string, suffix?: number): string {
 		let fileSuffix = ".md";
 		let fileName = truncate(`${renderedFilename}`, 255 - fileSuffix.length) + fileSuffix;
 		if (suffix) {
@@ -103,7 +103,7 @@ export default class RaindropSync {
 		return normalizePath(`${folderPath}/${fileName}`);
 	}
 
-	async buildNonDupFilePath(folderPath: string, renderedFilename: string): Promise<string> {
+	private async buildNonDupFilePath(folderPath: string, renderedFilename: string): Promise<string> {
 		let filePath = this.buildFilePath(folderPath, renderedFilename);
 		let suffix = 1;
 		while (await this.app.vault.adapter.exists(filePath)) {
@@ -113,12 +113,12 @@ export default class RaindropSync {
 		return filePath;
 	}
 
-	async syncCollectionComplete(collection: RaindropCollection) {
+	private async syncCollectionComplete(collection: RaindropCollection) {
 		this.plugin.settings.syncCollections[collection.id].lastSyncDate = new Date();
 		await this.plugin.saveSettings();
 	}
 
-	async updateFileName(file: TFile, bookmark: RaindropBookmark, folderPath: string) {
+	private async updateFileName(file: TFile, bookmark: RaindropBookmark, folderPath: string) {
 		const renderedFilename = this.renderer.renderFileName(bookmark, true);
 		let newFilePath = this.buildFilePath(folderPath, renderedFilename);
 		const newFileMeta = this.app.metadataCache.getCache(newFilePath);
@@ -133,7 +133,7 @@ export default class RaindropSync {
 		await this.app.fileManager.renameFile(file, newFilePath);
 	}
 
-	async updateFileContent(file: TFile, bookmark: RaindropBookmark) {
+	private async updateFileContent(file: TFile, bookmark: RaindropBookmark) {
 		if (this.plugin.settings.appendMode) {
 			await this.updateFileAppendMode(file, bookmark);
 		} else {
@@ -141,7 +141,7 @@ export default class RaindropSync {
 		}
 	}
 
-	async updateFileAppendMode(file: TFile, bookmark: RaindropBookmark) {
+	private async updateFileAppendMode(file: TFile, bookmark: RaindropBookmark) {
 		console.debug(`update file append mode ${file.path}`);
 		const metadata = this.app.metadataCache.getFileCache(file);
 		const highlightSigs = Object.fromEntries(bookmark.highlights.map((hl) => [hl.id, hl.signature]));
@@ -188,19 +188,19 @@ export default class RaindropSync {
 		}
 	}
 
-	async updateFileOverwriteMode(file: TFile, bookmark: RaindropBookmark) {
+	private async updateFileOverwriteMode(file: TFile, bookmark: RaindropBookmark) {
 		console.debug("update file overwrite mode", file.path);
 		const mdContent = this.renderer.renderFullArticle(bookmark);
 		return this.app.vault.modify(file, mdContent);
 	}
 
-	async createFile(filePath: string, bookmark: RaindropBookmark): Promise<TFile> {
+	private async createFile(filePath: string, bookmark: RaindropBookmark): Promise<TFile> {
 		console.debug("create file", filePath);
 		const mdContent = this.renderer.renderFullArticle(bookmark);
 		return this.app.vault.create(filePath, mdContent);
 	}
 
-	getBookmarkFiles(): BookmarkFile[] {
+	private getBookmarkFiles(): BookmarkFile[] {
 		return this.app.vault
 			.getMarkdownFiles()
 			.map((file) => {
