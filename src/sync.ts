@@ -40,7 +40,32 @@ export default class RaindropSync {
 		}
 	}
 
-	private async syncCollection(collection: SyncCollection, fullSync: boolean) {
+	async syncSingle({
+		file,
+	}: {
+		file: TFile,
+	}) {
+		let raindropId: number;
+		if (file) {
+			const fmc = this.app.metadataCache.getFileCache(file)?.frontmatter;
+			if (!fmc?.raindrop_id) {
+				new Notice("This is not a Raindrop bookmark file");
+				return;
+			} else {
+				raindropId = Number(fmc.raindrop_id);
+			}
+		} else {
+			new Notice("No active file");
+			return;
+		}
+
+		const bookmark = await this.api.getRaindrop(raindropId);
+		await this.updateFileContent(file, bookmark);
+		// Do not perform path sync here!
+		// Since we do not know which collection sync this bookmark (e.g. bookmark "b1" in "Collection 1" may also be synced if you enable "All Bookmarks" collection), which leads to ambiguity.
+	}
+
+	private getSyncFolder(collection: SyncCollection) {
 		if (this.plugin.settings.autoSyncSuccessNotice) {
 			new Notice(`Sync Raindrop collection: ${collection.title}`);
 		}
@@ -49,6 +74,11 @@ export default class RaindropSync {
 		if (this.plugin.settings.collectionsFolders) {
 			collectionFolder = `${highlightsFolder}/${collection["title"]}`;
 		}
+		return collectionFolder
+	}
+
+	private async syncCollection(collection: SyncCollection, fullSync: boolean) {
+		const syncFolder = this.getSyncFolder(collection);
 		const lastSyncDate = fullSync ? undefined : this.plugin.settings.syncCollections[collection.id].lastSyncDate;
 
 		try {
@@ -58,7 +88,7 @@ export default class RaindropSync {
 				console.debug(`start sync collection: ${collection.title}, last sync at: ${lastSyncDate}`);
 			}
 			for await (const bookmarks of this.api.getRaindropsAfter(collection.id, this.plugin.settings.autoSyncSuccessNotice, lastSyncDate)) {
-				await this.syncBookmarks(bookmarks, collectionFolder);
+				await this.syncBookmarks(bookmarks, syncFolder);
 			}
 			await this.syncCollectionComplete(collection);
 		} catch (e) {

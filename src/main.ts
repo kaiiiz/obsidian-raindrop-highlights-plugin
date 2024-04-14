@@ -47,6 +47,14 @@ export default class RaindropPlugin extends Plugin {
 		});
 
 		this.addCommand({
+			id: "raindrop-sync-this",
+			name: "Sync this bookmark",
+			callback: async () => {
+				const file = app.workspace.getActiveFile();
+			},
+		});
+
+		this.addCommand({
 			id: "raindrop-show-last-sync-time",
 			name: "Show last sync time",
 			callback: async () => {
@@ -71,7 +79,7 @@ export default class RaindropPlugin extends Plugin {
 						const bookmark = await this.api.getRaindrop(fmc.raindrop_id);
 						window.open(`https://app.raindrop.io/my/${bookmark.collectionId}/item/${bookmark.id}/edit`);
 					} else {
-						new Notice("This is not a Raindrop article file");
+						new Notice("This is not a Raindrop bookmark file");
 					}
 				} else {
 					new Notice("No active file");
