@@ -32,7 +32,7 @@ export default class RaindropPlugin extends Plugin {
 
 		this.addCommand({
 			id: "raindrop-sync-new",
-			name: "Sync newly created bookmarks (sync from last sync date)",
+			name: "Sync newly created bookmarks (sync from last sync time)",
 			callback: async () => {
 				await this.raindropSync.sync({fullSync: false});
 			},
