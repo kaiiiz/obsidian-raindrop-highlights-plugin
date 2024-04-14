@@ -21,7 +21,7 @@ After installing the plugin, configure the the settings of the plugin then initi
 
 Use Raindrop icon in the sidebar or command `Raindrop Highlights: Sync newly created bookmarks (sync from last sync time)` to trigger manual sync from the last sync time.
 
-> ⚠️ This only sync the newly created bookmarks, the old bookmarks with updates are not synced! Use the following two commands to update the existing files.
+> ⚠️ The above command only sync the newly created bookmarks, the old bookmarks with updates are not synced! Use the following two commands to update the existing files.
 
 Use `Raindrop Highlights: Sync all bookmarks (full sync)` to trigger full sync.
 
