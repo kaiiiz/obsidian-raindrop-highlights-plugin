@@ -23,11 +23,7 @@ export default class RaindropSync {
 		this.renderer = new Renderer(plugin);
 	}
 
-	async sync({
-		fullSync
-	}: {
-		fullSync: boolean
-	}) {
+	async sync({ fullSync }: { fullSync: boolean }) {
 		const collectionGroup = this.plugin.settings.collectionGroups;
 		const allCollections = await this.api.getCollections(collectionGroup);
 		this.plugin.updateCollectionSettings(allCollections);
@@ -40,11 +36,7 @@ export default class RaindropSync {
 		}
 	}
 
-	async syncSingle({
-		file,
-	}: {
-		file: TFile,
-	}) {
+	async syncSingle({ file }: { file: TFile }) {
 		let raindropId: number;
 		if (file) {
 			const fmc = this.app.metadataCache.getFileCache(file)?.frontmatter;
@@ -74,7 +66,7 @@ export default class RaindropSync {
 		if (this.plugin.settings.collectionsFolders) {
 			collectionFolder = `${highlightsFolder}/${collection["title"]}`;
 		}
-		return collectionFolder
+		return collectionFolder;
 	}
 
 	private async syncCollection(collection: SyncCollection, fullSync: boolean) {

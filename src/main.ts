@@ -25,7 +25,7 @@ export default class RaindropPlugin extends Plugin {
 				if (!this.settings.isConnected) {
 					new Notice("Please configure Raindrop API token in the plugin setting");
 				} else {
-					this.raindropSync.sync({fullSync: false});
+					this.raindropSync.sync({ fullSync: false });
 				}
 			});
 		}
@@ -34,7 +34,7 @@ export default class RaindropPlugin extends Plugin {
 			id: "raindrop-sync-new",
 			name: "Sync newly created bookmarks (sync from last sync time)",
 			callback: async () => {
-				await this.raindropSync.sync({fullSync: false});
+				await this.raindropSync.sync({ fullSync: false });
 			},
 		});
 
@@ -42,7 +42,7 @@ export default class RaindropPlugin extends Plugin {
 			id: "raindrop-sync-all",
 			name: "Sync all bookmarks (full sync)",
 			callback: async () => {
-				await this.raindropSync.sync({fullSync: true});
+				await this.raindropSync.sync({ fullSync: true });
 			},
 		});
 
@@ -175,7 +175,7 @@ export default class RaindropPlugin extends Plugin {
 		const minutesToSync = minutes ?? this.settings.autoSyncInterval;
 		if (minutesToSync > 0) {
 			this.timeoutIDAutoSync = window.setTimeout(() => {
-				this.raindropSync.sync({fullSync: false});
+				this.raindropSync.sync({ fullSync: false });
 				this.startAutoSync();
 			}, minutesToSync * 60000);
 		}
