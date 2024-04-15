@@ -19,7 +19,13 @@ Obsidian Raindrop Highlights (Community Plugin) is an unofficial plugin to synch
 
 After installing the plugin, configure the the settings of the plugin then initiate the first sync manually. Thereafter, the plugin can be configured to sync automatically or manually.
 
-Use Raindrop icon in the sidebar or command `Raindrop Highlights: Sync highlights` to trigger manual sync.
+Use Raindrop icon in the sidebar or command `Raindrop Highlights: Sync newly created bookmarks (sync from last sync time)` to trigger manual sync from the last sync time.
+
+> ⚠️ The above command only sync the newly created bookmarks, the old bookmarks with updates are not synced! Use the following two commands to update the existing files.
+
+Use `Raindrop Highlights: Sync all bookmarks (full sync)` to trigger full sync.
+
+Use `Raindrop Highlights: Sync this bookmark` to sync the current active file.
 
 Use `Raindrop Highlights: Show last sync time` command to check last sync time for each collection.
 

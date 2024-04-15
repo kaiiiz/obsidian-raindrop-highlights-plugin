@@ -23,7 +23,7 @@ export default class RaindropSync {
 		this.renderer = new Renderer(plugin);
 	}
 
-	async sync() {
+	async sync({ fullSync }: { fullSync: boolean }) {
 		const collectionGroup = this.plugin.settings.collectionGroups;
 		const allCollections = await this.api.getCollections(collectionGroup);
 		this.plugin.updateCollectionSettings(allCollections);
@@ -31,12 +31,33 @@ export default class RaindropSync {
 		for (const id in this.plugin.settings.syncCollections) {
 			const collection = this.plugin.settings.syncCollections[id];
 			if (collection.sync) {
-				await this.syncCollection(collection);
+				await this.syncCollection(collection, fullSync);
 			}
 		}
 	}
 
-	async syncCollection(collection: SyncCollection) {
+	async syncSingle({ file }: { file: TFile }) {
+		let raindropId: number;
+		if (file) {
+			const fmc = this.app.metadataCache.getFileCache(file)?.frontmatter;
+			if (!fmc?.raindrop_id) {
+				new Notice("This is not a Raindrop bookmark file");
+				return;
+			} else {
+				raindropId = Number(fmc.raindrop_id);
+			}
+		} else {
+			new Notice("No active file");
+			return;
+		}
+
+		const bookmark = await this.api.getRaindrop(raindropId);
+		await this.updateFileContent(file, bookmark);
+		// Do not perform path sync here!
+		// Since we do not know which collection sync this bookmark (e.g. bookmark "b1" in "Collection 1" may also be synced if you enable "All Bookmarks" collection), which leads to ambiguity.
+	}
+
+	private getSyncFolder(collection: SyncCollection) {
 		if (this.plugin.settings.autoSyncSuccessNotice) {
 			new Notice(`Sync Raindrop collection: ${collection.title}`);
 		}
@@ -45,12 +66,21 @@ export default class RaindropSync {
 		if (this.plugin.settings.collectionsFolders) {
 			collectionFolder = `${highlightsFolder}/${collection["title"]}`;
 		}
-		const lastSyncDate = this.plugin.settings.syncCollections[collection.id].lastSyncDate;
+		return collectionFolder;
+	}
+
+	private async syncCollection(collection: SyncCollection, fullSync: boolean) {
+		const syncFolder = this.getSyncFolder(collection);
+		const lastSyncDate = fullSync ? undefined : this.plugin.settings.syncCollections[collection.id].lastSyncDate;
 
 		try {
-			console.debug(`start sync collection: ${collection.title}, last sync at: ${lastSyncDate}`);
+			if (lastSyncDate === undefined) {
+				console.debug(`start sync collection: ${collection.title}, full sync`);
+			} else {
+				console.debug(`start sync collection: ${collection.title}, last sync at: ${lastSyncDate}`);
+			}
 			for await (const bookmarks of this.api.getRaindropsAfter(collection.id, this.plugin.settings.autoSyncSuccessNotice, lastSyncDate)) {
-				await this.syncBookmarks(bookmarks, collectionFolder);
+				await this.syncBookmarks(bookmarks, syncFolder);
 			}
 			await this.syncCollectionComplete(collection);
 		} catch (e) {
@@ -59,7 +89,7 @@ export default class RaindropSync {
 		}
 	}
 
-	async syncBookmarks(bookmarks: RaindropBookmark[], folderPath: string) {
+	private async syncBookmarks(bookmarks: RaindropBookmark[], folderPath: string) {
 		if (bookmarks.length == 0) return;
 
 		if (this.plugin.settings.onlyBookmarksWithHl) {
@@ -93,7 +123,7 @@ export default class RaindropSync {
 		}
 	}
 
-	buildFilePath(folderPath: string, renderedFilename: string, suffix?: number): string {
+	private buildFilePath(folderPath: string, renderedFilename: string, suffix?: number): string {
 		let fileSuffix = ".md";
 		let fileName = truncate(`${renderedFilename}`, 255 - fileSuffix.length) + fileSuffix;
 		if (suffix) {
@@ -103,7 +133,7 @@ export default class RaindropSync {
 		return normalizePath(`${folderPath}/${fileName}`);
 	}
 
-	async buildNonDupFilePath(folderPath: string, renderedFilename: string): Promise<string> {
+	private async buildNonDupFilePath(folderPath: string, renderedFilename: string): Promise<string> {
 		let filePath = this.buildFilePath(folderPath, renderedFilename);
 		let suffix = 1;
 		while (await this.app.vault.adapter.exists(filePath)) {
@@ -113,12 +143,12 @@ export default class RaindropSync {
 		return filePath;
 	}
 
-	async syncCollectionComplete(collection: RaindropCollection) {
+	private async syncCollectionComplete(collection: RaindropCollection) {
 		this.plugin.settings.syncCollections[collection.id].lastSyncDate = new Date();
 		await this.plugin.saveSettings();
 	}
 
-	async updateFileName(file: TFile, bookmark: RaindropBookmark, folderPath: string) {
+	private async updateFileName(file: TFile, bookmark: RaindropBookmark, folderPath: string) {
 		const renderedFilename = this.renderer.renderFileName(bookmark, true);
 		let newFilePath = this.buildFilePath(folderPath, renderedFilename);
 		const newFileMeta = this.app.metadataCache.getCache(newFilePath);
@@ -133,7 +163,7 @@ export default class RaindropSync {
 		await this.app.fileManager.renameFile(file, newFilePath);
 	}
 
-	async updateFileContent(file: TFile, bookmark: RaindropBookmark) {
+	private async updateFileContent(file: TFile, bookmark: RaindropBookmark) {
 		if (this.plugin.settings.appendMode) {
 			await this.updateFileAppendMode(file, bookmark);
 		} else {
@@ -141,7 +171,7 @@ export default class RaindropSync {
 		}
 	}
 
-	async updateFileAppendMode(file: TFile, bookmark: RaindropBookmark) {
+	private async updateFileAppendMode(file: TFile, bookmark: RaindropBookmark) {
 		console.debug(`update file append mode ${file.path}`);
 		const metadata = this.app.metadataCache.getFileCache(file);
 		const highlightSigs = Object.fromEntries(bookmark.highlights.map((hl) => [hl.id, hl.signature]));
@@ -188,19 +218,19 @@ export default class RaindropSync {
 		}
 	}
 
-	async updateFileOverwriteMode(file: TFile, bookmark: RaindropBookmark) {
+	private async updateFileOverwriteMode(file: TFile, bookmark: RaindropBookmark) {
 		console.debug("update file overwrite mode", file.path);
 		const mdContent = this.renderer.renderFullArticle(bookmark);
 		return this.app.vault.modify(file, mdContent);
 	}
 
-	async createFile(filePath: string, bookmark: RaindropBookmark): Promise<TFile> {
+	private async createFile(filePath: string, bookmark: RaindropBookmark): Promise<TFile> {
 		console.debug("create file", filePath);
 		const mdContent = this.renderer.renderFullArticle(bookmark);
 		return this.app.vault.create(filePath, mdContent);
 	}
 
-	getBookmarkFiles(): BookmarkFile[] {
+	private getBookmarkFiles(): BookmarkFile[] {
 		return this.app.vault
 			.getMarkdownFiles()
 			.map((file) => {
