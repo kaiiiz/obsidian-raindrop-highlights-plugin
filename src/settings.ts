@@ -1,4 +1,4 @@
-import { App, Notice, PluginSettingTab, Setting } from "obsidian";
+import { App, ButtonComponent, Notice, PluginSettingTab, Setting } from "obsidian";
 import DEFAULT_METADATA_TEMPLATE from "./assets/defaultMetadataTemplate.njk";
 import templateInstructions from "./templates/templateInstructions.html";
 import metadataTemplateInstructions from "./templates/metadataTemplateInstructions.html";
@@ -16,6 +16,7 @@ export class RaindropSettingTab extends PluginSettingTab {
 	private plugin: RaindropPlugin;
 	private api: RaindropAPI;
 	private renderer: Renderer;
+	private manageCollectionsButton: ButtonComponent;
 
 	constructor(app: App, plugin: RaindropPlugin, api: RaindropAPI) {
 		super(app, plugin);
@@ -39,6 +40,7 @@ export class RaindropSettingTab extends PluginSettingTab {
 		this.collectionsFolders();
 		this.highlightsFolder();
 		this.groups();
+		this.syncAllCollections();
 		this.collections();
 		this.autoSyncInterval();
 		this.autoSyncSuccessNotice();
@@ -191,22 +193,53 @@ export class RaindropSettingTab extends PluginSettingTab {
 			});
 	}
 
+	// update for new collections
+	private async _updateNewCollections() {
+		const collectionGroup = this.plugin.settings.collectionGroups;
+		const allCollections = await this.api.getCollections(collectionGroup);
+		this.plugin.updateCollectionSettings(allCollections);
+	}
+
+	private async syncAllCollections(): Promise<void> {
+		new Setting(this.containerEl)
+			.setName("Sync all Collections")
+			.setDesc("All collections will be synced when enabled")
+			.addToggle((toggle) => {
+				return toggle.setValue(this.plugin.settings.syncAllCollections).onChange(async (value) => {
+					this.plugin.settings.syncAllCollections = value;
+					this._updateManageCollectionsButton();
+					await this.plugin.saveSettings();
+					this._updateNewCollections();
+				});
+			});
+	}
+
+	// update manage collections button status
+	private async _updateManageCollectionsButton() {
+		const disabled = !this.plugin.settings.isConnected || this.plugin.settings.syncAllCollections;
+		let tooltip = "";
+		if (!this.plugin.settings.isConnected) {
+			tooltip = "Please connect to Raindrop.io first";
+		} else if (this.plugin.settings.syncAllCollections) {
+			tooltip = 'Please disable "Sync all Collections" first';
+		}
+		this.manageCollectionsButton.setDisabled(disabled).setTooltip(tooltip);
+	}
+
 	private async collections(): Promise<void> {
 		new Setting(this.containerEl)
-			.setName("Collections")
+			.setName("Manage Collections")
 			.setDesc("Manage collections to be synced")
 			.addButton((button) => {
+				this.manageCollectionsButton = button;
+				this._updateManageCollectionsButton();
 				return button
-					.setDisabled(!this.plugin.settings.isConnected)
 					.setButtonText("Manage")
 					.setCta()
 					.onClick(async () => {
 						button.setButtonText("Loading collections...");
 
-						// update for new collections
-						const collectionGroup = this.plugin.settings.collectionGroups;
-						const allCollections = await this.api.getCollections(collectionGroup);
-						this.plugin.updateCollectionSettings(allCollections);
+						this._updateNewCollections();
 
 						new CollectionsModal(this.app, this.plugin);
 						this.display(); // rerender

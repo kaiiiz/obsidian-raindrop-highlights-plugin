@@ -158,6 +158,11 @@ export default class RaindropPlugin extends Plugin {
 				syncCollections[id] = this.settings.syncCollections[id];
 				syncCollections[id].title = title;
 			}
+
+			// sync all collections
+			if (this.settings.syncAllCollections) {
+				syncCollections[id].sync = true;
+			}
 		});
 		this.settings.syncCollections = syncCollections;
 		await this.saveSettings();
