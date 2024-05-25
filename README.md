@@ -54,3 +54,9 @@ This project is inspired by Hady Ozman's [Obsidian Kindle Plugin](https://github
 
 - To simplify the implementation, this plugin only supports one-way sync. (i.e. from Raindrop to Obsdiain) If you move a file from one folder to another folder, the article's collection in Raindrop remains unchanged. The collection folder inside Obsidian is only used for file creation.
 - Raindrop API has [rate limiting](https://developer.raindrop.io/#rate-limiting), you can make up to 120 requests per minute per authenticated user. This plugin does its best to prevent unneeded requests, it only requests bookmarks updated after the last sync time. In addition, this plugin will wait and request the API again after the limit is reached.
+
+## Support
+
+If you find my work brings value to your life and would like to support its development, you can sponsor me in the following ways.
+
+<a href="https://www.buymeacoffee.com/ykzheng" target="_blank"><img src="https://cdn.buymeacoffee.com/buttons/v2/default-yellow.png" alt="Buy Me A Coffee" style="height: 45px !important;width: 164px !important; margin-left: 0px; margin-right: 0px;" ></a>
