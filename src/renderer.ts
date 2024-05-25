@@ -39,6 +39,7 @@ type RenderTemplate = {
 	important: boolean;
 	creator: RenderCreator;
 	now: moment.Moment;
+	raindropUrl: string;
 };
 
 const FAKE_RENDER_CONTEXT: RenderTemplate = {
@@ -71,6 +72,7 @@ const FAKE_RENDER_CONTEXT: RenderTemplate = {
 		id: 10000,
 	},
 	now: Moment(),
+	raindropUrl: "https://example.com"
 };
 
 export default class Renderer {
@@ -171,6 +173,7 @@ ${fakeContent}`;
 			important: bookmark.important,
 			creator: bookmark.creator,
 			now: Moment(),
+			raindropUrl: `https://app.raindrop.io/my/${bookmark.collectionId}/item/${bookmark.id}/edit`,
 		};
 
 		const env = this.createEnv();
