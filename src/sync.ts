@@ -36,7 +36,7 @@ export default class RaindropSync {
 		}
 	}
 
-	async syncSingle({ file }: { file: TFile }) {
+	async syncSingle({ file }: { file: TFile | null }) {
 		let raindropId: number;
 		if (file) {
 			const fmc = this.app.metadataCache.getFileCache(file)?.frontmatter;
@@ -55,6 +55,7 @@ export default class RaindropSync {
 		await this.updateFileContent(file, bookmark);
 		// Do not perform path sync here!
 		// Since we do not know which collection sync this bookmark (e.g. bookmark "b1" in "Collection 1" may also be synced if you enable "All Bookmarks" collection), which leads to ambiguity.
+		new Notice(`Sync ${bookmark.title} completed`);
 	}
 
 	private getSyncFolder(collection: SyncCollection) {

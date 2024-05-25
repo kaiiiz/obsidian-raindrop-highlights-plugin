@@ -51,6 +51,7 @@ export default class RaindropPlugin extends Plugin {
 			name: "Sync this bookmark",
 			callback: async () => {
 				const file = app.workspace.getActiveFile();
+				await this.raindropSync.syncSingle({ file: file });
 			},
 		});
 
