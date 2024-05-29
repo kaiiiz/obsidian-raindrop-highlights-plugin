@@ -14,6 +14,7 @@ export const DEFAULT_SETTINGS: RaindropPluginSettings = {
 	highlightsFolder: "/",
 	collectionGroups: false,
 	autoSyncSuccessNotice: true,
+	syncAllCollections: false,
 	syncCollections: {},
 	template: DEFAULT_TEMPLATE,
 	metadataTemplate: "",
