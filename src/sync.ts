@@ -121,22 +121,21 @@ export default class RaindropSync {
 				const filePath = await this.buildNonDupFilePath(folderPath, renderedFilename);
 				bookmarkFilesMap[bookmark.id] = await this.createFile(filePath, bookmark);
 			}
-
+		}
+		
+		if (this.plugin.settings.syncDeleteFiles) {
 			const deletedBookmarkIds = Object.keys(bookmarkFilesMap).map(Number).filter((id) => {
 				return !bookmarks.some((bookmark) => bookmark.id === id);
 			});
-			
-			if (this.plugin.settings.syncDeleteFiles) {
-				for (const id of deletedBookmarkIds) {
-					const file = bookmarkFilesMap[id]; // Get the TFile directly from bookmarkFilesMap
-					
-					if (file && file instanceof TFile) {
-						try {
-							await this.deleteFile(file); // Pass the TFile directly to deleteFile
-							console.log(`Deleted local file for bookmark ID: ${id}`);
-						} catch (error) {
-							console.error(`Failed to delete file for bookmark ID: ${id}`, error);
-						}
+			for (const id of deletedBookmarkIds) {
+				const file = bookmarkFilesMap[id]; // Get the TFile directly from bookmarkFilesMap
+				
+				if (file && file instanceof TFile) {
+					try {
+						await this.deleteFile(file); // Pass the TFile directly to deleteFile
+						console.log(`Deleted local file for bookmark ID: ${id}`);
+					} catch (error) {
+						console.error(`Failed to delete file for bookmark ID: ${id}`, error);
 					}
 				}
 			}
