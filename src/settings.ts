@@ -1,4 +1,4 @@
-import { App, Notice, PluginSettingTab, Setting } from "obsidian";
+import { App, Notice, PluginSettingTab, Setting, ToggleComponent } from "obsidian";
 import DEFAULT_METADATA_TEMPLATE from "./assets/defaultMetadataTemplate.njk";
 import templateInstructions from "./templates/templateInstructions.html";
 import metadataTemplateInstructions from "./templates/metadataTemplateInstructions.html";
@@ -36,6 +36,7 @@ export class RaindropSettingTab extends PluginSettingTab {
 		this.ribbonIcon();
 		this.onlyBookmarksWithHl();
 		this.syncDeleteFiles();
+		this.syncDeleteUseTrash();
 		this.appendMode();
 		this.collectionsFolders();
 		this.highlightsFolder();
@@ -87,10 +88,31 @@ export class RaindropSettingTab extends PluginSettingTab {
 			.setName("Delete local files when removed from Raindrop")
 			.setDesc("Keep local vault 1-1 with Raindrop bookmarks by deleting files")
 			.addToggle((toggle) => {
-				return toggle.setValue(this.plugin.settings.syncDeleteFiles).onChange(async (value) => {
+				toggle
+				.setValue(this.plugin.settings.syncDeleteFiles)
+				.onChange(async (value) => {
 					this.plugin.settings.syncDeleteFiles = value;
+					this.syncDeleteUseTrashToggle.setDisabled(!value);
+					this.syncDeleteUseTrashToggle.setValue(value ? this.plugin.settings.syncDeleteUseTrash : false);
 					await this.plugin.saveSettings();
 				});
+			});
+	}
+	private syncDeleteUseTrashToggle: ToggleComponent;
+	private syncDeleteUseTrash(): void {
+		new Setting(this.containerEl)
+			.setName("Use Trash to delete synced files")
+			.setDesc("Must use 'Delete local files when removed from Raindrop' option.\nFiles will be moved to Trash instead of permanently deleted.")
+			.setDisabled(!this.plugin.settings.syncDeleteFiles) // Initially disable if syncDeleteFiles is false
+			.addToggle((toggle) => {
+				toggle
+				.setValue(this.plugin.settings.syncDeleteUseTrash)
+				.setDisabled(!this.plugin.settings.syncDeleteFiles)
+				.onChange(async (value) => {
+					this.plugin.settings.syncDeleteUseTrash = value;
+					await this.plugin.saveSettings();
+				});
+				this.syncDeleteUseTrashToggle = toggle;
 			});
 	}
 

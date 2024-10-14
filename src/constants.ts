@@ -12,6 +12,7 @@ export const DEFAULT_SETTINGS: RaindropPluginSettings = {
 	collectionsFolders: true,
 	onlyBookmarksWithHl: false,
 	syncDeleteFiles: false,
+	syncDeleteUseTrash: true,
 	highlightsFolder: "/",
 	collectionGroups: false,
 	autoSyncSuccessNotice: true,
