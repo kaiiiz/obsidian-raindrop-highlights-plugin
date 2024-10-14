@@ -35,6 +35,7 @@ export class RaindropSettingTab extends PluginSettingTab {
 		}
 		this.ribbonIcon();
 		this.onlyBookmarksWithHl();
+		this.syncDeleteFiles();
 		this.appendMode();
 		this.collectionsFolders();
 		this.highlightsFolder();
@@ -79,6 +80,18 @@ export class RaindropSettingTab extends PluginSettingTab {
 				await this.plugin.saveSettings();
 			});
 		});
+	}
+
+	private syncDeleteFiles(): void {
+		new Setting(this.containerEl)
+			.setName("Delete local files when removed from Raindrop")
+			.setDesc("Keep local vault 1-1 with Raindrop bookmarks by deleting files")
+			.addToggle((toggle) => {
+				return toggle.setValue(this.plugin.settings.syncDeleteFiles).onChange(async (value) => {
+					this.plugin.settings.syncDeleteFiles = value;
+					await this.plugin.saveSettings();
+				});
+			});
 	}
 
 	private collectionsFolders(): void {

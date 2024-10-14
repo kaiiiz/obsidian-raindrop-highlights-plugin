@@ -121,6 +121,25 @@ export default class RaindropSync {
 				const filePath = await this.buildNonDupFilePath(folderPath, renderedFilename);
 				bookmarkFilesMap[bookmark.id] = await this.createFile(filePath, bookmark);
 			}
+
+			const deletedBookmarkIds = Object.keys(bookmarkFilesMap).map(Number).filter((id) => {
+				// Check if this bookmark ID does not exist in the current 'bookmarks' array
+				return !bookmarks.some((bookmark) => bookmark.id === id);
+			});
+
+			if (this.plugin.settings.syncDeleteFiles) {
+				for (const id of deletedBookmarkIds) {
+					const filePath = bookmarkFilesMap[id];
+					if (filePath) {
+						try {
+							await this.deleteFile(filePath); // Assuming deleteFile is a method that handles file deletion
+							console.log(`Deleted local file for bookmark ID: ${id}`);
+						} catch (error) {
+							console.error(`Failed to delete file for bookmark ID: ${id}`, error);
+						}
+					}
+				}
+			}
 		}
 	}
 
@@ -229,6 +248,11 @@ export default class RaindropSync {
 		console.debug("create file", filePath);
 		const mdContent = this.renderer.renderFullArticle(bookmark);
 		return this.app.vault.create(filePath, mdContent);
+	}
+
+	private async deleteFile(filePath: string): Promise<TFile> {
+		console.debug("delete file", filePath);
+		return this.app.vault.delete(filePath, true);
 	}
 
 	private getBookmarkFiles(): BookmarkFile[] {
