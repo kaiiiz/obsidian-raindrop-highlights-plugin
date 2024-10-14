@@ -123,16 +123,16 @@ export default class RaindropSync {
 			}
 
 			const deletedBookmarkIds = Object.keys(bookmarkFilesMap).map(Number).filter((id) => {
-				// Check if this bookmark ID does not exist in the current 'bookmarks' array
 				return !bookmarks.some((bookmark) => bookmark.id === id);
 			});
-
+			
 			if (this.plugin.settings.syncDeleteFiles) {
 				for (const id of deletedBookmarkIds) {
-					const filePath = bookmarkFilesMap[id];
-					if (filePath) {
+					const file = bookmarkFilesMap[id]; // Get the TFile directly from bookmarkFilesMap
+					
+					if (file && file instanceof TFile) {
 						try {
-							await this.deleteFile(filePath); // Assuming deleteFile is a method that handles file deletion
+							await this.deleteFile(file); // Pass the TFile directly to deleteFile
 							console.log(`Deleted local file for bookmark ID: ${id}`);
 						} catch (error) {
 							console.error(`Failed to delete file for bookmark ID: ${id}`, error);
@@ -250,9 +250,9 @@ export default class RaindropSync {
 		return this.app.vault.create(filePath, mdContent);
 	}
 
-	private async deleteFile(filePath: string): Promise<TFile> {
-		console.debug("delete file", filePath);
-		return this.app.vault.delete(filePath, true);
+	private async deleteFile(file: TFile): Promise<void> {
+		console.debug("delete file", file.path);
+		await this.app.vault.delete(file, true); // Delete the TFile directly
 	}
 
 	private getBookmarkFiles(): BookmarkFile[] {
