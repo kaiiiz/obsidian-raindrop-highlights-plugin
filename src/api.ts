@@ -239,7 +239,7 @@ export class RaindropAPI {
 			note: raindrop["note"],
 			link: raindrop["link"],
 			lastUpdate: new Date(raindrop["lastUpdate"]),
-			tags: raindrop["tags"],
+			tags: raindrop["tags"].map((tag: string) => tag.replace(/ /g, "_").toLowerCase()),
 			cover: raindrop["cover"],
 			created: new Date(raindrop["created"]),
 			type: raindrop["type"],
