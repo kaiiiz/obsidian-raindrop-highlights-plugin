@@ -4,9 +4,9 @@
 {% if tags|length %}Topics:: #{{ tags | join(", #") }}{% endif %}
 
 ---
-# {{title}}
+# {{title | safe}}
 
-{% if excerpt %}{{excerpt}}{% endif %}
+{% if excerpt %}{{excerpt | safe}}{% endif %}
 
 ## Highlights
 {% endif -%}{% for highlight in highlights %}
@@ -21,7 +21,7 @@
 {%- endif -%}
 > [!{{callout}}]+ Updated on {{highlight.lastUpdate}}
 >
-> {{highlight.text.split("\n") | join("\n>")}}
+> {{highlight.text.split("\n") | join("\n>") | safe}}
 {% if highlight.note -%}> > {{highlight.note + "\n"}}{%- endif %}
 
 {%- endfor -%}
