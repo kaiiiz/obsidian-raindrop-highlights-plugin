@@ -112,7 +112,7 @@ export class RaindropSettingTab extends PluginSettingTab {
 		});
 	}
 
-	private async disconnect(): Promise<void> {
+	private disconnect() {
 		new Setting(this.containerEl)
 			.setName(`Connected to Raindrop.io as ${this.plugin.settings.username}`)
 			.addButton((button) => {
@@ -173,7 +173,7 @@ export class RaindropSettingTab extends PluginSettingTab {
 			});
 	}
 
-	private async groups(): Promise<void> {
+	private groups(): void {
 		const descFragment = document.createRange().createContextualFragment(collectionGroupsInstructions);
 
 		new Setting(this.containerEl)
@@ -187,7 +187,7 @@ export class RaindropSettingTab extends PluginSettingTab {
 			});
 	}
 
-	private async collections(): Promise<void> {
+	private collections(): void {
 		new Setting(this.containerEl)
 			.setName("Collections")
 			.setDesc("Manage collections to be synced")
@@ -202,7 +202,7 @@ export class RaindropSettingTab extends PluginSettingTab {
 						// update for new collections
 						const collectionGroup = this.plugin.settings.collectionGroups;
 						const allCollections = await this.api.getCollections(collectionGroup);
-						this.plugin.updateCollectionSettings(allCollections);
+						await this.plugin.updateCollectionSettings(allCollections);
 
 						new CollectionsModal(this.app, this.plugin);
 						this.display(); // rerender
@@ -210,7 +210,7 @@ export class RaindropSettingTab extends PluginSettingTab {
 			});
 	}
 
-	private async template(): Promise<void> {
+	private template(): void {
 		const templateDescFragment = document.createRange().createContextualFragment(templateInstructions);
 
 		new Setting(this.containerEl)
@@ -232,7 +232,7 @@ export class RaindropSettingTab extends PluginSettingTab {
 			});
 	}
 
-	private async metadataTemplate(): Promise<void> {
+	private metadataTemplate(): void {
 		const templateDescFragment = document.createRange().createContextualFragment(metadataTemplateInstructions);
 
 		new Setting(this.containerEl)
@@ -255,7 +255,7 @@ export class RaindropSettingTab extends PluginSettingTab {
 			});
 	}
 
-	private async filenameTemplate(): Promise<void> {
+	private filenameTemplate(): void {
 		const templateDescFragment = document.createRange().createContextualFragment(filenameTemplateInstructions);
 
 		new Setting(this.containerEl)
@@ -291,7 +291,7 @@ export class RaindropSettingTab extends PluginSettingTab {
 							const collection = this.plugin.settings.syncCollections[id];
 							collection.lastSyncDate = undefined;
 						}
-						this.plugin.saveSettings();
+						await this.plugin.saveSettings();
 						new Notice("Sync history reset successfully");
 					});
 			});
@@ -312,7 +312,7 @@ export class RaindropSettingTab extends PluginSettingTab {
 							console.info("Set raindrop.io autosync interval", minutes);
 							if (minutes > 0) {
 								this.plugin.clearAutoSync();
-								this.plugin.startAutoSync(minutes);
+								await this.plugin.startAutoSync(minutes);
 								console.info(`Raindrop.io auto sync enabled! Every ${minutes} minutes.`);
 							} else {
 								this.plugin.clearAutoSync();

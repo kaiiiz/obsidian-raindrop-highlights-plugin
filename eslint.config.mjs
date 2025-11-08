@@ -22,6 +22,8 @@ export default defineConfig([
         "src/custom.d.ts",
     ]),
     {
+        files: ["src/**/*"],
+
         extends: compat.extends(
             "eslint:recommended",
             "plugin:@typescript-eslint/eslint-recommended",
@@ -40,9 +42,13 @@ export default defineConfig([
             parser: tsParser,
             ecmaVersion: 5,
             sourceType: "module",
+            parserOptions: {
+                projectService: true,
+            },
         },
 
         rules: {
+            "@typescript-eslint/no-floating-promises": ["error"],
             "@typescript-eslint/ban-ts-comment": "off",
             "no-prototype-builtins": "off",
             "@typescript-eslint/no-empty-function": "off",

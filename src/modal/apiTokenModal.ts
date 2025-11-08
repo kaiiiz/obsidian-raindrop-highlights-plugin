@@ -45,7 +45,10 @@ export default class ApiTokenModal extends Modal {
 
 	onClose() {
 		super.onClose();
-		unmount(this.modalContent);
-		this.resolvePromise();
+		unmount(this.modalContent).then(() => {
+			this.resolvePromise();
+		}).catch((e) => {
+			console.error("Error unmounting modal content", e);
+		});
 	}
 }

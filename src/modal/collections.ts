@@ -35,6 +35,8 @@ export default class CollectionsModal extends Modal {
 
 	onClose() {
 		super.onClose();
-		unmount(this.modalContent);
+		unmount(this.modalContent).catch((e) => {
+			console.error("Error unmounting modal content", e);
+		});
 	}
 }

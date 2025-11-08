@@ -25,11 +25,11 @@ export default class RaindropPlugin extends Plugin {
 		await this.loadSettings();
 
 		if (this.settings.ribbonIcon) {
-			this.addRibbonIcon("cloud", "Sync your Raindrop bookmarks", () => {
+			this.addRibbonIcon("cloud", "Sync your Raindrop bookmarks", async () => {
 				if (!this.settings.isConnected) {
 					new Notice("Please configure Raindrop API token in the plugin setting");
 				} else {
-					this.raindropSync.sync({ fullSync: false });
+					await this.raindropSync.sync({ fullSync: false });
 				}
 			});
 		}
@@ -101,7 +101,7 @@ export default class RaindropPlugin extends Plugin {
 				// update for new collections
 				const collectionGroup = this.settings.collectionGroups;
 				const allCollections = await this.api.getCollections(collectionGroup);
-				this.updateCollectionSettings(allCollections);
+				await this.updateCollectionSettings(allCollections);
 
 				notice.hide();
 
@@ -148,7 +148,7 @@ export default class RaindropPlugin extends Plugin {
 
 	async updateCollectionSettings(collections: RaindropCollection[]) {
 		const syncCollections: SyncCollectionSettings = {};
-		collections.forEach(async (collection) => {
+		for (const collection of collections) {
 			const { id, title } = collection;
 
 			if (!(id in this.settings.syncCollections)) {
@@ -162,12 +162,12 @@ export default class RaindropPlugin extends Plugin {
 				syncCollections[id] = this.settings.syncCollections[id];
 				syncCollections[id].title = title;
 			}
-		});
+		}
 		this.settings.syncCollections = syncCollections;
 		await this.saveSettings();
 	}
 
-	async clearAutoSync(): Promise<void> {
+	clearAutoSync() {
 		if (this.timeoutIDAutoSync) {
 			window.clearTimeout(this.timeoutIDAutoSync);
 			this.timeoutIDAutoSync = undefined;
@@ -178,9 +178,9 @@ export default class RaindropPlugin extends Plugin {
 	async startAutoSync(minutes?: number): Promise<void> {
 		const minutesToSync = minutes ?? this.settings.autoSyncInterval;
 		if (minutesToSync > 0) {
-			this.timeoutIDAutoSync = window.setTimeout(() => {
-				this.raindropSync.sync({ fullSync: false });
-				this.startAutoSync();
+			this.timeoutIDAutoSync = window.setTimeout(async () => {
+				await this.raindropSync.sync({ fullSync: false });
+				await this.startAutoSync();
 			}, minutesToSync * 60000);
 		}
 		console.info(`StartAutoSync: this.timeoutIDAutoSync ${this.timeoutIDAutoSync} with ${minutesToSync} minutes`);
