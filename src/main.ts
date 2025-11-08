@@ -1,14 +1,9 @@
 import { App, Notice, Plugin, type PluginManifest } from "obsidian";
 import { RaindropSettingTab } from "./settings";
 import RaindropSync from "./sync";
-import type {
-	RaindropCollection,
-	RaindropPluginSettings,
-	SyncCollection,
-	SyncCollectionSettings,
-} from "./types";
+import type { RaindropCollection, SyncCollectionSettings } from "./types";
 import { RaindropAPI } from "./api";
-import { VERSION, DEFAULT_SETTINGS } from "./constants";
+import { DEFAULT_SETTINGS, VERSION, ZPluginSettings, type ZPluginSettingsType } from "./constants";
 import BreakingChangeModal from "./modal/breakingChange";
 import CollectionsModal from "./modal/collections";
 import semver from "semver";
@@ -16,7 +11,7 @@ import z from "zod";
 
 export default class RaindropPlugin extends Plugin {
 	private raindropSync: RaindropSync;
-	public settings: RaindropPluginSettings;
+	public settings: ZPluginSettingsType;
 	public api: RaindropAPI;
 	private timeoutIDAutoSync?: number;
 
@@ -69,13 +64,15 @@ export default class RaindropPlugin extends Plugin {
 			id: "raindrop-show-last-sync-time",
 			name: "Show last sync time",
 			callback: async () => {
-				const message = Object.values(this.settings.syncCollections)
-					.filter((collection: SyncCollection) => collection.sync)
-					.map((collection: SyncCollection) => {
-						return `${collection.title}: ${collection.lastSyncDate?.toLocaleString()}`;
-					})
-					.join("\n");
-				new Notice(message);
+				const messages = [];
+				for (const collection of Object.values(this.settings.syncCollections)) {
+					if (collection?.sync) {
+						messages.push(
+							`${collection.title}: ${collection.lastSyncDate?.toLocaleString()}`,
+						);
+					}
+				}
+				new Notice(messages.join("\n"));
 			},
 		});
 
@@ -126,17 +123,18 @@ export default class RaindropPlugin extends Plugin {
 	}
 
 	async onunload() {
-		await this.clearAutoSync();
+		this.clearAutoSync();
 	}
 
 	async loadSettings() {
-		this.settings = Object.assign({}, DEFAULT_SETTINGS, await this.loadData());
-		for (const id in this.settings.syncCollections) {
-			const collection = this.settings.syncCollections[id];
-			if (collection.lastSyncDate) {
-				collection.lastSyncDate = new Date(collection.lastSyncDate);
-			}
+		const safedSettings = ZPluginSettings.safeParse(await this.loadData());
+		if (!safedSettings.success) {
+			new Notice("Raindrop Highlight: Settings are corrupted. Resetting to default.");
+			this.settings = DEFAULT_SETTINGS;
+		} else {
+			this.settings = safedSettings.data;
 		}
+
 		// version migration notice
 		new BreakingChangeModal(this.app, this.settings.version);
 
@@ -159,17 +157,19 @@ export default class RaindropPlugin extends Plugin {
 		const syncCollections: SyncCollectionSettings = {};
 		for (const collection of collections) {
 			const { id, title } = collection;
+			const collectionKey = id.toString();
+			const targetCollection = this.settings.syncCollections[collectionKey];
 
-			if (!(id in this.settings.syncCollections)) {
-				syncCollections[id] = {
+			if (targetCollection === undefined) {
+				syncCollections[collectionKey] = {
 					id: id,
 					title: title,
 					sync: false,
 					lastSyncDate: undefined,
 				};
 			} else {
-				syncCollections[id] = this.settings.syncCollections[id];
-				syncCollections[id].title = title;
+				syncCollections[collectionKey] = targetCollection;
+				syncCollections[collectionKey].title = title;
 			}
 		}
 		this.settings.syncCollections = syncCollections;

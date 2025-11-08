@@ -311,8 +311,12 @@ export class RaindropSettingTab extends PluginSettingTab {
 					.setDisabled(!this.plugin.settings.isConnected)
 					.setWarning()
 					.onClick(async () => {
-						for (const id in this.plugin.settings.syncCollections) {
-							const collection = this.plugin.settings.syncCollections[id];
+						for (const collection of Object.values(
+							this.plugin.settings.syncCollections,
+						)) {
+							if (collection === undefined) {
+								continue;
+							}
 							collection.lastSyncDate = undefined;
 						}
 						await this.plugin.saveSettings();

@@ -7,7 +7,6 @@ import type {
 	BookmarkFile,
 	BookmarkFileFrontMatter,
 	RaindropBookmark,
-	RaindropCollection,
 	SyncCollection,
 } from "./types";
 
@@ -34,9 +33,8 @@ export default class RaindropSync {
 		const allCollections = await this.api.getCollections(collectionGroup);
 		await this.plugin.updateCollectionSettings(allCollections);
 
-		for (const id in this.plugin.settings.syncCollections) {
-			const collection = this.plugin.settings.syncCollections[id];
-			if (collection.sync) {
+		for (const collection of Object.values(this.plugin.settings.syncCollections)) {
+			if (collection?.sync) {
 				await this.syncCollection(collection, fullSync);
 			}
 		}
@@ -78,9 +76,7 @@ export default class RaindropSync {
 
 	private async syncCollection(collection: SyncCollection, fullSync: boolean) {
 		const syncFolder = this.getSyncFolder(collection);
-		const lastSyncDate = fullSync
-			? undefined
-			: this.plugin.settings.syncCollections[collection.id].lastSyncDate;
+		const lastSyncDate = fullSync ? undefined : collection.lastSyncDate;
 
 		try {
 			if (lastSyncDate === undefined) {
@@ -166,8 +162,8 @@ export default class RaindropSync {
 		return filePath;
 	}
 
-	private async syncCollectionComplete(collection: RaindropCollection) {
-		this.plugin.settings.syncCollections[collection.id].lastSyncDate = new Date();
+	private async syncCollectionComplete(collection: SyncCollection) {
+		collection.lastSyncDate = new Date();
 		await this.plugin.saveSettings();
 	}
 

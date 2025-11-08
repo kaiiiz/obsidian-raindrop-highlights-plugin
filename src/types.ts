@@ -79,25 +79,4 @@ export interface SyncCollection {
 	lastSyncDate?: Date;
 }
 
-export interface SyncCollectionSettings {
-	[id: number]: SyncCollection;
-}
-
-export interface RaindropPluginSettings {
-	version: string;
-	username?: string;
-	isConnected: boolean;
-	ribbonIcon: boolean;
-	appendMode: boolean;
-	collectionsFolders: boolean;
-	onlyBookmarksWithHl: boolean;
-	highlightsFolder: string;
-	collectionGroups: boolean;
-	syncCollections: SyncCollectionSettings;
-	template: string;
-	metadataTemplate: string;
-	filenameTemplate: string;
-	autoSyncInterval: number;
-	autoSyncSuccessNotice: boolean;
-	autoescape: boolean;
-}
+export type SyncCollectionSettings = Record<string, SyncCollection>;
