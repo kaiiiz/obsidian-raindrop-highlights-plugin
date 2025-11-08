@@ -86,7 +86,7 @@ export default class RaindropSync {
 			await this.syncCollectionComplete(collection);
 		} catch (e) {
 			console.error(e);
-			new Notice(`Sync Raindrop collection ${collection.title} failed: ${e.message}`);
+			new Notice(`Sync Raindrop collection ${collection.title} failed: ${e instanceof Error ? e.message : "Unknown error"}`);
 		}
 	}
 

@@ -1,4 +1,4 @@
-import { Notice, Plugin } from "obsidian";
+import { App, Notice, Plugin, type PluginManifest } from "obsidian";
 import { RaindropSettingTab } from "./settings";
 import RaindropSync from "./sync";
 import type { RaindropCollection, RaindropPluginSettings, SyncCollection, SyncCollectionSettings } from "./types";
@@ -14,11 +14,15 @@ export default class RaindropPlugin extends Plugin {
 	public api: RaindropAPI;
 	private timeoutIDAutoSync?: number;
 
-	async onload() {
-		await this.loadSettings();
-
+	constructor(app: App, manifest: PluginManifest) {
+		super(app, manifest);
+		this.settings = DEFAULT_SETTINGS;
 		this.api = new RaindropAPI(this.app);
 		this.raindropSync = new RaindropSync(this.app, this, this.api);
+	}
+
+	async onload() {
+		await this.loadSettings();
 
 		if (this.settings.ribbonIcon) {
 			this.addRibbonIcon("cloud", "Sync your Raindrop bookmarks", () => {
@@ -50,7 +54,7 @@ export default class RaindropPlugin extends Plugin {
 			id: "raindrop-sync-this",
 			name: "Sync this bookmark",
 			callback: async () => {
-				const file = app.workspace.getActiveFile();
+				const file = this.app.workspace.getActiveFile();
 				await this.raindropSync.syncSingle({ file: file });
 			},
 		});
@@ -73,9 +77,9 @@ export default class RaindropPlugin extends Plugin {
 			id: "raindrop-open-link",
 			name: "Open link in Raindrop",
 			callback: async () => {
-				const file = app.workspace.getActiveFile();
+				const file = this.app.workspace.getActiveFile();
 				if (file) {
-					const fmc = app.metadataCache.getFileCache(file)?.frontmatter;
+					const fmc = this.app.metadataCache.getFileCache(file)?.frontmatter;
 					if (fmc?.raindrop_id) {
 						const bookmark = await this.api.getRaindrop(fmc.raindrop_id);
 						window.open(`https://app.raindrop.io/my/${bookmark.collectionId}/item/${bookmark.id}/edit`);
@@ -130,7 +134,6 @@ export default class RaindropPlugin extends Plugin {
 		// setting migration
 		if (semver.lt(this.settings.version, "0.0.18")) {
 			if ("dateTimeFormat" in this.settings) {
-				// @ts-expect-error
 				delete this.settings["dateTimeFormat"];
 			}
 		}

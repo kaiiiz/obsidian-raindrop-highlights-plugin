@@ -3,7 +3,7 @@ import semver from "semver";
 
 export default class BreadkingChangeModal extends Modal {
 	public waitForClose: Promise<void>;
-	private resolvePromise: () => void;
+	private resolvePromise: () => void = () => {};
 
 	constructor(app: App, currentVersion: string) {
 		super(app);

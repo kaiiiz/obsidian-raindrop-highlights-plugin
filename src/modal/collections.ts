@@ -4,7 +4,7 @@ import type { SyncCollection } from "src/types";
 import CollectionsContent from '../modal/collections.svelte';
 
 export default class CollectionsModal extends Modal {
-	private modalContent: CollectionsContent;
+	private modalContent?: CollectionsContent;
 	private plugin: RaindropPlugin;
 
 	constructor(app: App, plugin: RaindropPlugin) {
@@ -37,6 +37,8 @@ export default class CollectionsModal extends Modal {
 
 	onClose() {
 		super.onClose();
-		this.modalContent.$destroy();
+		if (this.modalContent) {
+			this.modalContent.$destroy();
+		}
 	}
 }

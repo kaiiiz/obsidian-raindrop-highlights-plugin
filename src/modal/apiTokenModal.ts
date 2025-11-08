@@ -4,7 +4,7 @@ import ApiTokenModalContent from "./apiTokenModal.svelte";
 
 export default class ApiTokenModal extends Modal {
 	public waitForClose: Promise<void>;
-	private resolvePromise: () => void;
+	private resolvePromise: () => void = () => {};
 	private modalContent: ApiTokenModalContent;
 	private api: RaindropAPI;
 
@@ -25,7 +25,11 @@ export default class ApiTokenModal extends Modal {
 					try {
 						await this.api.checkToken(value);
 					} catch (e) {
-						new Notice(e.message);
+						if (e instanceof Error) {
+							new Notice(e.message);
+						} else {
+							console.error("Unknown error", e);
+						}
 						return;
 					}
 
