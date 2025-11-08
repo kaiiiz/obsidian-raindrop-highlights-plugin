@@ -3,6 +3,10 @@ import type { TFile } from "obsidian";
 export interface RaindropUser {
 	// Remote state
 	fullName: string;
+	groups: {
+		collections: number[];
+		title: string;
+	}[];
 }
 
 export interface RaindropCollection {
@@ -62,7 +66,7 @@ export interface BookmarkFileFrontMatter {
 	// use snake_case in front matter
 	raindrop_id: number;
 	raindrop_highlights?: { [id: string]: string };
-	[key: string]: any;
+	[key: string]: unknown;
 }
 
 // ----------

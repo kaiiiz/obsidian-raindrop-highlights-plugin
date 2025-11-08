@@ -102,7 +102,7 @@ export default class RaindropSync {
 
 		try {
 			await this.app.vault.createFolder(folderPath);
-		} catch (e) {
+		} catch {
 			/* ignore folder already exists error */
 		}
 

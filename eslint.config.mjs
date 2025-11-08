@@ -16,7 +16,11 @@ const compat = new FlatCompat({
 });
 
 export default defineConfig([
-    globalIgnores(["node_modules", "main.js"]),
+    globalIgnores([
+        "node_modules",
+        "main.js",
+        "src/custom.d.ts",
+    ]),
     {
         extends: compat.extends(
             "eslint:recommended",
@@ -39,12 +43,6 @@ export default defineConfig([
         },
 
         rules: {
-            "no-unused-vars": "off",
-
-            "@typescript-eslint/no-unused-vars": ["error", {
-                args: "none",
-            }],
-
             "@typescript-eslint/ban-ts-comment": "off",
             "no-prototype-builtins": "off",
             "@typescript-eslint/no-empty-function": "off",

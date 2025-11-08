@@ -162,14 +162,10 @@ export class RaindropSettingTab extends PluginSettingTab {
 			.setName("Highlights folder location")
 			.setDesc("Vault folder to use for storing Raindrop.io highlights")
 			.addDropdown((dropdown) => {
-				const files = (this.app.vault.adapter as any).files;
-				Object.keys(files).forEach((key) => {
-					if (files[key].type == "folder") {
-						const folder = files[key].realpath;
-						dropdown.addOption(folder, folder);
-					}
-				});
-
+				const folders = this.app.vault.getAllFolders();
+				for (const folder of folders) {
+					dropdown.addOption(folder.path, folder.path);
+				}
 				return dropdown.setValue(this.plugin.settings.highlightsFolder).onChange(async (value) => {
 					this.plugin.settings.highlightsFolder = value;
 					await this.plugin.saveSettings();

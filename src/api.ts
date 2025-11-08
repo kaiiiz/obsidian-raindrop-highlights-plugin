@@ -1,11 +1,73 @@
 import { Notice, type App } from "obsidian";
 import axios, { AxiosError } from "axios";
 import axiosRetry from "axios-retry";
-import type { RaindropBookmark, RaindropCollection, RaindropCollectionGroup, RaindropHighlight, RaindropUser } from "./types";
+import type { RaindropBookmark, RaindropCollection, RaindropUser } from "./types";
 import TokenManager from "./tokenManager";
 import { Md5 } from "ts-md5";
+import * as z from "zod/mini";
 
 const BASEURL = "https://api.raindrop.io/rest/v1";
+
+const ZUser = z.object({
+	user: z.object({
+		fullName: z.string(),
+		groups: z.array(z.object({
+			collections: z.array(z.number()),
+			title: z.string(),
+		}))
+	})
+})
+
+const ZRootCollection = z.object({
+	items: z.array(z.object({
+		_id: z.number(),
+		title: z.string(),
+	}))
+});
+
+const ZChildrentCollection = z.object({
+	items: z.array(z.object({
+		_id: z.number(),
+		title: z.string(),
+		parent: z.optional(z.object({
+			$id: z.number(),
+		}))
+	}))
+})
+
+const ZRaindrop = z.object({
+	_id: z.number(),
+	collectionId: z.number(),
+	cover: z.string(),
+	created: z.coerce.date(),
+	creatorRef: z.object({
+		_id: z.number(),
+		name: z.string(),
+	}),
+	excerpt: z.string(),
+	highlights: z.array(z.object({
+		color: z.string(),
+		created: z.coerce.date(),
+		lastUpdate: z.coerce.date(),
+		note: z.string(),
+		text: z.string(),
+		_id: z.string(),
+	})),
+	important: z.boolean(),
+	lastUpdate: z.coerce.date(),
+	link: z.string(),
+	note: z.string(),
+	tags: z.array(z.string()),
+	title: z.string(),
+	type: z.string(),
+})
+
+type TZRaindrop = z.infer<typeof ZRaindrop>;
+
+const ZRaindrops = z.object({
+	count: z.number(),
+	items: z.array(ZRaindrop),
+});
 
 interface NestedRaindropCollection {
 	title: string;
@@ -41,7 +103,7 @@ export class RaindropAPI {
 		this.tokenManager = new TokenManager();
 	}
 
-	private async get(url: string, params: any) {
+	private async get(url: string, params: Record<string, unknown>) {
 		const token = this.tokenManager.get();
 		if (!token) {
 			throw new Error("Invalid token");
@@ -79,9 +141,8 @@ export class RaindropAPI {
 
 		const collectionGroupMap: { [id: number]: string } = {};
 		if (enableCollectionGroup) {
-			const res = await this.get(`${BASEURL}/user`, {});
-			const groups = this.parseGroups(res.user.groups);
-			groups.forEach((g) => {
+			const user = await this.getUser();
+			user.groups.forEach((g) => {
 				g.collections.forEach((cid) => {
 					collectionGroupMap[cid] = g.title;
 				});
@@ -89,10 +150,10 @@ export class RaindropAPI {
 		}
 
 		const rootCollectionMap: { [id: number]: string } = {};
-		const rootCollections = await rootCollectionPromise;
-		rootCollections.items.forEach((collection: any) => {
-			const id = collection["_id"];
-			let title = collection["title"];
+		const rootCollections = ZRootCollection.parse(await rootCollectionPromise);
+		rootCollections.items.forEach((collection) => {
+			const id = collection._id;
+			let title = collection.title;
 			if (enableCollectionGroup) {
 				title = `${collectionGroupMap[id]}/${title}`;
 			}
@@ -104,19 +165,19 @@ export class RaindropAPI {
 		});
 
 		const nestedCollectionMap: { [id: number]: NestedRaindropCollection } = {};
-		const nestedCollections = await nestedCollectionPromise;
-		nestedCollections.items.forEach((collection: any) => {
-			const id = collection["_id"];
+		const nestedCollections = ZChildrentCollection.parse(await nestedCollectionPromise);
+		nestedCollections.items.forEach((collection) => {
+			const id = collection._id;
 			nestedCollectionMap[id] = {
-				title: collection["title"],
-				parentId: collection["parent"]?.["$id"] ?? 0,
+				title: collection.title,
+				parentId: collection.parent?.$id ?? 0,
 			};
 		});
 
-		nestedCollections.items.forEach((collection: any) => {
-			const id = collection["_id"];
-			let parentId = collection["parent"]?.["$id"] ?? 0;
-			let title = collection["title"];
+		nestedCollections.items.forEach((collection) => {
+			const id = collection._id;
+			let parentId = collection.parent?.$id ?? 0;
+			let title = collection.title;
 			while (parentId && parentId in nestedCollectionMap) {
 				title = `${nestedCollectionMap[parentId].title}/${title}`;
 				parentId = nestedCollectionMap[parentId].parentId;
@@ -139,33 +200,30 @@ export class RaindropAPI {
 			notice = new Notice("Fetch Raindrops highlights", 0);
 		}
 
-		const pageSize = 50;
-		const res = await this.get(`${BASEURL}/raindrops/${collectionId}`, {
-			page: 0,
-			perpage: pageSize,
-			sort: "-created",
-		});
-		const raindropsCnt = res.count;
-		let bookmarks = this.parseRaindrops(res.items);
-		const totalPages = Math.ceil(raindropsCnt / pageSize);
-		let remainPages = totalPages - 1;
-		let page = 1;
-
 		const getPage = async (page: number) => {
 			const res = await this.get(`${BASEURL}/raindrops/${collectionId}`, {
 				page: page,
 				perpage: pageSize,
 				sort: "-created",
 			});
-			return this.parseRaindrops(res.items);
+			return ZRaindrops.parse(res);
 		};
+
+		const pageSize = 50;
+		const res = await getPage(0);
+		const raindropsCnt = res.count;
+		const bookmarks = this.parseRaindrops(res.items);
+		const totalPages = Math.ceil(raindropsCnt / pageSize);
+		let remainPages = totalPages - 1;
+		let page = 1;
 
 		if (lastSync === undefined) {
 			if (bookmarks.length > 0) {
 				yield bookmarks;
 				while (remainPages--) {
 					notice?.setMessage(`Sync Raindrop pages: ${page + 1}/${totalPages}`);
-					yield await getPage(page++);
+					const res = await getPage(page++);
+					yield this.parseRaindrops(res.items);
 				}
 			}
 		} else {
@@ -179,8 +237,8 @@ export class RaindropAPI {
 				yield filteredBookmark;
 				while (bookmarks[bookmarks.length - 1].created.getTime() >= lastSync.getTime() && remainPages--) {
 					notice?.setMessage(`Sync Raindrop pages: ${page + 1}/${totalPages}`);
-					let bookmarks = await getPage(page++);
-					yield filterCreated(bookmarks);
+					const res = await getPage(page++);
+					yield filterCreated(this.parseRaindrops(res.items));
 				}
 			}
 		}
@@ -190,9 +248,8 @@ export class RaindropAPI {
 
 	async getUser(): Promise<RaindropUser> {
 		const res = await this.get(`${BASEURL}/user`, {});
-		return {
-			fullName: res.user.fullName,
-		};
+		const parsed = ZUser.parse(res);
+		return parsed.user;
 	}
 
 	async checkToken(token: string): Promise<RaindropUser> {
@@ -207,73 +264,40 @@ export class RaindropAPI {
 			if (result.status !== 200) {
 				throw new Error("Invalid token");
 			}
-		} catch (e) {
+		} catch {
 			throw new Error("Invalid token");
 		}
 
-		const user = result.data.user;
-		return {
-			fullName: user.fullName,
-		};
+		return ZUser.parse(result.data).user;
 	}
 
 	async getRaindrop(id: number): Promise<RaindropBookmark> {
 		const res = await this.get(`${BASEURL}/raindrop/${id}`, {});
-		const bookmark = this.parseRaindrop(res.item);
+		const bookmark = this.parseRaindrop(ZRaindrop.parse(res.item));
 		return bookmark;
 	}
 
-	private parseRaindrops(bookmarks: any): RaindropBookmark[] {
-		return bookmarks.map((raindrop: any) => {
-			return this.parseRaindrop(raindrop);
-		});
+	private parseRaindrops(bookmarks: TZRaindrop[]): RaindropBookmark[] {
+		return bookmarks.map(this.parseRaindrop);
 	}
 
-	private parseRaindrop(raindrop: any): RaindropBookmark {
-		const bookmark: RaindropBookmark = {
-			id: raindrop["_id"],
-			collectionId: raindrop["collectionId"],
-			title: raindrop["title"],
-			highlights: this.parseHighlights(raindrop["highlights"]),
-			excerpt: raindrop["excerpt"],
-			note: raindrop["note"],
-			link: raindrop["link"],
-			lastUpdate: new Date(raindrop["lastUpdate"]),
-			tags: raindrop["tags"],
-			cover: raindrop["cover"],
-			created: new Date(raindrop["created"]),
-			type: raindrop["type"],
-			important: raindrop["important"],
+	private parseRaindrop(raindrop: TZRaindrop): RaindropBookmark {
+		const {_id, highlights, creatorRef, ...rest} = raindrop;
+		return {
+			id: _id,
 			creator: {
-				name: raindrop["creatorRef"]["name"],
-				id: raindrop["creatorRef"]["_id"],
+				id: creatorRef._id,
+				name: creatorRef.name,
 			},
-		};
-		return bookmark;
-	}
-
-	private parseHighlights(highlights: any): RaindropHighlight[] {
-		return highlights.map((hl: any) => {
-			const highlight: RaindropHighlight = {
-				id: hl["_id"],
-				color: hl["color"],
-				text: hl["text"],
-				lastUpdate: new Date(hl["lastUpdate"]),
-				created: new Date(hl["created"]),
-				note: hl["note"],
-				signature: Md5.hashStr(`${hl["color"]},${hl["text"]},${hl["note"]}`),
-			};
-			return highlight;
-		});
-	}
-
-	private parseGroups(groups: any): RaindropCollectionGroup[] {
-		return groups.map((g: any) => {
-			const group: RaindropCollectionGroup = {
-				title: g["title"],
-				collections: g["collections"],
-			};
-			return group;
-		});
+			highlights: highlights.map((hl) => {
+				const {_id, ...rest} = hl;
+				return {
+					id: _id,
+					signature: Md5.hashStr(`${hl.color},${hl.text},${hl.note}`),
+					...rest,
+				}
+			}),
+			...rest,
+		}
 	}
 }

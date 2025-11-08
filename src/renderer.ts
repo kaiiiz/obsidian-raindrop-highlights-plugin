@@ -93,7 +93,7 @@ ${fakeContent}`;
 				parseYaml(fakeMetadata);
 			}
 			return true;
-		} catch (error) {
+		} catch {
 			return false;
 		}
 	}
