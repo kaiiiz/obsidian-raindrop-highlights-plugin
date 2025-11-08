@@ -162,7 +162,7 @@ ${fakeContent}`;
 
 		// the latest collection data is sync from Raindrop at the beginning of `sync` function
 		const renderCollection: RenderCollection = {
-			title: this.plugin.settings.syncCollections[bookmark.collectionId].title,
+			title: this.plugin.settings.syncCollections[bookmark.collectionId]?.title ?? "",
 		};
 
 		const context: RenderTemplate = {

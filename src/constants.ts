@@ -1,5 +1,6 @@
 import z from "zod";
 import DEFAULT_TEMPLATE from "./assets/defaultTemplate.njk";
+import DEFAULT_FILENAME_TEMPLATE from "./assets/defaultFilenameTemplate.njk";
 
 export const VERSION = "0.0.23";
 
@@ -30,7 +31,7 @@ export const ZPluginSettings = z.object({
 		.default({}),
 	template: z.string().optional().default(DEFAULT_TEMPLATE),
 	metadataTemplate: z.string().optional().default(""),
-	filenameTemplate: z.string().optional().default("{{title}}"),
+	filenameTemplate: z.string().optional().default(DEFAULT_FILENAME_TEMPLATE),
 	preventMovingExistingFiles: z.boolean().optional().default(true),
 	autoSyncInterval: z.number().optional().default(0),
 	autoescape: z.boolean().optional().default(true),
@@ -52,7 +53,7 @@ export const DEFAULT_SETTINGS: ZPluginSettingsType = {
 	syncCollections: {},
 	template: DEFAULT_TEMPLATE,
 	metadataTemplate: "",
-	filenameTemplate: "{{title}}",
+	filenameTemplate: DEFAULT_FILENAME_TEMPLATE,
 	preventMovingExistingFiles: true,
 	autoSyncInterval: 0,
 	autoescape: true,
