@@ -1,11 +1,12 @@
 import { App, Modal, Notice } from "obsidian";
 import type { RaindropAPI } from "src/api";
 import ApiTokenModalContent from "./apiTokenModal.svelte";
+import { mount, unmount } from "svelte";
 
 export default class ApiTokenModal extends Modal {
 	public waitForClose: Promise<void>;
 	private resolvePromise: () => void = () => {};
-	private modalContent: ApiTokenModalContent;
+	private modalContent: ReturnType<typeof mount>;
 	private api: RaindropAPI;
 
 	constructor(app: App, api: RaindropAPI) {
@@ -18,7 +19,7 @@ export default class ApiTokenModal extends Modal {
 
 		this.titleEl.innerText = "Enter Raindrop.io API token";
 
-		this.modalContent = new ApiTokenModalContent({
+		this.modalContent = mount(ApiTokenModalContent, {
 			target: this.contentEl,
 			props: {
 				onSubmit: async (value: string) => {
@@ -44,7 +45,7 @@ export default class ApiTokenModal extends Modal {
 
 	onClose() {
 		super.onClose();
-		this.modalContent.$destroy();
+		unmount(this.modalContent);
 		this.resolvePromise();
 	}
 }

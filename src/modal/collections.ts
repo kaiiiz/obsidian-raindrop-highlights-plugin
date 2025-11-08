@@ -2,20 +2,16 @@ import { App, Modal } from "obsidian";
 import type RaindropPlugin from "src/main";
 import type { SyncCollection } from "src/types";
 import CollectionsContent from '../modal/collections.svelte';
+import { mount, unmount } from "svelte";
 
 export default class CollectionsModal extends Modal {
-	private modalContent?: CollectionsContent;
+	private modalContent: ReturnType<typeof mount>;
 	private plugin: RaindropPlugin;
 
 	constructor(app: App, plugin: RaindropPlugin) {
 		super(app);
+
 		this.plugin = plugin;
-		this.open();
-	}
-
-	async onOpen() {
-		super.onOpen()
-
 		this.titleEl.innerText = "Raindrop.io: Manage collections to be synced";
 
 		const collections: [string, SyncCollection][] = Object.entries(this.plugin.settings.syncCollections)
@@ -23,7 +19,7 @@ export default class CollectionsModal extends Modal {
 				return a[1].title.localeCompare(b[1].title);
 			});
 
-		this.modalContent = new CollectionsContent({
+		this.modalContent = mount(CollectionsContent, {
 			target: this.contentEl,
 			props: {
 				collections: collections,
@@ -33,12 +29,12 @@ export default class CollectionsModal extends Modal {
 				}
 			},
 		});
+
+		this.open();
 	}
 
 	onClose() {
 		super.onClose();
-		if (this.modalContent) {
-			this.modalContent.$destroy();
-		}
+		unmount(this.modalContent);
 	}
 }
