@@ -216,6 +216,7 @@ export class RaindropAPI {
 			notice = new Notice("Fetch Raindrops highlights", 0);
 		}
 
+		const pageSize = 50;
 		const getPage = async (page: number) => {
 			const res = await this.get(`${BASEURL}/raindrops/${collectionId}`, {
 				page: page,
@@ -230,7 +231,6 @@ export class RaindropAPI {
 			}
 		};
 
-		const pageSize = 50;
 		const res = await getPage(0);
 		const raindropsCnt = res.count;
 		const bookmarks = this.parseRaindrops(res.items);

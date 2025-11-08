@@ -35,7 +35,7 @@ export default class RaindropPlugin extends Plugin {
 				if (!this.settings.isConnected) {
 					new Notice("Please configure Raindrop API token in the plugin setting");
 				} else {
-					await this.raindropSync.sync({ fullSync: false });
+					await this.raindropSync.sync({ fullSync: true });
 				}
 			});
 		}
