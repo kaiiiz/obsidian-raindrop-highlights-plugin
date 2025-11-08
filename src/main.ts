@@ -72,7 +72,11 @@ export default class RaindropPlugin extends Plugin {
 						);
 					}
 				}
-				new Notice(messages.join("\n"));
+				if (messages.length === 0) {
+					new Notice("No collections are being synced.");
+				} else {
+					new Notice(messages.join("\n"));
+				}
 			},
 		});
 
