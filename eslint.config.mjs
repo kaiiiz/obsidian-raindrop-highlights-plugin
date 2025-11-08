@@ -10,49 +10,45 @@ import { FlatCompat } from "@eslint/eslintrc";
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const compat = new FlatCompat({
-    baseDirectory: __dirname,
-    recommendedConfig: js.configs.recommended,
-    allConfig: js.configs.all
+	baseDirectory: __dirname,
+	recommendedConfig: js.configs.recommended,
+	allConfig: js.configs.all,
 });
 
 export default defineConfig([
-    globalIgnores([
-        "node_modules",
-        "main.js",
-        "src/custom.d.ts",
-    ]),
-    {
-        files: ["src/**/*"],
+	globalIgnores(["node_modules", "main.js", "src/custom.d.ts"]),
+	{
+		files: ["src/**/*"],
 
-        extends: compat.extends(
-            "eslint:recommended",
-            "plugin:@typescript-eslint/eslint-recommended",
-            "plugin:@typescript-eslint/recommended",
-        ),
+		extends: compat.extends(
+			"eslint:recommended",
+			"plugin:@typescript-eslint/eslint-recommended",
+			"plugin:@typescript-eslint/recommended",
+		),
 
-        plugins: {
-            "@typescript-eslint": typescriptEslint,
-        },
+		plugins: {
+			"@typescript-eslint": typescriptEslint,
+		},
 
-        languageOptions: {
-            globals: {
-                ...globals.node,
-            },
+		languageOptions: {
+			globals: {
+				...globals.node,
+			},
 
-            parser: tsParser,
-            ecmaVersion: 5,
-            sourceType: "module",
-            parserOptions: {
-                projectService: true,
-            },
-        },
+			parser: tsParser,
+			ecmaVersion: 5,
+			sourceType: "module",
+			parserOptions: {
+				projectService: true,
+			},
+		},
 
-        rules: {
-            "@typescript-eslint/no-floating-promises": ["error"],
-            "@typescript-eslint/no-unsafe-argument": ["error"],
-            "@typescript-eslint/ban-ts-comment": "off",
-            "no-prototype-builtins": "off",
-            "@typescript-eslint/no-empty-function": "off",
-        },
-    }
+		rules: {
+			"@typescript-eslint/no-floating-promises": ["error"],
+			"@typescript-eslint/no-unsafe-argument": ["error"],
+			"@typescript-eslint/ban-ts-comment": "off",
+			"no-prototype-builtins": "off",
+			"@typescript-eslint/no-empty-function": "off",
+		},
+	},
 ]);

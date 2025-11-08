@@ -13,29 +13,37 @@ const ZOptEmptyString = z.string().optional().default("");
 const ZUser = z.object({
 	user: z.object({
 		fullName: ZOptEmptyString,
-		groups: z.array(z.object({
-			collections: z.array(z.number()),
-			title: ZOptEmptyString,
-		}))
-	})
-})
+		groups: z.array(
+			z.object({
+				collections: z.array(z.number()),
+				title: ZOptEmptyString,
+			}),
+		),
+	}),
+});
 
 const ZRootCollection = z.object({
-	items: z.array(z.object({
-		_id: z.number(),
-		title: ZOptEmptyString,
-	}))
+	items: z.array(
+		z.object({
+			_id: z.number(),
+			title: ZOptEmptyString,
+		}),
+	),
 });
 
 const ZChildrentCollection = z.object({
-	items: z.array(z.object({
-		_id: z.number(),
-		title: ZOptEmptyString,
-		parent: z.object({
-			$id: z.number(),
-		}).optional()
-	}))
-})
+	items: z.array(
+		z.object({
+			_id: z.number(),
+			title: ZOptEmptyString,
+			parent: z
+				.object({
+					$id: z.number(),
+				})
+				.optional(),
+		}),
+	),
+});
 
 const ZRaindrop = z.object({
 	_id: z.number(),
@@ -47,14 +55,16 @@ const ZRaindrop = z.object({
 		name: ZOptEmptyString,
 	}),
 	excerpt: ZOptEmptyString,
-	highlights: z.array(z.object({
-		color: z.string().optional().default("yellow"),
-		created: z.coerce.date(),
-		lastUpdate: z.coerce.date(),
-		note: ZOptEmptyString,
-		text: ZOptEmptyString,
-		_id: z.string(),
-	})),
+	highlights: z.array(
+		z.object({
+			color: z.string().optional().default("yellow"),
+			created: z.coerce.date(),
+			lastUpdate: z.coerce.date(),
+			note: ZOptEmptyString,
+			text: ZOptEmptyString,
+			_id: z.string(),
+		}),
+	),
 	important: z.boolean().optional().default(false),
 	lastUpdate: z.coerce.date(),
 	link: ZOptEmptyString,
@@ -62,7 +72,7 @@ const ZRaindrop = z.object({
 	tags: z.array(z.string()),
 	title: ZOptEmptyString,
 	type: ZOptEmptyString,
-})
+});
 
 type TZRaindrop = z.infer<typeof ZRaindrop>;
 
@@ -196,7 +206,11 @@ export class RaindropAPI {
 		return collections;
 	}
 
-	async *getRaindropsAfter(collectionId: number, showNotice: boolean, lastSync?: Date): AsyncGenerator<RaindropBookmark[]> {
+	async *getRaindropsAfter(
+		collectionId: number,
+		showNotice: boolean,
+		lastSync?: Date,
+	): AsyncGenerator<RaindropBookmark[]> {
 		let notice;
 		if (showNotice) {
 			notice = new Notice("Fetch Raindrops highlights", 0);
@@ -242,7 +256,10 @@ export class RaindropAPI {
 			const filteredBookmark = filterCreated(bookmarks);
 			if (filteredBookmark.length > 0) {
 				yield filteredBookmark;
-				while (bookmarks[bookmarks.length - 1].created.getTime() >= lastSync.getTime() && remainPages--) {
+				while (
+					bookmarks[bookmarks.length - 1].created.getTime() >= lastSync.getTime() &&
+					remainPages--
+				) {
 					notice?.setMessage(`Sync Raindrop pages: ${page + 1}/${totalPages}`);
 					const res = await getPage(page++);
 					yield filterCreated(this.parseRaindrops(res.items));
@@ -289,7 +306,7 @@ export class RaindropAPI {
 	}
 
 	private parseRaindrop(raindrop: TZRaindrop): RaindropBookmark {
-		const {_id, highlights, creatorRef, ...rest} = raindrop;
+		const { _id, highlights, creatorRef, ...rest } = raindrop;
 		return {
 			id: _id,
 			creator: {
@@ -297,14 +314,14 @@ export class RaindropAPI {
 				name: creatorRef.name,
 			},
 			highlights: highlights.map((hl) => {
-				const {_id, ...rest} = hl;
+				const { _id, ...rest } = hl;
 				return {
 					id: _id,
 					signature: Md5.hashStr(`${hl.color},${hl.text},${hl.note}`),
 					...rest,
-				}
+				};
 			}),
 			...rest,
-		}
+		};
 	}
 }

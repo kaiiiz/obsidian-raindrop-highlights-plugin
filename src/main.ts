@@ -1,7 +1,12 @@
 import { App, Notice, Plugin, type PluginManifest } from "obsidian";
 import { RaindropSettingTab } from "./settings";
 import RaindropSync from "./sync";
-import type { RaindropCollection, RaindropPluginSettings, SyncCollection, SyncCollectionSettings } from "./types";
+import type {
+	RaindropCollection,
+	RaindropPluginSettings,
+	SyncCollection,
+	SyncCollectionSettings,
+} from "./types";
 import { RaindropAPI } from "./api";
 import { VERSION, DEFAULT_SETTINGS } from "./constants";
 import BreakingChangeModal from "./modal/breakingChange";
@@ -84,7 +89,9 @@ export default class RaindropPlugin extends Plugin {
 					try {
 						const raindropId = z.coerce.number().parse(fmc?.raindrop_id);
 						const bookmark = await this.api.getRaindrop(raindropId);
-						window.open(`https://app.raindrop.io/my/${bookmark.collectionId}/item/${bookmark.id}/edit`);
+						window.open(
+							`https://app.raindrop.io/my/${bookmark.collectionId}/item/${bookmark.id}/edit`,
+						);
 					} catch {
 						new Notice("This is not a Raindrop bookmark file");
 					}
@@ -185,6 +192,8 @@ export default class RaindropPlugin extends Plugin {
 				await this.startAutoSync();
 			}, minutesToSync * 60000);
 		}
-		console.info(`StartAutoSync: this.timeoutIDAutoSync ${this.timeoutIDAutoSync} with ${minutesToSync} minutes`);
+		console.info(
+			`StartAutoSync: this.timeoutIDAutoSync ${this.timeoutIDAutoSync} with ${minutesToSync} minutes`,
+		);
 	}
 }

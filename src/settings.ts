@@ -50,16 +50,20 @@ export class RaindropSettingTab extends PluginSettingTab {
 	}
 
 	private ribbonIcon(): void {
-		new Setting(this.containerEl).setName("Enable ribbon icon in the sidebar (need reload)").addToggle((toggle) => {
-			return toggle.setValue(this.plugin.settings.ribbonIcon).onChange(async (value) => {
-				this.plugin.settings.ribbonIcon = value;
-				await this.plugin.saveSettings();
+		new Setting(this.containerEl)
+			.setName("Enable ribbon icon in the sidebar (need reload)")
+			.addToggle((toggle) => {
+				return toggle.setValue(this.plugin.settings.ribbonIcon).onChange(async (value) => {
+					this.plugin.settings.ribbonIcon = value;
+					await this.plugin.saveSettings();
+				});
 			});
-		});
 	}
 
 	private appendMode(): void {
-		const descFragment = document.createRange().createContextualFragment(appendModeInstructions);
+		const descFragment = document
+			.createRange()
+			.createContextualFragment(appendModeInstructions);
 
 		new Setting(this.containerEl)
 			.setName("Append Mode")
@@ -73,21 +77,29 @@ export class RaindropSettingTab extends PluginSettingTab {
 	}
 
 	private onlyBookmarksWithHl(): void {
-		new Setting(this.containerEl).setName("Only sync bookmarks with highlights").addToggle((toggle) => {
-			return toggle.setValue(this.plugin.settings.onlyBookmarksWithHl).onChange(async (value) => {
-				this.plugin.settings.onlyBookmarksWithHl = value;
-				await this.plugin.saveSettings();
+		new Setting(this.containerEl)
+			.setName("Only sync bookmarks with highlights")
+			.addToggle((toggle) => {
+				return toggle
+					.setValue(this.plugin.settings.onlyBookmarksWithHl)
+					.onChange(async (value) => {
+						this.plugin.settings.onlyBookmarksWithHl = value;
+						await this.plugin.saveSettings();
+					});
 			});
-		});
 	}
 
 	private collectionsFolders(): void {
-		new Setting(this.containerEl).setName("Store the articles in collections folders").addToggle((toggle) => {
-			return toggle.setValue(this.plugin.settings.collectionsFolders).onChange(async (value) => {
-				this.plugin.settings.collectionsFolders = value;
-				await this.plugin.saveSettings();
+		new Setting(this.containerEl)
+			.setName("Store the articles in collections folders")
+			.addToggle((toggle) => {
+				return toggle
+					.setValue(this.plugin.settings.collectionsFolders)
+					.onChange(async (value) => {
+						this.plugin.settings.collectionsFolders = value;
+						await this.plugin.saveSettings();
+					});
 			});
-		});
 	}
 
 	private connect(): void {
@@ -166,24 +178,30 @@ export class RaindropSettingTab extends PluginSettingTab {
 				for (const folder of folders) {
 					dropdown.addOption(folder.path, folder.path);
 				}
-				return dropdown.setValue(this.plugin.settings.highlightsFolder).onChange(async (value) => {
-					this.plugin.settings.highlightsFolder = value;
-					await this.plugin.saveSettings();
-				});
+				return dropdown
+					.setValue(this.plugin.settings.highlightsFolder)
+					.onChange(async (value) => {
+						this.plugin.settings.highlightsFolder = value;
+						await this.plugin.saveSettings();
+					});
 			});
 	}
 
 	private groups(): void {
-		const descFragment = document.createRange().createContextualFragment(collectionGroupsInstructions);
+		const descFragment = document
+			.createRange()
+			.createContextualFragment(collectionGroupsInstructions);
 
 		new Setting(this.containerEl)
 			.setName("Collection groups")
 			.setDesc(descFragment)
 			.addToggle((toggle) => {
-				return toggle.setValue(this.plugin.settings.collectionGroups).onChange(async (value) => {
-					this.plugin.settings.collectionGroups = value;
-					await this.plugin.saveSettings();
-				});
+				return toggle
+					.setValue(this.plugin.settings.collectionGroups)
+					.onChange(async (value) => {
+						this.plugin.settings.collectionGroups = value;
+						await this.plugin.saveSettings();
+					});
 			});
 	}
 
@@ -211,7 +229,9 @@ export class RaindropSettingTab extends PluginSettingTab {
 	}
 
 	private template(): void {
-		const templateDescFragment = document.createRange().createContextualFragment(templateInstructions);
+		const templateDescFragment = document
+			.createRange()
+			.createContextualFragment(templateInstructions);
 
 		new Setting(this.containerEl)
 			.setName("Content template")
@@ -233,7 +253,9 @@ export class RaindropSettingTab extends PluginSettingTab {
 	}
 
 	private metadataTemplate(): void {
-		const templateDescFragment = document.createRange().createContextualFragment(metadataTemplateInstructions);
+		const templateDescFragment = document
+			.createRange()
+			.createContextualFragment(metadataTemplateInstructions);
 
 		new Setting(this.containerEl)
 			.setName("Metadata template")
@@ -256,7 +278,9 @@ export class RaindropSettingTab extends PluginSettingTab {
 	}
 
 	private filenameTemplate(): void {
-		const templateDescFragment = document.createRange().createContextualFragment(filenameTemplateInstructions);
+		const templateDescFragment = document
+			.createRange()
+			.createContextualFragment(filenameTemplateInstructions);
 
 		new Setting(this.containerEl)
 			.setName("Filename template")
@@ -300,7 +324,9 @@ export class RaindropSettingTab extends PluginSettingTab {
 	private autoSyncInterval(): void {
 		new Setting(this.containerEl)
 			.setName("Auto sync in interval (minutes)")
-			.setDesc("Sync every X minutes. To disable auto sync, specify negative value or zero (default)")
+			.setDesc(
+				"Sync every X minutes. To disable auto sync, specify negative value or zero (default)",
+			)
 			.addText((text) => {
 				text.setPlaceholder(String(0))
 					.setValue(this.plugin.settings.autoSyncInterval.toString())
@@ -313,7 +339,9 @@ export class RaindropSettingTab extends PluginSettingTab {
 							if (minutes > 0) {
 								this.plugin.clearAutoSync();
 								await this.plugin.startAutoSync(minutes);
-								console.info(`Raindrop.io auto sync enabled! Every ${minutes} minutes.`);
+								console.info(
+									`Raindrop.io auto sync enabled! Every ${minutes} minutes.`,
+								);
 							} else {
 								this.plugin.clearAutoSync();
 								console.info("Raindrop.io auto sync disabled!");
@@ -324,16 +352,22 @@ export class RaindropSettingTab extends PluginSettingTab {
 	}
 
 	private autoSyncSuccessNotice(): void {
-		new Setting(this.containerEl).setName("Display a notification when a collection is synced").addToggle((toggle) => {
-			return toggle.setValue(this.plugin.settings.autoSyncSuccessNotice).onChange(async (value) => {
-				this.plugin.settings.autoSyncSuccessNotice = value;
-				await this.plugin.saveSettings();
+		new Setting(this.containerEl)
+			.setName("Display a notification when a collection is synced")
+			.addToggle((toggle) => {
+				return toggle
+					.setValue(this.plugin.settings.autoSyncSuccessNotice)
+					.onChange(async (value) => {
+						this.plugin.settings.autoSyncSuccessNotice = value;
+						await this.plugin.saveSettings();
+					});
 			});
-		});
 	}
 
 	private autoescape(): void {
-		const templateDescFragment = document.createRange().createContextualFragment(autoescapingInstructions);
+		const templateDescFragment = document
+			.createRange()
+			.createContextualFragment(autoescapingInstructions);
 
 		new Setting(this.containerEl)
 			.setName("Enable autoescaping for nunjucks")

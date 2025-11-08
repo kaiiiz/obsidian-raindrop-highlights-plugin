@@ -13,9 +13,7 @@ export default class ApiTokenModal extends Modal {
 		super(app);
 
 		this.api = api;
-		this.waitForClose = new Promise(
-			(resolve) => (this.resolvePromise = resolve)
-		);
+		this.waitForClose = new Promise((resolve) => (this.resolvePromise = resolve));
 
 		this.titleEl.innerText = "Enter Raindrop.io API token";
 
@@ -45,10 +43,12 @@ export default class ApiTokenModal extends Modal {
 
 	onClose() {
 		super.onClose();
-		unmount(this.modalContent).then(() => {
-			this.resolvePromise();
-		}).catch((e) => {
-			console.error("Error unmounting modal content", e);
-		});
+		unmount(this.modalContent)
+			.then(() => {
+				this.resolvePromise();
+			})
+			.catch((e) => {
+				console.error("Error unmounting modal content", e);
+			});
 	}
 }

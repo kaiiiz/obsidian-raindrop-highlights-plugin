@@ -72,7 +72,7 @@ const FAKE_RENDER_CONTEXT: RenderTemplate = {
 		id: 10000,
 	},
 	now: Moment(),
-	raindropUrl: "https://example.com"
+	raindropUrl: "https://example.com",
 };
 
 export default class Renderer {
@@ -103,7 +103,11 @@ ${fakeContent}`;
 	}
 
 	renderFrontmatter(bookmark: RaindropBookmark, newArticle: boolean) {
-		const newMdFrontmatter = this.renderTemplate(this.plugin.settings.metadataTemplate, bookmark, newArticle);
+		const newMdFrontmatter = this.renderTemplate(
+			this.plugin.settings.metadataTemplate,
+			bookmark,
+			newArticle,
+		);
 		const frontmatterObj: BookmarkFileFrontMatter = {
 			raindrop_id: bookmark.id,
 		};
@@ -112,7 +116,7 @@ ${fakeContent}`;
 			frontmatterObj.raindrop_highlights = Object.fromEntries(
 				bookmark.highlights.map((hl) => {
 					return [hl.id, hl.signature];
-				})
+				}),
 			);
 		}
 
@@ -131,7 +135,11 @@ ${fakeContent}`;
 	}
 
 	renderFileName(bookmark: RaindropBookmark, newArticle: boolean) {
-		const filename = this.renderTemplate(this.plugin.settings.filenameTemplate, bookmark, newArticle);
+		const filename = this.renderTemplate(
+			this.plugin.settings.filenameTemplate,
+			bookmark,
+			newArticle,
+		);
 		return this.sanitizeFilename(filename);
 	}
 
@@ -182,7 +190,9 @@ ${fakeContent}`;
 	}
 
 	private createEnv(): nunjucks.Environment {
-		const env = new nunjucks.Environment(undefined, { autoescape: this.plugin.settings.autoescape });
+		const env = new nunjucks.Environment(undefined, {
+			autoescape: this.plugin.settings.autoescape,
+		});
 		env.addFilter("date", (date: moment.Moment, format: string) => {
 			return date.format(format);
 		});

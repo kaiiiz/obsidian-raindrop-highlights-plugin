@@ -1,10 +1,9 @@
-
-declare module '*.html' {
+declare module "*.html" {
 	const content: string;
 	export default content;
 }
 
-declare module '*.njk' {
+declare module "*.njk" {
 	const content: string;
 	export default content;
 }

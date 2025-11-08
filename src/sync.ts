@@ -3,7 +3,13 @@ import type { RaindropAPI } from "./api";
 import type RaindropPlugin from "./main";
 import Renderer from "./renderer";
 import truncate from "truncate-utf8-bytes";
-import type { BookmarkFile, BookmarkFileFrontMatter, RaindropBookmark, RaindropCollection, SyncCollection } from "./types";
+import type {
+	BookmarkFile,
+	BookmarkFileFrontMatter,
+	RaindropBookmark,
+	RaindropCollection,
+	SyncCollection,
+} from "./types";
 
 interface SplitedMarkdown {
 	content: string;
@@ -72,21 +78,31 @@ export default class RaindropSync {
 
 	private async syncCollection(collection: SyncCollection, fullSync: boolean) {
 		const syncFolder = this.getSyncFolder(collection);
-		const lastSyncDate = fullSync ? undefined : this.plugin.settings.syncCollections[collection.id].lastSyncDate;
+		const lastSyncDate = fullSync
+			? undefined
+			: this.plugin.settings.syncCollections[collection.id].lastSyncDate;
 
 		try {
 			if (lastSyncDate === undefined) {
 				console.debug(`start sync collection: ${collection.title}, full sync`);
 			} else {
-				console.debug(`start sync collection: ${collection.title}, last sync at: ${lastSyncDate}`);
+				console.debug(
+					`start sync collection: ${collection.title}, last sync at: ${lastSyncDate}`,
+				);
 			}
-			for await (const bookmarks of this.api.getRaindropsAfter(collection.id, this.plugin.settings.autoSyncSuccessNotice, lastSyncDate)) {
+			for await (const bookmarks of this.api.getRaindropsAfter(
+				collection.id,
+				this.plugin.settings.autoSyncSuccessNotice,
+				lastSyncDate,
+			)) {
 				await this.syncBookmarks(bookmarks, syncFolder);
 			}
 			await this.syncCollectionComplete(collection);
 		} catch (e) {
 			console.error(e);
-			new Notice(`Sync Raindrop collection ${collection.title} failed: ${e instanceof Error ? e.message : "Unknown error"}`);
+			new Notice(
+				`Sync Raindrop collection ${collection.title} failed: ${e instanceof Error ? e.message : "Unknown error"}`,
+			);
 		}
 	}
 
@@ -106,7 +122,10 @@ export default class RaindropSync {
 			/* ignore folder already exists error */
 		}
 
-		const bookmarkFilesMap: { [id: number]: TFile } = Object.assign({}, ...this.getBookmarkFiles().map((x) => ({ [x.raindropId]: x.file })));
+		const bookmarkFilesMap: { [id: number]: TFile } = Object.assign(
+			{},
+			...this.getBookmarkFiles().map((x) => ({ [x.raindropId]: x.file })),
+		);
 
 		for (const bookmark of bookmarks) {
 			if (this.plugin.settings.onlyBookmarksWithHl && bookmark.highlights.length == 0) {
@@ -134,7 +153,10 @@ export default class RaindropSync {
 		return normalizePath(`${folderPath}/${fileName}`);
 	}
 
-	private async buildNonDupFilePath(folderPath: string, renderedFilename: string): Promise<string> {
+	private async buildNonDupFilePath(
+		folderPath: string,
+		renderedFilename: string,
+	): Promise<string> {
 		let filePath = this.buildFilePath(folderPath, renderedFilename);
 		let suffix = 1;
 		while (await this.app.vault.adapter.exists(filePath)) {
@@ -154,7 +176,11 @@ export default class RaindropSync {
 		let newFilePath = this.buildFilePath(folderPath, renderedFilename);
 		const newFileMeta = this.app.metadataCache.getCache(newFilePath);
 		// check new file is the same as the old file
-		if (newFileMeta?.frontmatter && "raindrop_id" in newFileMeta.frontmatter && newFileMeta.frontmatter.raindrop_id == bookmark.id) {
+		if (
+			newFileMeta?.frontmatter &&
+			"raindrop_id" in newFileMeta.frontmatter &&
+			newFileMeta.frontmatter.raindrop_id == bookmark.id
+		) {
 			console.debug(`file name of "${file.path}" is not changed`);
 			return;
 		}
@@ -175,7 +201,9 @@ export default class RaindropSync {
 	private async updateFileAppendMode(file: TFile, bookmark: RaindropBookmark) {
 		console.debug(`update file append mode ${file.path}`);
 		const metadata = this.app.metadataCache.getFileCache(file);
-		const highlightSigs = Object.fromEntries(bookmark.highlights.map((hl) => [hl.id, hl.signature]));
+		const highlightSigs = Object.fromEntries(
+			bookmark.highlights.map((hl) => [hl.id, hl.signature]),
+		);
 
 		if (metadata?.frontmatter && "raindrop_highlights" in metadata.frontmatter) {
 			const localHighlights = metadata.frontmatter.raindrop_highlights;
@@ -195,7 +223,10 @@ export default class RaindropSync {
 		bookmarkFmObj.raindrop_highlights = highlightSigs;
 		if (metadata?.frontmatterPosition) {
 			// merge with existing front matter
-			const article = this.splitFrontmatterAndContent(fileContent, metadata.frontmatterPosition.end.line);
+			const article = this.splitFrontmatterAndContent(
+				fileContent,
+				metadata.frontmatterPosition.end.line,
+			);
 
 			// merge bookmark front matter and file front matter
 			const fileFmObj: BookmarkFileFrontMatter = parseYaml(article.frontmatter);
