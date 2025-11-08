@@ -29,14 +29,48 @@ export default class RaindropSync {
 	}
 
 	async sync({ fullSync }: { fullSync: boolean }) {
-		const collectionGroup = this.plugin.settings.collectionGroups;
-		const allCollections = await this.api.getCollections(collectionGroup);
-		await this.plugin.updateCollectionSettings(allCollections);
+		const failedCollections: string[] = [];
+
+		if ((await this.syncCollectionMeta()) === false) {
+			return;
+		}
 
 		for (const collection of Object.values(this.plugin.settings.syncCollections)) {
 			if (collection?.sync) {
-				await this.syncCollection(collection, fullSync);
+				try {
+					if ((await this.syncCollection(collection, fullSync)) === false) {
+						failedCollections.push(collection.title);
+					}
+				} catch (e) {
+					console.error(
+						`Raindrop Highlights: failed to sync collection ${collection.title}`,
+						e,
+					);
+					failedCollections.push(collection.title);
+				}
 			}
+		}
+
+		if (failedCollections.length > 0) {
+			console.log(
+				`Raindrop Highlights: sync collection failed, failedCollections: ${failedCollections.join(", ")}`,
+			);
+			new Notice(`Raindrop Highlights: Sync collection failed, see console for details.`);
+		}
+	}
+
+	async syncCollectionMeta(): Promise<boolean> {
+		try {
+			const enableCollectionGroup = this.plugin.settings.collectionGroups;
+			const allCollections = await this.api.getCollections(enableCollectionGroup);
+			await this.plugin.updateCollectionSettings(allCollections);
+			return true;
+		} catch (e) {
+			console.error(`Raindrop Highlights: failed to sync collections metadata`, e);
+			new Notice(
+				`Raindrop Highlights: failed to sync collections metadata, see console for details.`,
+			);
+			return false;
 		}
 	}
 
@@ -74,7 +108,7 @@ export default class RaindropSync {
 		return collectionFolder;
 	}
 
-	private async syncCollection(collection: SyncCollection, fullSync: boolean) {
+	private async syncCollection(collection: SyncCollection, fullSync: boolean): Promise<boolean> {
 		const syncFolder = this.getSyncFolder(collection);
 		const lastSyncDate = fullSync ? undefined : collection.lastSyncDate;
 
@@ -94,11 +128,10 @@ export default class RaindropSync {
 				await this.syncBookmarks(bookmarks, syncFolder);
 			}
 			await this.syncCollectionComplete(collection);
+			return true;
 		} catch (e) {
 			console.error(e);
-			new Notice(
-				`Sync Raindrop collection ${collection.title} failed: ${e instanceof Error ? e.message : "Unknown error"}`,
-			);
+			return false;
 		}
 	}
 

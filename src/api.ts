@@ -142,8 +142,10 @@ export class RaindropAPI {
 	}
 
 	async getCollections(enableCollectionGroup: boolean): Promise<RaindropCollection[]> {
-		const rootCollectionPromise = this.get(`${BASEURL}/collections`, {});
-		const nestedCollectionPromise = this.get(`${BASEURL}/collections/childrens`, {});
+		const [rawRootCollections, rawNestedCollections] = await Promise.all([
+			this.get(`${BASEURL}/collections`, {}),
+			this.get(`${BASEURL}/collections/childrens`, {}),
+		]);
 
 		const collections: RaindropCollection[] = [
 			{ id: -1, title: "Unsorted" },
@@ -162,7 +164,7 @@ export class RaindropAPI {
 		}
 
 		const rootCollectionMap: { [id: number]: string } = {};
-		const rootCollections = ZRootCollection.parse(await rootCollectionPromise);
+		const rootCollections = ZRootCollection.parse(rawRootCollections);
 		rootCollections.items.forEach((collection) => {
 			const id = collection._id;
 			let title = collection.title;
@@ -177,7 +179,7 @@ export class RaindropAPI {
 		});
 
 		const nestedCollectionMap: { [id: number]: NestedRaindropCollection } = {};
-		const nestedCollections = ZChildrentCollection.parse(await nestedCollectionPromise);
+		const nestedCollections = ZChildrentCollection.parse(rawNestedCollections);
 		nestedCollections.items.forEach((collection) => {
 			const id = collection._id;
 			nestedCollectionMap[id] = {

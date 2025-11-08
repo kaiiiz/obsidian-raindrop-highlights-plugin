@@ -108,10 +108,7 @@ export default class RaindropPlugin extends Plugin {
 			callback: async () => {
 				const notice = new Notice("Loading collections...");
 
-				// update for new collections
-				const collectionGroup = this.settings.collectionGroups;
-				const allCollections = await this.api.getCollections(collectionGroup);
-				await this.updateCollectionSettings(allCollections);
+				await this.raindropSync.syncCollectionMeta();
 
 				notice.hide();
 

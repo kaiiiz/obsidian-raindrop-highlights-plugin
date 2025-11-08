@@ -11,17 +11,20 @@ import type RaindropPlugin from "./main";
 import CollectionsModal from "./modal/collections";
 import Renderer from "./renderer";
 import ApiTokenModal from "./modal/apiTokenModal";
+import RaindropSync from "./sync";
 
 export class RaindropSettingTab extends PluginSettingTab {
 	private plugin: RaindropPlugin;
 	private api: RaindropAPI;
 	private renderer: Renderer;
+	private raindropSync: RaindropSync;
 
 	constructor(app: App, plugin: RaindropPlugin, api: RaindropAPI) {
 		super(app, plugin);
 		this.plugin = plugin;
 		this.renderer = new Renderer(plugin);
 		this.api = api;
+		this.raindropSync = new RaindropSync(this.app, plugin, api);
 	}
 
 	display(): void {
@@ -232,10 +235,7 @@ export class RaindropSettingTab extends PluginSettingTab {
 					.onClick(async () => {
 						button.setButtonText("Loading collections...");
 
-						// update for new collections
-						const collectionGroup = this.plugin.settings.collectionGroups;
-						const allCollections = await this.api.getCollections(collectionGroup);
-						await this.plugin.updateCollectionSettings(allCollections);
+						await this.raindropSync.syncCollectionMeta();
 
 						new CollectionsModal(this.app, this.plugin);
 						this.display(); // rerender
