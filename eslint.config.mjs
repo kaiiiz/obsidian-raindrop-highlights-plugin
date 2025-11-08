@@ -49,6 +49,7 @@ export default defineConfig([
 
         rules: {
             "@typescript-eslint/no-floating-promises": ["error"],
+            "@typescript-eslint/no-unsafe-argument": ["error"],
             "@typescript-eslint/ban-ts-comment": "off",
             "no-prototype-builtins": "off",
             "@typescript-eslint/no-empty-function": "off",

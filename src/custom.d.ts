@@ -1,10 +1,10 @@
 
 declare module '*.html' {
-	const content: any;
+	const content: string;
 	export default content;
 }
 
 declare module '*.njk' {
-	const content: any;
+	const content: string;
 	export default content;
 }

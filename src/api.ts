@@ -4,16 +4,18 @@ import axiosRetry from "axios-retry";
 import type { RaindropBookmark, RaindropCollection, RaindropUser } from "./types";
 import TokenManager from "./tokenManager";
 import { Md5 } from "ts-md5";
-import * as z from "zod/mini";
+import z from "zod";
 
 const BASEURL = "https://api.raindrop.io/rest/v1";
 
+const ZOptEmptyString = z.string().optional().default("");
+
 const ZUser = z.object({
 	user: z.object({
-		fullName: z.string(),
+		fullName: ZOptEmptyString,
 		groups: z.array(z.object({
 			collections: z.array(z.number()),
-			title: z.string(),
+			title: ZOptEmptyString,
 		}))
 	})
 })
@@ -21,45 +23,45 @@ const ZUser = z.object({
 const ZRootCollection = z.object({
 	items: z.array(z.object({
 		_id: z.number(),
-		title: z.string(),
+		title: ZOptEmptyString,
 	}))
 });
 
 const ZChildrentCollection = z.object({
 	items: z.array(z.object({
 		_id: z.number(),
-		title: z.string(),
-		parent: z.optional(z.object({
+		title: ZOptEmptyString,
+		parent: z.object({
 			$id: z.number(),
-		}))
+		}).optional()
 	}))
 })
 
 const ZRaindrop = z.object({
 	_id: z.number(),
 	collectionId: z.number(),
-	cover: z.string(),
+	cover: ZOptEmptyString,
 	created: z.coerce.date(),
 	creatorRef: z.object({
 		_id: z.number(),
-		name: z.string(),
+		name: ZOptEmptyString,
 	}),
-	excerpt: z.string(),
+	excerpt: ZOptEmptyString,
 	highlights: z.array(z.object({
-		color: z.string(),
+		color: z.string().optional().default("yellow"),
 		created: z.coerce.date(),
 		lastUpdate: z.coerce.date(),
-		note: z.string(),
-		text: z.string(),
+		note: ZOptEmptyString,
+		text: ZOptEmptyString,
 		_id: z.string(),
 	})),
-	important: z.boolean(),
+	important: z.boolean().optional().default(false),
 	lastUpdate: z.coerce.date(),
-	link: z.string(),
-	note: z.string(),
+	link: ZOptEmptyString,
+	note: ZOptEmptyString,
 	tags: z.array(z.string()),
-	title: z.string(),
-	type: z.string(),
+	title: ZOptEmptyString,
+	type: ZOptEmptyString,
 })
 
 type TZRaindrop = z.infer<typeof ZRaindrop>;
@@ -206,7 +208,12 @@ export class RaindropAPI {
 				perpage: pageSize,
 				sort: "-created",
 			});
-			return ZRaindrops.parse(res);
+			try {
+				return ZRaindrops.parse(res);
+			} catch (e) {
+				console.error("Failed to parse raindrops page:", res);
+				throw e;
+			}
 		};
 
 		const pageSize = 50;

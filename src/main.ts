@@ -7,6 +7,7 @@ import { VERSION, DEFAULT_SETTINGS } from "./constants";
 import BreakingChangeModal from "./modal/breakingChange";
 import CollectionsModal from "./modal/collections";
 import semver from "semver";
+import z from "zod";
 
 export default class RaindropPlugin extends Plugin {
 	private raindropSync: RaindropSync;
@@ -80,10 +81,11 @@ export default class RaindropPlugin extends Plugin {
 				const file = this.app.workspace.getActiveFile();
 				if (file) {
 					const fmc = this.app.metadataCache.getFileCache(file)?.frontmatter;
-					if (fmc?.raindrop_id) {
-						const bookmark = await this.api.getRaindrop(fmc.raindrop_id);
+					try {
+						const raindropId = z.coerce.number().parse(fmc?.raindrop_id);
+						const bookmark = await this.api.getRaindrop(raindropId);
 						window.open(`https://app.raindrop.io/my/${bookmark.collectionId}/item/${bookmark.id}/edit`);
-					} else {
+					} catch {
 						new Notice("This is not a Raindrop bookmark file");
 					}
 				} else {
