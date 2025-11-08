@@ -130,7 +130,9 @@ export default class RaindropSync {
 
 			if (bookmark.id in bookmarkFilesMap) {
 				await this.updateFileContent(bookmarkFilesMap[bookmark.id], bookmark);
-				await this.updateFileName(bookmarkFilesMap[bookmark.id], bookmark, folderPath);
+				if (this.plugin.settings.preventMovingExistingFiles === false) {
+					await this.updateFileName(bookmarkFilesMap[bookmark.id], bookmark, folderPath);
+				}
 			} else {
 				const renderedFilename = this.renderer.renderFileName(bookmark, true);
 				const filePath = await this.buildNonDupFilePath(folderPath, renderedFilename);

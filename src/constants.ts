@@ -31,7 +31,7 @@ export const ZPluginSettings = z.object({
 	template: z.string().optional().default(DEFAULT_TEMPLATE),
 	metadataTemplate: z.string().optional().default(""),
 	filenameTemplate: z.string().optional().default("{{title}}"),
-export const DEFAULT_SETTINGS: RaindropPluginSettings = {
+	preventMovingExistingFiles: z.boolean().optional().default(true),
 	autoSyncInterval: z.number().optional().default(0),
 	autoescape: z.boolean().optional().default(true),
 });
@@ -53,6 +53,7 @@ export const DEFAULT_SETTINGS: ZPluginSettingsType = {
 	template: DEFAULT_TEMPLATE,
 	metadataTemplate: "",
 	filenameTemplate: "{{title}}",
+	preventMovingExistingFiles: true,
 	autoSyncInterval: 0,
 	autoescape: true,
 };

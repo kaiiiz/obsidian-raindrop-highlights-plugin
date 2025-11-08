@@ -45,6 +45,7 @@ export class RaindropSettingTab extends PluginSettingTab {
 		this.template();
 		this.metadataTemplate();
 		this.filenameTemplate();
+		this.preventMovingExistingFiles();
 		this.autoescape();
 		this.resetSyncHistory();
 	}
@@ -84,6 +85,20 @@ export class RaindropSettingTab extends PluginSettingTab {
 					.setValue(this.plugin.settings.onlyBookmarksWithHl)
 					.onChange(async (value) => {
 						this.plugin.settings.onlyBookmarksWithHl = value;
+						await this.plugin.saveSettings();
+					});
+			});
+	}
+
+	private preventMovingExistingFiles(): void {
+		new Setting(this.containerEl)
+			.setName("Prevent moving existing files on sync")
+			.setDesc("If enabled, only apply filename template to new bookmarks.")
+			.addToggle((toggle) => {
+				return toggle
+					.setValue(this.plugin.settings.preventMovingExistingFiles)
+					.onChange(async (value) => {
+						this.plugin.settings.preventMovingExistingFiles = value;
 						await this.plugin.saveSettings();
 					});
 			});
