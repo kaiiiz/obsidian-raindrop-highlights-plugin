@@ -50,7 +50,7 @@ This plugin doesn't use the OAuth mechanism. To get your API Token, follow the s
 
 This project is inspired by Hady Ozman's [Obsidian Kindle Plugin](https://github.com/hadynz/obsidian-kindle-plugin) and Wei Chen's [Obsidian Hypothesis Plugin](https://github.com/weichenw/obsidian-hypothesis-plugin). Lots of features are migrated from their works, big thanks for their efforts!
 
-## Limiations
+## Limitations
 
 - To simplify the implementation, this plugin only supports one-way sync. (i.e. from Raindrop to Obsdiain) If you move a file from one folder to another folder, the article's collection in Raindrop remains unchanged. The collection folder inside Obsidian is only used for file creation.
 - Raindrop API has [rate limiting](https://developer.raindrop.io/#rate-limiting), you can make up to 120 requests per minute per authenticated user. This plugin does its best to prevent unneeded requests, it only requests bookmarks updated after the last sync time. In addition, this plugin will wait and request the API again after the limit is reached.
