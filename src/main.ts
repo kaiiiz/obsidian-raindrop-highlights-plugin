@@ -194,7 +194,7 @@ export default class RaindropPlugin extends Plugin {
 	}
 
 	async autoCheckNestedCollections() {
-		if (!this.settings.autoCheckNestedCollectionOnSync) {
+		if (!this.settings.autoCheckNestedCollectionsOnSync) {
 			return;
 		}
 
@@ -211,6 +211,15 @@ export default class RaindropPlugin extends Plugin {
 					break;
 				}
 			}
+		}
+
+		await this.saveSettings();
+	}
+
+	async setAllCollections(sync: boolean) {
+		for (const collection of Object.values(this.settings.syncCollections)) {
+			if (!collection) continue;
+			collection.sync = sync;
 		}
 
 		await this.saveSettings();
@@ -254,7 +263,11 @@ export default class RaindropPlugin extends Plugin {
 			}
 		}
 		this.settings.syncCollections = syncCollections;
-		await this.autoCheckNestedCollections();
+		if (this.settings.autoCheckAllCollectionsOnSync) {
+			await this.setAllCollections(true);
+		} else {
+			await this.autoCheckNestedCollections();
+		}
 		await this.saveSettings();
 	}
 

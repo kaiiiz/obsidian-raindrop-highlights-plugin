@@ -4,7 +4,6 @@ import type { SyncCollection } from "src/types";
 
 export default class CollectionsModal extends Modal {
 	private plugin: RaindropPlugin;
-	private toggleAllBtnDirection: boolean = true;
 
 	constructor(app: App, plugin: RaindropPlugin) {
 		super(app);
@@ -16,21 +15,19 @@ export default class CollectionsModal extends Modal {
 		this.open();
 	}
 
-	async toggleAllCollections() {
-		for (const collection of Object.values(this.plugin.settings.syncCollections)) {
-			if (!collection) continue;
-			collection.sync = this.toggleAllBtnDirection;
-		}
+	async toggleSyncAllCollections() {
+		const newValue = !this.plugin.settings.autoCheckAllCollectionsOnSync;
+		this.plugin.settings.autoCheckAllCollectionsOnSync = newValue;
 
-		this.toggleAllBtnDirection = !this.toggleAllBtnDirection;
+		await this.plugin.setAllCollections(newValue);
 		await this.plugin.saveSettings();
 
 		this.rerender();
 	}
 
 	async toggleAutoCheckNestedCollectionOnSync() {
-		const newValue = !this.plugin.settings.autoCheckNestedCollectionOnSync;
-		this.plugin.settings.autoCheckNestedCollectionOnSync = newValue;
+		const newValue = !this.plugin.settings.autoCheckNestedCollectionsOnSync;
+		this.plugin.settings.autoCheckNestedCollectionsOnSync = newValue;
 
 		await this.plugin.autoCheckNestedCollections();
 		await this.plugin.saveSettings();
@@ -45,7 +42,7 @@ export default class CollectionsModal extends Modal {
 		}
 		targetCollection.sync = !targetCollection.sync;
 
-		if (this.plugin.settings.autoCheckNestedCollectionOnSync) {
+		if (this.plugin.settings.autoCheckNestedCollectionsOnSync) {
 			await this.plugin.setAllChildCollections(targetCollection.id, targetCollection.sync);
 		}
 
@@ -64,25 +61,29 @@ export default class CollectionsModal extends Modal {
 		// render config
 		const toggleAllDiv = rootDiv.createDiv({ cls: "collection-entry" });
 		const toggleAllBtn = toggleAllDiv.createEl("input", {
-			type: "button",
-		});
-		toggleAllBtn.value = `${this.toggleAllBtnDirection ? "Check" : "Uncheck"} all collections`;
-		toggleAllBtn.onclick = async () => {
-			await this.toggleAllCollections();
-		};
-		toggleAllBtn.style.marginBottom = "8px";
-
-		const autoCheckNestedColDiv = rootDiv.createDiv({ cls: "collection-entry" });
-		const autoCheckNestedColInput = autoCheckNestedColDiv.createEl("input", {
 			type: "checkbox",
 		});
-		autoCheckNestedColInput.checked = this.plugin.settings.autoCheckNestedCollectionOnSync;
-		autoCheckNestedColInput.onclick = async () => {
-			await this.toggleAutoCheckNestedCollectionOnSync();
+		toggleAllBtn.checked = this.plugin.settings.autoCheckAllCollectionsOnSync;
+		toggleAllBtn.onclick = async () => {
+			await this.toggleSyncAllCollections();
 		};
-		autoCheckNestedColDiv.createEl("span", {
-			text: "Auto check new nested collections on sync",
+		toggleAllDiv.createEl("span", {
+			text: "Auto check all collections on sync",
 		});
+
+		if (!this.plugin.settings.autoCheckAllCollectionsOnSync) {
+			const autoCheckNestedColDiv = rootDiv.createDiv({ cls: "collection-entry" });
+			const autoCheckNestedColInput = autoCheckNestedColDiv.createEl("input", {
+				type: "checkbox",
+			});
+			autoCheckNestedColInput.checked = this.plugin.settings.autoCheckNestedCollectionsOnSync;
+			autoCheckNestedColInput.onclick = async () => {
+				await this.toggleAutoCheckNestedCollectionOnSync();
+			};
+			autoCheckNestedColDiv.createEl("span", {
+				text: "Auto check new nested collections on sync",
+			});
+		}
 
 		// render divider
 		const divider = rootDiv.createEl("hr");
@@ -104,6 +105,7 @@ export default class CollectionsModal extends Modal {
 			const checkbox = entryDiv.createEl("input", {
 				type: "checkbox",
 			});
+			checkbox.disabled = this.plugin.settings.autoCheckAllCollectionsOnSync;
 			checkbox.checked = collection.sync;
 			checkbox.onclick = async () => {
 				await this.toggleCollectionSync(id);

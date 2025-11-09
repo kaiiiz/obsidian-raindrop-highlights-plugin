@@ -8,7 +8,11 @@ import z from "zod";
 
 const BASEURL = "https://api.raindrop.io/rest/v1";
 
-const ZOptEmptyString = z.string().optional().default("");
+const ZOptEmptyString = z
+	.string()
+	.optional()
+	.nullable()
+	.transform((val) => val ?? "");
 
 const ZUser = z.object({
 	user: z.object({
@@ -31,7 +35,7 @@ const ZRootCollection = z.object({
 	),
 });
 
-const ZChildrentCollection = z.object({
+const ZChildrenCollection = z.object({
 	items: z.array(
 		z.object({
 			_id: z.number(),
@@ -40,7 +44,8 @@ const ZChildrentCollection = z.object({
 				.object({
 					$id: z.number(),
 				})
-				.optional(),
+				.optional()
+				.nullable(),
 		}),
 	),
 });
@@ -149,7 +154,6 @@ export class RaindropAPI {
 
 		const collections: RaindropCollection[] = [
 			{ id: -1, title: "Unsorted", parentId: null },
-			{ id: 0, title: "All bookmarks", parentId: null },
 			{ id: -99, title: "Trash", parentId: null },
 		];
 
@@ -180,7 +184,7 @@ export class RaindropAPI {
 		});
 
 		const nestedCollectionMap: { [id: number]: NestedRaindropCollection } = {};
-		const nestedCollections = ZChildrentCollection.parse(rawNestedCollections);
+		const nestedCollections = ZChildrenCollection.parse(rawNestedCollections);
 		nestedCollections.items.forEach((collection) => {
 			const id = collection._id;
 			nestedCollectionMap[id] = {

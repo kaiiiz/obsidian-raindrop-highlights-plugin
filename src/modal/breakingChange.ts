@@ -8,6 +8,14 @@ export default class BreadkingChangeModal extends Modal {
 		this.titleEl.innerText = "Raindrop Highlight - Breaking Changes";
 
 		let breakingChanges = "";
+		if (semver.lt(currentVersion, "0.0.23")) {
+			breakingChanges += `<p>v0.0.23</p>
+<ul>
+<li>"All bookmarks" in collection is now replaced by "Auto check all collections on sync" features.</li>
+</ul>
+`;
+		}
+
 		if (semver.lt(currentVersion, "0.0.21")) {
 			breakingChanges += `<p>v0.0.21</p>
 <ul>
