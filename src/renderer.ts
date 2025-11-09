@@ -99,7 +99,7 @@ ${fakeContent}`;
 	}
 
 	renderContent(bookmark: RaindropBookmark, newArticle: boolean) {
-		return this.renderTemplate(this.plugin.settings.template, bookmark, newArticle);
+		return this.renderTemplate(this.plugin.settings.contentTemplate, bookmark, newArticle);
 	}
 
 	renderFrontmatter(bookmark: RaindropBookmark, newArticle: boolean) {
@@ -191,7 +191,7 @@ ${fakeContent}`;
 
 	private createEnv(): nunjucks.Environment {
 		const env = new nunjucks.Environment(undefined, {
-			autoescape: this.plugin.settings.autoescape,
+			autoescape: this.plugin.settings.enableAutoEscape,
 		});
 		env.addFilter("date", (date: moment.Moment, format: string) => {
 			return date.format(format);

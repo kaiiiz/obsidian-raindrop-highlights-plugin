@@ -194,10 +194,11 @@ export class RaindropAPI {
 		nestedCollections.items.forEach((collection) => {
 			const id = collection._id;
 			let curParentId = collection.parent?.$id ?? 0;
+			let curParent: NestedRaindropCollection | undefined;
 			let title = collection.title;
-			while (curParentId && curParentId in nestedCollectionMap) {
-				title = `${nestedCollectionMap[curParentId].title}/${title}`;
-				curParentId = nestedCollectionMap[curParentId].parentId;
+			while (curParentId && (curParent = nestedCollectionMap[curParentId])) {
+				title = `${curParent.title}/${title}`;
+				curParentId = curParent.parentId;
 			}
 			if (curParentId && curParentId in rootCollectionMap) {
 				title = `${rootCollectionMap[curParentId]}/${title}`;
@@ -258,10 +259,12 @@ export class RaindropAPI {
 				});
 			};
 			const filteredBookmark = filterLastUpdated(bookmarks);
+			let lastBookmark: RaindropBookmark | undefined;
 			if (filteredBookmark.length > 0) {
 				yield filteredBookmark;
 				while (
-					bookmarks[bookmarks.length - 1].lastUpdate.getTime() >= lastSync.getTime() &&
+					(lastBookmark = filteredBookmark[filteredBookmark.length - 1]) &&
+					lastBookmark.lastUpdate.getTime() >= lastSync.getTime() &&
 					remainPages--
 				) {
 					notice?.setMessage(`Sync Raindrop pages: ${page + 1}/${totalPages}`);

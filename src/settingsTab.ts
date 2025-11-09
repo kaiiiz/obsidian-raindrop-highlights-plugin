@@ -12,26 +12,34 @@ import CollectionsModal from "./modal/collections";
 import Renderer from "./renderer";
 import ApiTokenModal from "./modal/apiTokenModal";
 import RaindropSync from "./sync";
+import type { RaindropPluginSettings } from "./settings";
 
 export class RaindropSettingTab extends PluginSettingTab {
 	private plugin: RaindropPlugin;
 	private api: RaindropAPI;
 	private renderer: Renderer;
 	private raindropSync: RaindropSync;
+	private settings: RaindropPluginSettings;
 
-	constructor(app: App, plugin: RaindropPlugin, api: RaindropAPI) {
+	constructor(
+		app: App,
+		plugin: RaindropPlugin,
+		api: RaindropAPI,
+		settings: RaindropPluginSettings,
+	) {
 		super(app, plugin);
 		this.plugin = plugin;
 		this.renderer = new Renderer(plugin);
 		this.api = api;
 		this.raindropSync = new RaindropSync(this.app, plugin, api);
+		this.settings = settings;
 	}
 
 	display(): void {
 		const { containerEl } = this;
 
 		containerEl.empty();
-		if (this.plugin.settings.isConnected) {
+		if (this.settings.isConnected) {
 			this.disconnect();
 		} else {
 			this.connect();
@@ -60,9 +68,8 @@ export class RaindropSettingTab extends PluginSettingTab {
 		new Setting(this.containerEl)
 			.setName("Enable ribbon icon in the sidebar (need reload)")
 			.addToggle((toggle) => {
-				return toggle.setValue(this.plugin.settings.ribbonIcon).onChange(async (value) => {
-					this.plugin.settings.ribbonIcon = value;
-					await this.plugin.saveSettings();
+				return toggle.setValue(this.settings.enableRibbonIcon).onChange(async (value) => {
+					await this.settings.setEnableRibbonIcon(value);
 				});
 			});
 	}
@@ -76,9 +83,8 @@ export class RaindropSettingTab extends PluginSettingTab {
 			.setName("Append Mode")
 			.setDesc(descFragment)
 			.addToggle((toggle) => {
-				return toggle.setValue(this.plugin.settings.appendMode).onChange(async (value) => {
-					this.plugin.settings.appendMode = value;
-					await this.plugin.saveSettings();
+				return toggle.setValue(this.settings.enableAppendMode).onChange(async (value) => {
+					await this.settings.setEnableAppendMode(value);
 				});
 			});
 	}
@@ -88,10 +94,9 @@ export class RaindropSettingTab extends PluginSettingTab {
 			.setName("Only sync bookmarks with highlights")
 			.addToggle((toggle) => {
 				return toggle
-					.setValue(this.plugin.settings.onlyBookmarksWithHl)
+					.setValue(this.settings.onlySyncBookmarksWithHl)
 					.onChange(async (value) => {
-						this.plugin.settings.onlyBookmarksWithHl = value;
-						await this.plugin.saveSettings();
+						await this.settings.setOnlySyncBookmarksWithHl(value);
 					});
 			});
 	}
@@ -102,10 +107,9 @@ export class RaindropSettingTab extends PluginSettingTab {
 			.setDesc("If enabled, existing files will not be moved during sync.")
 			.addToggle((toggle) => {
 				return toggle
-					.setValue(this.plugin.settings.preventMovingExistingFiles)
+					.setValue(this.settings.enablePreventMovingExistingFiles)
 					.onChange(async (value) => {
-						this.plugin.settings.preventMovingExistingFiles = value;
-						await this.plugin.saveSettings();
+						await this.settings.setEnablePreventMovingExistingFiles(value);
 					});
 			});
 	}
@@ -116,10 +120,9 @@ export class RaindropSettingTab extends PluginSettingTab {
 			.setDesc("Organize highlights into folders based on their collections")
 			.addToggle((toggle) => {
 				return toggle
-					.setValue(this.plugin.settings.collectionsFolders)
+					.setValue(this.settings.enableCollectionsFolders)
 					.onChange(async (value) => {
-						this.plugin.settings.collectionsFolders = value;
-						await this.plugin.saveSettings();
+						await this.settings.setEnableCollectionsFolders(value);
 					});
 			});
 	}
@@ -136,9 +139,7 @@ export class RaindropSettingTab extends PluginSettingTab {
 					if (this.api.tokenManager.get()) {
 						new Notice("Token saved");
 						const user = await this.api.getUser();
-						this.plugin.settings.isConnected = true;
-						this.plugin.settings.username = user.fullName;
-						await this.plugin.saveSettings();
+						await this.settings.setIsConnected(true, user.fullName);
 					}
 
 					this.display(); // rerender
@@ -148,7 +149,7 @@ export class RaindropSettingTab extends PluginSettingTab {
 
 	private disconnect() {
 		new Setting(this.containerEl)
-			.setName(`Connected to Raindrop.io as ${this.plugin.settings.username}`)
+			.setName(`Connected to Raindrop.io as ${this.settings.username}`)
 			.addButton((button) => {
 				return button
 					.setButtonText("Test API")
@@ -161,9 +162,7 @@ export class RaindropSettingTab extends PluginSettingTab {
 							console.error(e);
 							new Notice(`Test failed: ${e}`);
 							this.api.tokenManager.clear();
-							this.plugin.settings.isConnected = false;
-							this.plugin.settings.username = undefined;
-							await this.plugin.saveSettings();
+							await this.settings.setIsConnected(false, undefined);
 						}
 					});
 			})
@@ -176,9 +175,7 @@ export class RaindropSettingTab extends PluginSettingTab {
 
 						try {
 							this.api.tokenManager.clear();
-							this.plugin.settings.isConnected = false;
-							this.plugin.settings.username = undefined;
-							await this.plugin.saveSettings();
+							await this.settings.setIsConnected(false, undefined);
 						} catch (e) {
 							console.error(e);
 							new Notice(`Token removed failed: ${e}`);
@@ -200,12 +197,9 @@ export class RaindropSettingTab extends PluginSettingTab {
 				for (const folder of folders) {
 					dropdown.addOption(folder.path, folder.path);
 				}
-				return dropdown
-					.setValue(this.plugin.settings.highlightsFolder)
-					.onChange(async (value) => {
-						this.plugin.settings.highlightsFolder = value;
-						await this.plugin.saveSettings();
-					});
+				return dropdown.setValue(this.settings.highlightsFolder).onChange(async (value) => {
+					await this.settings.setHighlightsFolder(value);
+				});
 			});
 	}
 
@@ -219,10 +213,9 @@ export class RaindropSettingTab extends PluginSettingTab {
 			.setDesc(descFragment)
 			.addToggle((toggle) => {
 				return toggle
-					.setValue(this.plugin.settings.collectionGroups)
+					.setValue(this.settings.enableCollectionGroups)
 					.onChange(async (value) => {
-						this.plugin.settings.collectionGroups = value;
-						await this.plugin.saveSettings();
+						await this.settings.setEnableCollectionGroups(value);
 					});
 			});
 	}
@@ -233,7 +226,7 @@ export class RaindropSettingTab extends PluginSettingTab {
 			.setDesc("Manage collections to be synced")
 			.addButton((button) => {
 				return button
-					.setDisabled(!this.plugin.settings.isConnected)
+					.setDisabled(!this.settings.isConnected)
 					.setButtonText("Manage")
 					.setCta()
 					.onClick(async () => {
@@ -257,12 +250,11 @@ export class RaindropSettingTab extends PluginSettingTab {
 			.setDesc(templateDescFragment)
 			.setClass("raindrop-content-template")
 			.addTextArea((text) => {
-				text.setValue(this.plugin.settings.template).onChange(async (value) => {
+				text.setValue(this.settings.contentTemplate).onChange(async (value) => {
 					const isValid = this.renderer.validate(value);
 
 					if (isValid) {
-						this.plugin.settings.template = value;
-						await this.plugin.saveSettings();
+						await this.settings.setContentTemplate(value);
 					}
 
 					text.inputEl.style.border = isValid ? "" : "1px solid red";
@@ -282,12 +274,11 @@ export class RaindropSettingTab extends PluginSettingTab {
 			.setClass("raindrop-metadata-template")
 			.addTextArea((text) => {
 				text.setPlaceholder(DEFAULT_METADATA_TEMPLATE);
-				text.setValue(this.plugin.settings.metadataTemplate).onChange(async (value) => {
+				text.setValue(this.settings.metadataTemplate).onChange(async (value) => {
 					const isValid = this.renderer.validate(value, true);
 
 					if (isValid) {
-						this.plugin.settings.metadataTemplate = value;
-						await this.plugin.saveSettings();
+						await this.settings.setMetadataTemplate(value);
 					}
 
 					text.inputEl.style.border = isValid ? "" : "1px solid red";
@@ -306,12 +297,11 @@ export class RaindropSettingTab extends PluginSettingTab {
 			.setDesc(templateDescFragment)
 			.setClass("raindrop-filename-template")
 			.addTextArea((text) => {
-				text.setValue(this.plugin.settings.filenameTemplate).onChange(async (value) => {
+				text.setValue(this.settings.filenameTemplate).onChange(async (value) => {
 					const isValid = this.renderer.validate(value, false);
 
 					if (isValid) {
-						this.plugin.settings.filenameTemplate = value;
-						await this.plugin.saveSettings();
+						await this.settings.setFilenameTemplate(value);
 					}
 
 					text.inputEl.style.border = isValid ? "" : "1px solid red";
@@ -327,18 +317,10 @@ export class RaindropSettingTab extends PluginSettingTab {
 			.addButton((button) => {
 				return button
 					.setButtonText("Reset")
-					.setDisabled(!this.plugin.settings.isConnected)
+					.setDisabled(!this.settings.isConnected)
 					.setWarning()
 					.onClick(async () => {
-						for (const collection of Object.values(
-							this.plugin.settings.syncCollections,
-						)) {
-							if (collection === undefined) {
-								continue;
-							}
-							collection.lastSyncDate = undefined;
-						}
-						await this.plugin.saveSettings();
+						await this.settings.resetAllCollectionSyncHistory();
 						new Notice("Sync history reset successfully");
 					});
 			});
@@ -352,12 +334,11 @@ export class RaindropSettingTab extends PluginSettingTab {
 			)
 			.addText((text) => {
 				text.setPlaceholder(String(0))
-					.setValue(this.plugin.settings.autoSyncInterval.toString())
+					.setValue(this.settings.autoSyncInterval.toString())
 					.onChange(async (value) => {
 						if (!isNaN(Number(value))) {
 							const minutes = Number(value);
-							this.plugin.settings.autoSyncInterval = minutes;
-							await this.plugin.saveSettings();
+							await this.settings.setAutoSyncInterval(minutes);
 							console.info("Set raindrop.io autosync interval", minutes);
 							if (minutes > 0) {
 								this.plugin.clearAutoSync();
@@ -378,12 +359,9 @@ export class RaindropSettingTab extends PluginSettingTab {
 		new Setting(this.containerEl)
 			.setName("Show notifications while syncing")
 			.addToggle((toggle) => {
-				return toggle
-					.setValue(this.plugin.settings.autoSyncSuccessNotice)
-					.onChange(async (value) => {
-						this.plugin.settings.autoSyncSuccessNotice = value;
-						await this.plugin.saveSettings();
-					});
+				return toggle.setValue(this.settings.enableSyncNotices).onChange(async (value) => {
+					await this.settings.setEnableSyncNotices(value);
+				});
 			});
 	}
 
@@ -396,9 +374,8 @@ export class RaindropSettingTab extends PluginSettingTab {
 			.setName("Enable autoescaping for nunjucks")
 			.setDesc(templateDescFragment)
 			.addToggle((toggle) => {
-				return toggle.setValue(this.plugin.settings.autoescape).onChange(async (value) => {
-					this.plugin.settings.autoescape = value;
-					await this.plugin.saveSettings();
+				return toggle.setValue(this.settings.enableAutoEscape).onChange(async (value) => {
+					await this.settings.setEnableAutoEscape(value);
 				});
 			});
 	}

@@ -6,10 +6,10 @@ import truncate from "truncate-utf8-bytes";
 import type {
 	BookmarkFile,
 	BookmarkFileFrontMatter,
+	DeepReadonly,
 	RaindropBookmark,
 	SyncCollection,
 } from "./types";
-import { RaindropPluginSettings } from "./settings";
 
 interface SplitedMarkdown {
 	content: string;
@@ -21,14 +21,12 @@ export default class RaindropSync {
 	private plugin: RaindropPlugin;
 	private api: RaindropAPI;
 	private renderer: Renderer;
-	private pluginSettings: RaindropPluginSettings;
 
 	constructor(app: App, plugin: RaindropPlugin, api: RaindropAPI) {
 		this.app = app;
 		this.api = api;
 		this.plugin = plugin;
 		this.renderer = new Renderer(plugin);
-		this.pluginSettings = new RaindropPluginSettings(plugin);
 	}
 
 	async sync({ fullSync }: { fullSync: boolean }) {
@@ -38,8 +36,8 @@ export default class RaindropSync {
 			return;
 		}
 
-		for (const collection of Object.values(this.plugin.settings.syncCollections)) {
-			if (collection?.sync) {
+		for (const collection of this.plugin.settings.syncCollectionsList) {
+			if (collection.sync) {
 				try {
 					if ((await this.syncCollection(collection, fullSync)) === false) {
 						failedCollections.push(collection.title);
@@ -64,9 +62,9 @@ export default class RaindropSync {
 
 	async syncCollectionMeta(): Promise<boolean> {
 		try {
-			const enableCollectionGroup = this.plugin.settings.collectionGroups;
+			const enableCollectionGroup = this.plugin.settings.enableCollectionGroups;
 			const allCollections = await this.api.getCollections(enableCollectionGroup);
-			await this.pluginSettings.updateCollectionSettings(allCollections);
+			await this.plugin.settings.setSyncCollections(allCollections);
 			return true;
 		} catch (e) {
 			console.error(`Raindrop Highlights: failed to sync collections metadata`, e);
@@ -99,18 +97,21 @@ export default class RaindropSync {
 		new Notice(`Sync ${bookmark.title} completed`);
 	}
 
-	private getSyncFolder(collection: SyncCollection) {
+	private getSyncFolder(collection: DeepReadonly<SyncCollection>) {
 		const highlightsFolder = this.plugin.settings.highlightsFolder;
 		let collectionFolder = highlightsFolder;
-		if (this.plugin.settings.collectionsFolders) {
+		if (this.plugin.settings.enableCollectionsFolders) {
 			collectionFolder = `${highlightsFolder}/${collection["title"]}`;
 		}
 		return collectionFolder;
 	}
 
-	private async syncCollection(collection: SyncCollection, fullSync: boolean): Promise<boolean> {
+	private async syncCollection(
+		collection: DeepReadonly<SyncCollection>,
+		fullSync: boolean,
+	): Promise<boolean> {
 		let notice: Notice | undefined;
-		if (this.plugin.settings.autoSyncSuccessNotice) {
+		if (this.plugin.settings.enableSyncNotices) {
 			notice = new Notice(`Sync Raindrop collection: ${collection.title}`);
 		}
 		const syncFolder = this.getSyncFolder(collection);
@@ -132,7 +133,10 @@ export default class RaindropSync {
 			)) {
 				await this.syncBookmarks(bookmarks, syncFolder);
 			}
-			await this.syncCollectionComplete(collection);
+			await this.plugin.settings.updateCollectionLastSyncDate(
+				collection.id.toString(),
+				new Date(),
+			);
 			return true;
 		} catch (e) {
 			console.error(e);
@@ -143,7 +147,7 @@ export default class RaindropSync {
 	private async syncBookmarks(bookmarks: RaindropBookmark[], folderPath: string) {
 		if (bookmarks.length == 0) return;
 
-		if (this.plugin.settings.onlyBookmarksWithHl) {
+		if (this.plugin.settings.onlySyncBookmarksWithHl) {
 			const requireUpdate = bookmarks.some((bookmark) => {
 				return bookmark.highlights.length != 0;
 			});
@@ -162,14 +166,15 @@ export default class RaindropSync {
 		);
 
 		for (const bookmark of bookmarks) {
-			if (this.plugin.settings.onlyBookmarksWithHl && bookmark.highlights.length == 0) {
+			if (this.plugin.settings.onlySyncBookmarksWithHl && bookmark.highlights.length == 0) {
 				continue;
 			}
 
-			if (bookmark.id in bookmarkFilesMap) {
-				await this.updateFileContent(bookmarkFilesMap[bookmark.id], bookmark);
-				if (this.plugin.settings.preventMovingExistingFiles === false) {
-					await this.updateFileName(bookmarkFilesMap[bookmark.id], bookmark, folderPath);
+			const file = bookmarkFilesMap[bookmark.id];
+			if (file) {
+				await this.updateFileContent(file, bookmark);
+				if (this.plugin.settings.enablePreventMovingExistingFiles === false) {
+					await this.updateFileName(file, bookmark, folderPath);
 				}
 			} else {
 				const renderedFilename = this.renderer.renderFileName(bookmark, true);
@@ -202,11 +207,6 @@ export default class RaindropSync {
 		return filePath;
 	}
 
-	private async syncCollectionComplete(collection: SyncCollection) {
-		collection.lastSyncDate = new Date();
-		await this.plugin.saveSettings();
-	}
-
 	private async updateFileName(file: TFile, bookmark: RaindropBookmark, folderPath: string) {
 		const renderedFilename = this.renderer.renderFileName(bookmark, true);
 		let newFilePath = this.buildFilePath(folderPath, renderedFilename);
@@ -227,7 +227,7 @@ export default class RaindropSync {
 	}
 
 	private async updateFileContent(file: TFile, bookmark: RaindropBookmark) {
-		if (this.plugin.settings.appendMode) {
+		if (this.plugin.settings.enableAppendMode) {
 			await this.updateFileAppendMode(file, bookmark);
 		} else {
 			await this.updateFileOverwriteMode(file, bookmark);

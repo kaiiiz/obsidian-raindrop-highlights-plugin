@@ -90,15 +90,13 @@ export const ZPluginSettings = z.object({
 	syncCollections: z
 		.record(
 			z.string(),
-			z
-				.object({
-					id: z.number(),
-					title: z.string(),
-					sync: z.boolean(),
-					lastSyncDate: z.coerce.date().optional(),
-					parentId: z.number().optional(),
-				})
-				.optional(),
+			z.object({
+				id: z.number(),
+				title: z.string(),
+				sync: z.boolean(),
+				lastSyncDate: z.coerce.date().optional(),
+				parentId: z.number().optional(),
+			}),
 		)
 		.optional()
 		.default({}),
@@ -114,3 +112,7 @@ export type ZPluginSettingsType = z.infer<typeof ZPluginSettings>;
 
 export type SyncCollections = z.infer<typeof ZPluginSettings>["syncCollections"];
 export type SyncCollection = NonNullable<SyncCollections[string]>;
+
+export type DeepReadonly<T> = {
+	readonly [P in keyof T]: T[P] extends object ? DeepReadonly<T[P]> : T[P];
+};

@@ -1,31 +1,28 @@
 import { App, Notice, Plugin, type PluginManifest } from "obsidian";
 import { RaindropSettingTab } from "./settingsTab";
 import RaindropSync from "./sync";
-import { ZPluginSettings, type ZPluginSettingsType } from "./types";
 import { RaindropAPI } from "./api";
-import { DEFAULT_SETTINGS, VERSION } from "./constants";
-import BreakingChangeModal from "./modal/breakingChange";
 import CollectionsModal from "./modal/collections";
-import semver from "semver";
 import z from "zod";
+import { RaindropPluginSettings } from "./settings";
 
 export default class RaindropPlugin extends Plugin {
 	private raindropSync: RaindropSync;
-	public settings: ZPluginSettingsType;
-	public api: RaindropAPI;
 	private timeoutIDAutoSync?: number;
+	public api: RaindropAPI;
+	public settings: RaindropPluginSettings;
 
 	constructor(app: App, manifest: PluginManifest) {
 		super(app, manifest);
-		this.settings = DEFAULT_SETTINGS;
 		this.api = new RaindropAPI(this.app);
 		this.raindropSync = new RaindropSync(this.app, this, this.api);
+		this.settings = new RaindropPluginSettings(this.app, this);
 	}
 
 	async onload() {
-		await this.loadSettings();
+		await this.settings.load();
 
-		if (this.settings.ribbonIcon) {
+		if (this.settings.enableRibbonIcon) {
 			this.addRibbonIcon("cloud", "Sync Raindrop bookmarks from last sync time", async () => {
 				if (!this.settings.isConnected) {
 					new Notice("Please configure Raindrop API token in the plugin setting");
@@ -65,8 +62,8 @@ export default class RaindropPlugin extends Plugin {
 			name: "Show last sync time",
 			callback: async () => {
 				const messages = [];
-				for (const collection of Object.values(this.settings.syncCollections)) {
-					if (collection?.sync) {
+				for (const collection of this.settings.syncCollectionsList) {
+					if (collection.sync) {
 						messages.push(
 							`${collection.title}: ${collection.lastSyncDate?.toLocaleString()}`,
 						);
@@ -116,7 +113,7 @@ export default class RaindropPlugin extends Plugin {
 			},
 		});
 
-		this.addSettingTab(new RaindropSettingTab(this.app, this, this.api));
+		this.addSettingTab(new RaindropSettingTab(this.app, this, this.api, this.settings));
 
 		if (this.settings.autoSyncInterval) {
 			await this.startAutoSync();
@@ -125,45 +122,6 @@ export default class RaindropPlugin extends Plugin {
 
 	async onunload() {
 		this.clearAutoSync();
-	}
-
-	async migrateSettings() {
-		// do not use zod here for compatibility reasons
-		this.settings = Object.assign({}, DEFAULT_SETTINGS, await this.loadData());
-		if (semver.eq(this.settings.version, VERSION)) {
-			return;
-		}
-
-		// setting migration
-		if (semver.lt(this.settings.version, "0.0.18")) {
-			if ("dateTimeFormat" in this.settings) {
-				delete this.settings["dateTimeFormat"];
-			}
-		}
-
-		// version migration notice
-		new BreakingChangeModal(this.app, this.settings.version);
-
-		this.settings.version = VERSION;
-
-		await this.saveSettings();
-	}
-
-	async loadSettings() {
-		await this.migrateSettings();
-
-		const safedSettings = ZPluginSettings.safeParse(await this.loadData());
-		if (!safedSettings.success) {
-			new Notice("Raindrop Highlight: Settings are corrupted. Resetting to default.");
-			this.settings = DEFAULT_SETTINGS;
-			await this.saveSettings();
-		} else {
-			this.settings = safedSettings.data;
-		}
-	}
-
-	async saveSettings() {
-		await this.saveData(this.settings);
 	}
 
 	clearAutoSync() {

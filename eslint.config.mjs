@@ -49,6 +49,7 @@ export default defineConfig([
 			"@typescript-eslint/ban-ts-comment": "off",
 			"no-prototype-builtins": "off",
 			"@typescript-eslint/no-empty-function": "off",
+			"@typescript-eslint/no-unnecessary-condition": "error",
 		},
 	},
 ]);
