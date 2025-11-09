@@ -146,10 +146,10 @@ export default class RaindropPlugin extends Plugin {
 			}
 		}
 
-		this.settings.version = VERSION;
-
 		// version migration notice
 		new BreakingChangeModal(this.app, this.settings.version);
+
+		this.settings.version = VERSION;
 
 		await this.saveSettings();
 	}
