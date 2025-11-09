@@ -52,11 +52,15 @@ export default class RaindropSync {
 			}
 		}
 
-		if (failedCollections.length > 0) {
-			console.log(
-				`Raindrop Highlights: sync collection failed, failedCollections: ${failedCollections.join(", ")}`,
-			);
-			new Notice(`Raindrop Highlights: Sync collection failed, see console for details.`);
+		if (this.plugin.settings.enableSyncNotices) {
+			if (failedCollections.length > 0) {
+				console.log(
+					`Raindrop Highlights: sync failed, failedCollections: ${failedCollections.join(", ")}`,
+				);
+				new Notice(`Raindrop Highlights: Sync failed, see console for details.`);
+			} else {
+				new Notice(`Raindrop Highlights: Sync completed`);
+			}
 		}
 	}
 
