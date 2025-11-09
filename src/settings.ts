@@ -36,20 +36,23 @@ export class RaindropSettingTab extends PluginSettingTab {
 		} else {
 			this.connect();
 		}
+		new Setting(containerEl).setName("Plugin").setHeading();
 		this.ribbonIcon();
-		this.onlyBookmarksWithHl();
-		this.appendMode();
-		this.collectionsFolders();
-		this.highlightsFolder();
-		this.groups();
-		this.collections();
 		this.autoSyncInterval();
 		this.autoSyncSuccessNotice();
+		new Setting(containerEl).setName("Rules & Templates").setHeading();
+		this.collections();
+		this.onlyBookmarksWithHl();
+		this.appendMode();
 		this.template();
 		this.metadataTemplate();
-		this.filenameTemplate();
+		this.highlightsFolder();
+		this.collectionsFolders();
+		this.collectionGroups();
 		this.preventMovingExistingFiles();
+		this.filenameTemplate();
 		this.autoescape();
+		new Setting(containerEl).setName("Maintenance").setHeading();
 		this.resetSyncHistory();
 	}
 
@@ -95,8 +98,8 @@ export class RaindropSettingTab extends PluginSettingTab {
 
 	private preventMovingExistingFiles(): void {
 		new Setting(this.containerEl)
-			.setName("Prevent moving existing files on sync")
-			.setDesc("If enabled, only apply filename template to new bookmarks.")
+			.setName("Folder location: Prevent moving existing files on sync")
+			.setDesc("If enabled, existing files will not be moved during sync.")
 			.addToggle((toggle) => {
 				return toggle
 					.setValue(this.plugin.settings.preventMovingExistingFiles)
@@ -109,7 +112,8 @@ export class RaindropSettingTab extends PluginSettingTab {
 
 	private collectionsFolders(): void {
 		new Setting(this.containerEl)
-			.setName("Store the articles in collections folders")
+			.setName("Folder location: Collections folders")
+			.setDesc("Organize highlights into folders based on their collections")
 			.addToggle((toggle) => {
 				return toggle
 					.setValue(this.plugin.settings.collectionsFolders)
@@ -189,8 +193,8 @@ export class RaindropSettingTab extends PluginSettingTab {
 
 	private highlightsFolder(): void {
 		new Setting(this.containerEl)
-			.setName("Highlights folder location")
-			.setDesc("Vault folder to use for storing Raindrop.io highlights")
+			.setName("Folder location")
+			.setDesc("Vault folder to store highlights")
 			.addDropdown((dropdown) => {
 				const folders = this.app.vault.getAllFolders();
 				for (const folder of folders) {
@@ -205,13 +209,13 @@ export class RaindropSettingTab extends PluginSettingTab {
 			});
 	}
 
-	private groups(): void {
+	private collectionGroups(): void {
 		const descFragment = document
 			.createRange()
 			.createContextualFragment(collectionGroupsInstructions);
 
 		new Setting(this.containerEl)
-			.setName("Collection groups")
+			.setName("Folder location: Collection groups")
 			.setDesc(descFragment)
 			.addToggle((toggle) => {
 				return toggle
@@ -318,7 +322,7 @@ export class RaindropSettingTab extends PluginSettingTab {
 
 	private resetSyncHistory(): void {
 		new Setting(this.containerEl)
-			.setName("Reset the last sync time for each collection")
+			.setName("Reset last sync time for all collections")
 			.setDesc("This is useful if you want to resync all bookmarks.")
 			.addButton((button) => {
 				return button
