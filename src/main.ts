@@ -1,9 +1,14 @@
 import { App, Notice, Plugin, type PluginManifest } from "obsidian";
 import { RaindropSettingTab } from "./settings";
 import RaindropSync from "./sync";
-import type { RaindropCollection, SyncCollectionSettings } from "./types";
+import {
+	ZPluginSettings,
+	type RaindropCollection,
+	type SyncCollections,
+	type ZPluginSettingsType,
+} from "./types";
 import { RaindropAPI } from "./api";
-import { DEFAULT_SETTINGS, VERSION, ZPluginSettings, type ZPluginSettingsType } from "./constants";
+import { DEFAULT_SETTINGS, VERSION } from "./constants";
 import BreakingChangeModal from "./modal/breakingChange";
 import CollectionsModal from "./modal/collections";
 import semver from "semver";
@@ -127,17 +132,12 @@ export default class RaindropPlugin extends Plugin {
 		this.clearAutoSync();
 	}
 
-	async loadSettings() {
-		const safedSettings = ZPluginSettings.safeParse(await this.loadData());
-		if (!safedSettings.success) {
-			new Notice("Raindrop Highlight: Settings are corrupted. Resetting to default.");
-			this.settings = DEFAULT_SETTINGS;
-		} else {
-			this.settings = safedSettings.data;
+	async migrateSettings() {
+		// do not use zod here for compatibility reasons
+		this.settings = Object.assign({}, DEFAULT_SETTINGS, await this.loadData());
+		if (semver.eq(this.settings.version, VERSION)) {
+			return;
 		}
-
-		// version migration notice
-		new BreakingChangeModal(this.app, this.settings.version);
 
 		// setting migration
 		if (semver.lt(this.settings.version, "0.0.18")) {
@@ -147,7 +147,24 @@ export default class RaindropPlugin extends Plugin {
 		}
 
 		this.settings.version = VERSION;
+
+		// version migration notice
+		new BreakingChangeModal(this.app, this.settings.version);
+
 		await this.saveSettings();
+	}
+
+	async loadSettings() {
+		await this.migrateSettings();
+
+		const safedSettings = ZPluginSettings.safeParse(await this.loadData());
+		if (!safedSettings.success) {
+			new Notice("Raindrop Highlight: Settings are corrupted. Resetting to default.");
+			this.settings = DEFAULT_SETTINGS;
+			await this.saveSettings();
+		} else {
+			this.settings = safedSettings.data;
+		}
 	}
 
 	async saveSettings() {

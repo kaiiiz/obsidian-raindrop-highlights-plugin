@@ -1,4 +1,8 @@
 import type { TFile } from "obsidian";
+import z from "zod";
+import { VERSION } from "./constants";
+import DEFAULT_TEMPLATE from "./assets/defaultTemplate.njk";
+import DEFAULT_FILENAME_TEMPLATE from "./assets/defaultFilenameTemplate.njk";
 
 export interface RaindropUser {
 	// Remote state
@@ -69,14 +73,41 @@ export interface BookmarkFileFrontMatter {
 	[key: string]: unknown;
 }
 
-// ----------
+export const ZPluginSettings = z.object({
+	version: z.string().optional().default(VERSION),
+	username: z.string().optional(),
+	isConnected: z.boolean().optional().default(false),
+	ribbonIcon: z.boolean().optional().default(true),
+	appendMode: z.boolean().optional().default(true),
+	collectionsFolders: z.boolean().optional().default(true),
+	onlyBookmarksWithHl: z.boolean().optional().default(false),
+	highlightsFolder: z.string().optional().default("/"),
+	collectionGroups: z.boolean().optional().default(false),
+	autoSyncSuccessNotice: z.boolean().optional().default(true),
+	autoSyncNestedCollection: z.boolean().optional().default(false),
+	syncCollections: z
+		.record(
+			z.string(),
+			z
+				.object({
+					id: z.number(),
+					title: z.string(),
+					sync: z.boolean(),
+					lastSyncDate: z.coerce.date().optional(),
+				})
+				.optional(),
+		)
+		.optional()
+		.default({}),
+	template: z.string().optional().default(DEFAULT_TEMPLATE),
+	metadataTemplate: z.string().optional().default(""),
+	filenameTemplate: z.string().optional().default(DEFAULT_FILENAME_TEMPLATE),
+	preventMovingExistingFiles: z.boolean().optional().default(true),
+	autoSyncInterval: z.number().optional().default(0),
+	autoescape: z.boolean().optional().default(true),
+});
 
-export interface SyncCollection {
-	// Local state
-	id: number;
-	title: string;
-	sync: boolean;
-	lastSyncDate?: Date;
-}
+export type ZPluginSettingsType = z.infer<typeof ZPluginSettings>;
 
-export type SyncCollectionSettings = Record<string, SyncCollection>;
+export type SyncCollections = z.infer<typeof ZPluginSettings>["syncCollections"];
+export type SyncCollection = NonNullable<SyncCollections[string]>;
