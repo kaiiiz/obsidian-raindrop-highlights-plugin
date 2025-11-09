@@ -211,6 +211,7 @@ export class RaindropAPI {
 	}
 
 	async *getRaindropsAfter(
+		collectionTitle: string,
 		collectionId: number,
 		showNotice: boolean,
 		lastSync?: Date,
@@ -246,7 +247,9 @@ export class RaindropAPI {
 			if (bookmarks.length > 0) {
 				yield bookmarks;
 				while (remainPages--) {
-					notice?.setMessage(`Sync Raindrop pages: ${page + 1}/${totalPages}`);
+					notice?.setMessage(
+						`Sync "${collectionTitle}", pages: ${page + 1}/${totalPages}`,
+					);
 					const res = await getPage(page++);
 					yield this.parseRaindrops(res.items);
 				}

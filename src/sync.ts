@@ -121,6 +121,7 @@ export default class RaindropSync {
 				);
 			}
 			for await (const bookmarks of this.api.getRaindropsAfter(
+				collection.title,
 				collection.id,
 				this.plugin.settings.autoSyncSuccessNotice,
 				lastSyncDate,
