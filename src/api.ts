@@ -148,9 +148,9 @@ export class RaindropAPI {
 		]);
 
 		const collections: RaindropCollection[] = [
-			{ id: -1, title: "Unsorted" },
-			{ id: 0, title: "All bookmarks" },
-			{ id: -99, title: "Trash" },
+			{ id: -1, title: "Unsorted", parentId: null },
+			{ id: 0, title: "All bookmarks", parentId: null },
+			{ id: -99, title: "Trash", parentId: null },
 		];
 
 		const collectionGroupMap: { [id: number]: string } = {};
@@ -175,6 +175,7 @@ export class RaindropAPI {
 			collections.push({
 				title: title,
 				id: id,
+				parentId: null,
 			});
 		});
 
@@ -190,18 +191,19 @@ export class RaindropAPI {
 
 		nestedCollections.items.forEach((collection) => {
 			const id = collection._id;
-			let parentId = collection.parent?.$id ?? 0;
+			let curParentId = collection.parent?.$id ?? 0;
 			let title = collection.title;
-			while (parentId && parentId in nestedCollectionMap) {
-				title = `${nestedCollectionMap[parentId].title}/${title}`;
-				parentId = nestedCollectionMap[parentId].parentId;
+			while (curParentId && curParentId in nestedCollectionMap) {
+				title = `${nestedCollectionMap[curParentId].title}/${title}`;
+				curParentId = nestedCollectionMap[curParentId].parentId;
 			}
-			if (parentId && parentId in rootCollectionMap) {
-				title = `${rootCollectionMap[parentId]}/${title}`;
+			if (curParentId && curParentId in rootCollectionMap) {
+				title = `${rootCollectionMap[curParentId]}/${title}`;
 			}
 			collections.push({
 				title: title,
 				id: id,
+				parentId: collection.parent?.$id ?? null,
 			});
 		});
 

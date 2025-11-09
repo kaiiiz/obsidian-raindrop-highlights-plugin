@@ -15,6 +15,7 @@ export const DEFAULT_SETTINGS: ZPluginSettingsType = {
 	highlightsFolder: "/",
 	collectionGroups: false,
 	autoSyncSuccessNotice: true,
+	autoCheckNestedCollectionOnSync: false,
 	syncCollections: {},
 	template: DEFAULT_TEMPLATE,
 	metadataTemplate: "",

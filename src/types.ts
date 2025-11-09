@@ -17,6 +17,7 @@ export interface RaindropCollection {
 	// Remote state
 	title: string;
 	id: number;
+	parentId: number | null;
 }
 
 export interface RaindropCollectionGroup {
@@ -84,7 +85,7 @@ export const ZPluginSettings = z.object({
 	highlightsFolder: z.string().optional().default("/"),
 	collectionGroups: z.boolean().optional().default(false),
 	autoSyncSuccessNotice: z.boolean().optional().default(true),
-	autoSyncNestedCollection: z.boolean().optional().default(false),
+	autoCheckNestedCollectionOnSync: z.boolean().optional().default(false),
 	syncCollections: z
 		.record(
 			z.string(),
@@ -94,6 +95,7 @@ export const ZPluginSettings = z.object({
 					title: z.string(),
 					sync: z.boolean(),
 					lastSyncDate: z.coerce.date().optional(),
+					parentId: z.number().optional(),
 				})
 				.optional(),
 		)
