@@ -217,14 +217,9 @@ export class RaindropAPI {
 	async *getRaindropsAfter(
 		collectionTitle: string,
 		collectionId: number,
-		showNotice: boolean,
+		notice?: Notice,
 		lastSync?: Date,
 	): AsyncGenerator<RaindropBookmark[]> {
-		let notice;
-		if (showNotice) {
-			notice = new Notice("Fetch Raindrops highlights", 0);
-		}
-
 		const pageSize = 50;
 		const getPage = async (page: number) => {
 			const res = await this.get(`${BASEURL}/raindrops/${collectionId}`, {

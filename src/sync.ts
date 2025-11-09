@@ -97,9 +97,6 @@ export default class RaindropSync {
 	}
 
 	private getSyncFolder(collection: SyncCollection) {
-		if (this.plugin.settings.autoSyncSuccessNotice) {
-			new Notice(`Sync Raindrop collection: ${collection.title}`);
-		}
 		const highlightsFolder = this.plugin.settings.highlightsFolder;
 		let collectionFolder = highlightsFolder;
 		if (this.plugin.settings.collectionsFolders) {
@@ -109,6 +106,10 @@ export default class RaindropSync {
 	}
 
 	private async syncCollection(collection: SyncCollection, fullSync: boolean): Promise<boolean> {
+		let notice: Notice | undefined;
+		if (this.plugin.settings.autoSyncSuccessNotice) {
+			notice = new Notice(`Sync Raindrop collection: ${collection.title}`);
+		}
 		const syncFolder = this.getSyncFolder(collection);
 		const lastSyncDate = fullSync ? undefined : collection.lastSyncDate;
 
@@ -123,7 +124,7 @@ export default class RaindropSync {
 			for await (const bookmarks of this.api.getRaindropsAfter(
 				collection.title,
 				collection.id,
-				this.plugin.settings.autoSyncSuccessNotice,
+				notice,
 				lastSyncDate,
 			)) {
 				await this.syncBookmarks(bookmarks, syncFolder);

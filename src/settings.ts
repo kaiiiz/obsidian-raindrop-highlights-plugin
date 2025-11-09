@@ -376,7 +376,7 @@ export class RaindropSettingTab extends PluginSettingTab {
 
 	private autoSyncSuccessNotice(): void {
 		new Setting(this.containerEl)
-			.setName("Display a notification when a collection is synced")
+			.setName("Show notifications while syncing")
 			.addToggle((toggle) => {
 				return toggle
 					.setValue(this.plugin.settings.autoSyncSuccessNotice)
