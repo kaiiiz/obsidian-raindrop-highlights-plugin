@@ -1,6 +1,6 @@
 import DEFAULT_TEMPLATE from "./assets/defaultTemplate.njk";
 import DEFAULT_FILENAME_TEMPLATE from "./assets/defaultFilenameTemplate.njk";
-import type { ZPluginSettingsType } from "./types";
+import type { RaindropCollection, ZPluginSettingsType } from "./types";
 
 export const VERSION = "0.0.23";
 
@@ -15,8 +15,8 @@ export const DEFAULT_SETTINGS: ZPluginSettingsType = {
 	highlightsFolder: "/",
 	collectionGroups: false,
 	autoSyncSuccessNotice: true,
-	autoCheckAllCollectionsOnSync: false,
-	autoCheckNestedCollectionsOnSync: false,
+	autoSyncAllCollections: false,
+	autoSyncNewNestedCollections: false,
 	syncCollections: {},
 	template: DEFAULT_TEMPLATE,
 	metadataTemplate: "",
@@ -25,3 +25,9 @@ export const DEFAULT_SETTINGS: ZPluginSettingsType = {
 	autoSyncInterval: 0,
 	autoescape: true,
 };
+
+export const SYSTEM_COLLECTIONS: RaindropCollection[] = [
+	{ id: 0, title: "All bookmarks", parentId: null },
+	{ id: -1, title: "Unsorted", parentId: null },
+	{ id: -99, title: "Trash", parentId: null },
+];

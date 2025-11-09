@@ -9,6 +9,7 @@ import type {
 	RaindropBookmark,
 	SyncCollection,
 } from "./types";
+import { RaindropPluginSettings } from "./settings";
 
 interface SplitedMarkdown {
 	content: string;
@@ -20,12 +21,14 @@ export default class RaindropSync {
 	private plugin: RaindropPlugin;
 	private api: RaindropAPI;
 	private renderer: Renderer;
+	private pluginSettings: RaindropPluginSettings;
 
 	constructor(app: App, plugin: RaindropPlugin, api: RaindropAPI) {
 		this.app = app;
 		this.api = api;
 		this.plugin = plugin;
 		this.renderer = new Renderer(plugin);
+		this.pluginSettings = new RaindropPluginSettings(plugin);
 	}
 
 	async sync({ fullSync }: { fullSync: boolean }) {
@@ -63,7 +66,7 @@ export default class RaindropSync {
 		try {
 			const enableCollectionGroup = this.plugin.settings.collectionGroups;
 			const allCollections = await this.api.getCollections(enableCollectionGroup);
-			await this.plugin.updateCollectionSettings(allCollections);
+			await this.pluginSettings.updateCollectionSettings(allCollections);
 			return true;
 		} catch (e) {
 			console.error(`Raindrop Highlights: failed to sync collections metadata`, e);

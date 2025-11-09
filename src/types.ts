@@ -85,8 +85,8 @@ export const ZPluginSettings = z.object({
 	highlightsFolder: z.string().optional().default("/"),
 	collectionGroups: z.boolean().optional().default(false),
 	autoSyncSuccessNotice: z.boolean().optional().default(true),
-	autoCheckAllCollectionsOnSync: z.boolean().optional().default(true),
-	autoCheckNestedCollectionsOnSync: z.boolean().optional().default(false),
+	autoSyncAllCollections: z.boolean().optional().default(true),
+	autoSyncNewNestedCollections: z.boolean().optional().default(false),
 	syncCollections: z
 		.record(
 			z.string(),

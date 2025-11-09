@@ -5,6 +5,7 @@ import type { RaindropBookmark, RaindropCollection, RaindropUser } from "./types
 import TokenManager from "./tokenManager";
 import { Md5 } from "ts-md5";
 import z from "zod";
+import { SYSTEM_COLLECTIONS } from "./constants";
 
 const BASEURL = "https://api.raindrop.io/rest/v1";
 
@@ -152,10 +153,7 @@ export class RaindropAPI {
 			this.get(`${BASEURL}/collections/childrens`, {}),
 		]);
 
-		const collections: RaindropCollection[] = [
-			{ id: -1, title: "Unsorted", parentId: null },
-			{ id: -99, title: "Trash", parentId: null },
-		];
+		const collections: RaindropCollection[] = [...SYSTEM_COLLECTIONS];
 
 		const collectionGroupMap: { [id: number]: string } = {};
 		if (enableCollectionGroup) {

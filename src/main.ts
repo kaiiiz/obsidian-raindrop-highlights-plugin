@@ -1,12 +1,7 @@
 import { App, Notice, Plugin, type PluginManifest } from "obsidian";
-import { RaindropSettingTab } from "./settings";
+import { RaindropSettingTab } from "./settingsTab";
 import RaindropSync from "./sync";
-import {
-	ZPluginSettings,
-	type RaindropCollection,
-	type SyncCollections,
-	type ZPluginSettingsType,
-} from "./types";
+import { ZPluginSettings, type ZPluginSettingsType } from "./types";
 import { RaindropAPI } from "./api";
 import { DEFAULT_SETTINGS, VERSION } from "./constants";
 import BreakingChangeModal from "./modal/breakingChange";
@@ -169,106 +164,6 @@ export default class RaindropPlugin extends Plugin {
 
 	async saveSettings() {
 		await this.saveData(this.settings);
-	}
-
-	private flattenCollectionChain() {
-		// key: collection id, value: parent category chain
-		const collectionChainMap = new Map<number, number[]>();
-		// key: collection id, value: parent category id
-		const parentMap = new Map<number, number | undefined>();
-		for (const collection of Object.values(this.settings.syncCollections)) {
-			if (!collection) continue;
-			parentMap.set(collection.id, collection.parentId);
-		}
-		for (const collection of Object.values(this.settings.syncCollections)) {
-			if (!collection) continue;
-			const collectionChain: number[] = [];
-			let curParentId = collection.parentId;
-			while (curParentId !== undefined) {
-				collectionChain.push(curParentId);
-				curParentId = parentMap.get(curParentId);
-			}
-			collectionChainMap.set(collection.id, collectionChain);
-		}
-		return collectionChainMap;
-	}
-
-	async autoCheckNestedCollections() {
-		if (!this.settings.autoCheckNestedCollectionsOnSync) {
-			return;
-		}
-
-		const collectionChainMap = this.flattenCollectionChain();
-
-		for (const [collectionId, parentIds] of collectionChainMap.entries()) {
-			const targetCollection = this.settings.syncCollections[collectionId.toString()];
-			if (!targetCollection) continue;
-			// check this collection if any of its parent is checked
-			for (const parentId of parentIds) {
-				const parentCollection = this.settings.syncCollections[parentId.toString()];
-				if (parentCollection?.sync) {
-					targetCollection.sync = true;
-					break;
-				}
-			}
-		}
-
-		await this.saveSettings();
-	}
-
-	async setAllCollections(sync: boolean) {
-		for (const collection of Object.values(this.settings.syncCollections)) {
-			if (!collection) continue;
-			collection.sync = sync;
-		}
-
-		await this.saveSettings();
-	}
-
-	async setAllChildCollections(categoryId: number, sync: boolean) {
-		const collectionChainMap = this.flattenCollectionChain();
-
-		for (const [collectionId, parentIds] of collectionChainMap.entries()) {
-			const targetCollection = this.settings.syncCollections[collectionId.toString()];
-			if (!targetCollection) continue;
-			// check this collection if its parent chain includes the given categoryId
-			if (parentIds.includes(categoryId)) {
-				targetCollection.sync = sync;
-			}
-		}
-
-		await this.saveSettings();
-	}
-
-	async updateCollectionSettings(collections: RaindropCollection[]) {
-		const syncCollections: SyncCollections = {};
-		for (const collection of collections) {
-			const { id, title } = collection;
-			const collectionKey = id.toString();
-			const targetCollection = this.settings.syncCollections[collectionKey];
-			const parentId = collection.parentId ? collection.parentId : undefined;
-
-			if (targetCollection === undefined) {
-				syncCollections[collectionKey] = {
-					id: id,
-					title: title,
-					sync: false,
-					lastSyncDate: undefined,
-					parentId,
-				};
-			} else {
-				syncCollections[collectionKey] = targetCollection;
-				syncCollections[collectionKey].title = title;
-				syncCollections[collectionKey].parentId = parentId;
-			}
-		}
-		this.settings.syncCollections = syncCollections;
-		if (this.settings.autoCheckAllCollectionsOnSync) {
-			await this.setAllCollections(true);
-		} else {
-			await this.autoCheckNestedCollections();
-		}
-		await this.saveSettings();
 	}
 
 	clearAutoSync() {
