@@ -31,18 +31,18 @@ export default class RaindropPlugin extends Plugin {
 		await this.loadSettings();
 
 		if (this.settings.ribbonIcon) {
-			this.addRibbonIcon("cloud", "Sync your Raindrop bookmarks", async () => {
+			this.addRibbonIcon("cloud", "Sync Raindrop bookmarks from last sync time", async () => {
 				if (!this.settings.isConnected) {
 					new Notice("Please configure Raindrop API token in the plugin setting");
 				} else {
-					await this.raindropSync.sync({ fullSync: true });
+					await this.raindropSync.sync({ fullSync: false });
 				}
 			});
 		}
 
 		this.addCommand({
 			id: "raindrop-sync-new",
-			name: "Sync newly created bookmarks (sync from last sync time)",
+			name: "Sync bookmarks from last sync time",
 			callback: async () => {
 				await this.raindropSync.sync({ fullSync: false });
 			},

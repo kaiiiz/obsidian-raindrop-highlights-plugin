@@ -226,7 +226,7 @@ export class RaindropAPI {
 			const res = await this.get(`${BASEURL}/raindrops/${collectionId}`, {
 				page: page,
 				perpage: pageSize,
-				sort: "-created",
+				sort: "-lastUpdate",
 			});
 			try {
 				return ZRaindrops.parse(res);
@@ -255,21 +255,21 @@ export class RaindropAPI {
 				}
 			}
 		} else {
-			const filterCreated = (bookmarks: RaindropBookmark[]) => {
+			const filterLastUpdated = (bookmarks: RaindropBookmark[]) => {
 				return bookmarks.filter((bookmark) => {
-					return bookmark.created.getTime() >= lastSync.getTime();
+					return bookmark.lastUpdate.getTime() >= lastSync.getTime();
 				});
 			};
-			const filteredBookmark = filterCreated(bookmarks);
+			const filteredBookmark = filterLastUpdated(bookmarks);
 			if (filteredBookmark.length > 0) {
 				yield filteredBookmark;
 				while (
-					bookmarks[bookmarks.length - 1].created.getTime() >= lastSync.getTime() &&
+					bookmarks[bookmarks.length - 1].lastUpdate.getTime() >= lastSync.getTime() &&
 					remainPages--
 				) {
 					notice?.setMessage(`Sync Raindrop pages: ${page + 1}/${totalPages}`);
 					const res = await getPage(page++);
-					yield filterCreated(this.parseRaindrops(res.items));
+					yield filterLastUpdated(this.parseRaindrops(res.items));
 				}
 			}
 		}
