@@ -18,7 +18,13 @@ jobs:
         uses: actions/setup-node@v6
         with:
           node-version: "24.x"
-          cache: "pnpm"
+          package-manager-cache: false
+      - name: Enable Corepack
+        run: corepack enable
+      - name: Configure Dependency Cache
+        uses: actions/setup-node@v6
+        with:
+          cache: pnpm
       - name: Build
         id: build
         run: |
