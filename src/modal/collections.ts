@@ -78,6 +78,10 @@ export default class CollectionsModal extends Modal {
 			}
 		};
 
+		const noticeDiv = rootDiv.createEl("div", { cls: "system-collection-notice" });
+		const noticeP = noticeDiv.createEl("span");
+		noticeP.innerHTML =
+			"NOTICE: Each bookmark belongs to its original collection and <b>All Bookmarks</b>. Syncing both can cause conflicts — the bookmark's state will follow the most recently synced collection.";
 		renderCollection(sysCollections, true);
 		const divider2 = rootDiv.createEl("hr");
 		divider2.style.marginTop = "8px";
