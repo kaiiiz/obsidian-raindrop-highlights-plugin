@@ -207,6 +207,15 @@ export class RaindropPluginSettings {
 		await this.save();
 	}
 
+	async setCollectionSearch(id: string, search: string) {
+		const targetCollection = this._settings.syncCollections[id];
+		if (!targetCollection) {
+			return;
+		}
+		targetCollection.search = search;
+		await this.save();
+	}
+
 	async resetAllCollectionSyncHistory() {
 		for (const collection of Object.values(this._settings.syncCollections)) {
 			collection.lastSyncDate = undefined;

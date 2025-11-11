@@ -216,12 +216,15 @@ export class RaindropAPI {
 	async *getRaindropsAfter(
 		collectionTitle: string,
 		collectionId: number,
+		collectionSearch: string | undefined,
 		notice?: Notice,
 		lastSync?: Date,
 	): AsyncGenerator<RaindropBookmark[]> {
 		const pageSize = 50;
 		const getPage = async (page: number) => {
-			const res = await this.get(`${BASEURL}/raindrops/${collectionId}`, {
+			const url = `${BASEURL}/raindrops/${collectionId}`;
+			const res = await this.get(url, {
+				search: collectionSearch ? collectionSearch : undefined,
 				page: page,
 				perpage: pageSize,
 				sort: "-lastUpdate",

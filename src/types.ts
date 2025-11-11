@@ -96,6 +96,7 @@ export const ZPluginSettings = z.object({
 				sync: z.boolean(),
 				lastSyncDate: z.coerce.date().optional(),
 				parentId: z.number().optional(),
+				search: z.string().optional(),
 			}),
 		)
 		.optional()

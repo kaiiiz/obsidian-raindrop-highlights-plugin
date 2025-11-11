@@ -59,8 +59,13 @@ export default class CollectionsModal extends Modal {
 		const { sysCollections, userCollections } = this.plugin.settings.syncCollectionsSeparated;
 
 		const renderCollection = (collections: [string, SyncCollection][], isSysCol: boolean) => {
+			const table = rootDiv.createEl("table");
+
 			for (const [id, collection] of collections) {
-				const entryDiv = rootDiv.createDiv({ cls: "collection-entry" });
+				const row = table.createEl("tr");
+
+				const checkboxTd = row.createEl("td");
+				const entryDiv = checkboxTd.createDiv({ cls: "collection-entry" });
 				const checkbox = entryDiv.createEl("input", {
 					type: "checkbox",
 				});
@@ -75,13 +80,28 @@ export default class CollectionsModal extends Modal {
 				entryDiv.createEl("span", {
 					text: collection.title,
 				});
+
+				const inputTd = row.createEl("td");
+				const searchInput = inputTd.createEl("input");
+				searchInput.placeholder = "Search";
+				searchInput.value = collection.search ?? "";
+				searchInput.onchange = async (event) => {
+					const value = (event.target as HTMLInputElement).value;
+					await this.plugin.settings.setCollectionSearch(id, value);
+					this.rerender();
+				};
 			}
 		};
 
-		const noticeDiv = rootDiv.createEl("div", { cls: "system-collection-notice" });
-		const noticeP = noticeDiv.createEl("span");
-		noticeP.innerHTML =
-			"NOTICE: Each bookmark belongs to its original collection and <b>All Bookmarks</b>. Syncing both can cause conflicts — the bookmark's state will follow the most recently synced collection.";
+		const sysNoticeDiv = rootDiv.createEl("div", { cls: "collection-notice" });
+		const sysNoticeP = sysNoticeDiv.createEl("span");
+		sysNoticeP.innerHTML =
+			"NOTICE: Each bookmark belongs to its original collection and a special system collection called <b>All Bookmarks</b>. Syncing both can cause conflicts — the bookmark's state will follow the most recently synced collection.";
+
+		const searchNoticeDiv = rootDiv.createEl("div", { cls: "collection-notice" });
+		const searchNoticeP = searchNoticeDiv.createEl("span");
+		searchNoticeP.innerHTML =
+			"NOTICE: Search syntax follows the <a href='https://help.raindrop.io/using-search#operators'>Raindrop.io documents</a>.";
 		renderCollection(sysCollections, true);
 		const divider2 = rootDiv.createEl("hr");
 		divider2.style.marginTop = "8px";

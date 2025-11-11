@@ -132,6 +132,7 @@ export default class RaindropSync {
 			for await (const bookmarks of this.api.getRaindropsAfter(
 				collection.title,
 				collection.id,
+				collection.search,
 				notice,
 				lastSyncDate,
 			)) {
