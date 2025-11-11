@@ -12,6 +12,8 @@ Obsidian Raindrop Highlights (Community Plugin) is an unofficial plugin to synch
     - Overwrite the existing file with the the latest Raindrop article highlights and metadata
 - Customize pulled bookmarks through [Nunjucks](https://mozilla.github.io/nunjucks/) template for content, front matter and filename
 - Manage Raindrop collections to be synced
+    - Support sync newly created collection automatically
+- Support customized [Advanced Search Operators](https://help.raindrop.io/using-search#operators) to sync only bookmarks that match the condition
 - Auto sync in interval
 - Only sync bookmarks with highlights
 
