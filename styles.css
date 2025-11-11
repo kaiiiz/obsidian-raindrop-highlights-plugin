@@ -32,3 +32,22 @@
 	display: flex;
 	align-items: center;
 }
+
+.collection-entry input[type="checkbox"]:disabled {
+	opacity: 0.5;
+	cursor: not-allowed;
+	pointer-events: none;
+}
+
+.collection-notice {
+	padding: 8px;
+	background: var(--interactive-accent);
+	color: var(--text-on-accent);
+	margin-bottom: 8px;
+	border-radius: 4px;
+	font-size: 0.9rem;
+}
+
+.collection-notice a {
+	color: var(--text-on-accent);
+}

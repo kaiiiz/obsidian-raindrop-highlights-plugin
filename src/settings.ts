@@ -1,352 +1,393 @@
-import { App, Notice, PluginSettingTab, Setting } from "obsidian";
-import DEFAULT_METADATA_TEMPLATE from "./assets/defaultMetadataTemplate.njk";
-import templateInstructions from "./templates/templateInstructions.html";
-import metadataTemplateInstructions from "./templates/metadataTemplateInstructions.html";
-import filenameTemplateInstructions from "./templates/filenameTemplateInstructions.html";
-import collectionGroupsInstructions from "./templates/collectionGroupsInstructions.html";
-import appendModeInstructions from "./templates/appendModeInstructions.html";
-import autoescapingInstructions from "./templates/autoescapingInstructions.html";
-import type { RaindropAPI } from "./api";
+import { Notice, type App } from "obsidian";
+import { DEFAULT_SETTINGS, SYSTEM_COLLECTIONS, VERSION } from "./constants";
 import type RaindropPlugin from "./main";
-import CollectionsModal from "./modal/collections";
-import Renderer from "./renderer";
-import ApiTokenModal from "./modal/apiTokenModal";
+import BreadkingChangeModal from "./modal/breakingChange";
+import {
+	ZPluginSettings,
+	type DeepReadonly,
+	type RaindropCollection,
+	type SyncCollection,
+	type SyncCollections,
+	type ZPluginSettingsType,
+} from "./types";
 
-export class RaindropSettingTab extends PluginSettingTab {
-	private plugin: RaindropPlugin;
-	private api: RaindropAPI;
-	private renderer: Renderer;
+import semver from "semver";
 
-	constructor(app: App, plugin: RaindropPlugin, api: RaindropAPI) {
-		super(app, plugin);
-		this.plugin = plugin;
-		this.renderer = new Renderer(plugin);
-		this.api = api;
+export class RaindropPluginSettings {
+	private _app: App;
+	private _plugin: RaindropPlugin;
+	private _settings: ZPluginSettingsType;
+
+	constructor(app: App, plugin: RaindropPlugin) {
+		this._app = app;
+		this._plugin = plugin;
+		this._settings = DEFAULT_SETTINGS;
 	}
 
-	display(): void {
-		const { containerEl } = this;
+	get enableRibbonIcon() {
+		return this._settings.ribbonIcon;
+	}
 
-		containerEl.empty();
-		if (this.plugin.settings.isConnected) {
-			this.disconnect();
-		} else {
-			this.connect();
+	async setEnableRibbonIcon(value: boolean) {
+		this._settings.ribbonIcon = value;
+		await this.save();
+	}
+
+	get enableAppendMode() {
+		return this._settings.appendMode;
+	}
+
+	async setEnableAppendMode(value: boolean) {
+		this._settings.appendMode = value;
+		await this.save();
+	}
+
+	get onlySyncBookmarksWithHl() {
+		return this._settings.onlyBookmarksWithHl;
+	}
+
+	async setOnlySyncBookmarksWithHl(value: boolean) {
+		this._settings.onlyBookmarksWithHl = value;
+		await this.save();
+	}
+
+	get enablePreventMovingExistingFiles() {
+		return this._settings.preventMovingExistingFiles;
+	}
+
+	async setEnablePreventMovingExistingFiles(value: boolean) {
+		this._settings.preventMovingExistingFiles = value;
+		await this.save();
+	}
+
+	get enableCollectionsFolders() {
+		return this._settings.collectionsFolders;
+	}
+
+	async setEnableCollectionsFolders(value: boolean) {
+		this._settings.collectionsFolders = value;
+		await this.save();
+	}
+
+	get isConnected() {
+		return this._settings.isConnected;
+	}
+
+	get username() {
+		return this._settings.username;
+	}
+
+	async setIsConnected(connected: boolean, userName: string | undefined) {
+		this._settings.isConnected = connected;
+		this._settings.username = userName;
+		await this.save();
+	}
+
+	get highlightsFolder(): DeepReadonly<string> {
+		return this._settings.highlightsFolder;
+	}
+
+	async setHighlightsFolder(path: string) {
+		this._settings.highlightsFolder = path;
+		await this.save();
+	}
+
+	get enableCollectionGroups() {
+		return this._settings.collectionGroups;
+	}
+
+	async setEnableCollectionGroups(value: boolean) {
+		this._settings.collectionGroups = value;
+		await this.save();
+	}
+
+	get contentTemplate(): DeepReadonly<string> {
+		return this._settings.template;
+	}
+
+	async setContentTemplate(template: string) {
+		this._settings.template = template;
+		await this.save();
+	}
+
+	get metadataTemplate(): DeepReadonly<string> {
+		return this._settings.metadataTemplate;
+	}
+
+	async setMetadataTemplate(template: string) {
+		this._settings.metadataTemplate = template;
+		await this.save();
+	}
+
+	get filenameTemplate(): DeepReadonly<string> {
+		return this._settings.filenameTemplate;
+	}
+
+	async setFilenameTemplate(template: string) {
+		this._settings.filenameTemplate = template;
+		await this.save();
+	}
+
+	get syncCollectionsList(): DeepReadonly<SyncCollection[]> {
+		return Object.values(this._settings.syncCollections);
+	}
+
+	get syncCollections(): DeepReadonly<SyncCollections> {
+		return this._settings.syncCollections;
+	}
+
+	get syncCollectionsSeparated(): {
+		sysCollections: [string, DeepReadonly<SyncCollection>][];
+		userCollections: [string, DeepReadonly<SyncCollection>][];
+	} {
+		const sysCollectionIdSet = new Set(SYSTEM_COLLECTIONS.map((col) => col.id));
+		const sysCollections: [string, DeepReadonly<SyncCollection>][] = [];
+		const userCollections: [string, DeepReadonly<SyncCollection>][] = [];
+
+		for (const [key, collection] of Object.entries(this._settings.syncCollections)) {
+			if (sysCollectionIdSet.has(collection.id)) {
+				sysCollections.push([key, collection]);
+			} else {
+				userCollections.push([key, collection]);
+			}
 		}
-		this.ribbonIcon();
-		this.onlyBookmarksWithHl();
-		this.appendMode();
-		this.collectionsFolders();
-		this.highlightsFolder();
-		this.groups();
-		this.collections();
-		this.autoSyncInterval();
-		this.autoSyncSuccessNotice();
-		this.template();
-		this.metadataTemplate();
-		this.filenameTemplate();
-		this.autoescape();
-		this.resetSyncHistory();
-	}
 
-	private ribbonIcon(): void {
-		new Setting(this.containerEl).setName("Enable ribbon icon in the sidebar (need reload)").addToggle((toggle) => {
-			return toggle.setValue(this.plugin.settings.ribbonIcon).onChange(async (value) => {
-				this.plugin.settings.ribbonIcon = value;
-				await this.plugin.saveSettings();
-			});
+		sysCollections.sort((a: [string, SyncCollection], b: [string, SyncCollection]) => {
+			return a[1].title.localeCompare(b[1].title);
 		});
-	}
-
-	private appendMode(): void {
-		const descFragment = document.createRange().createContextualFragment(appendModeInstructions);
-
-		new Setting(this.containerEl)
-			.setName("Append Mode")
-			.setDesc(descFragment)
-			.addToggle((toggle) => {
-				return toggle.setValue(this.plugin.settings.appendMode).onChange(async (value) => {
-					this.plugin.settings.appendMode = value;
-					await this.plugin.saveSettings();
-				});
-			});
-	}
-
-	private onlyBookmarksWithHl(): void {
-		new Setting(this.containerEl).setName("Only sync bookmarks with highlights").addToggle((toggle) => {
-			return toggle.setValue(this.plugin.settings.onlyBookmarksWithHl).onChange(async (value) => {
-				this.plugin.settings.onlyBookmarksWithHl = value;
-				await this.plugin.saveSettings();
-			});
+		userCollections.sort((a: [string, SyncCollection], b: [string, SyncCollection]) => {
+			return a[1].title.localeCompare(b[1].title);
 		});
+
+		return { sysCollections, userCollections };
 	}
 
-	private collectionsFolders(): void {
-		new Setting(this.containerEl).setName("Store the articles in collections folders").addToggle((toggle) => {
-			return toggle.setValue(this.plugin.settings.collectionsFolders).onChange(async (value) => {
-				this.plugin.settings.collectionsFolders = value;
-				await this.plugin.saveSettings();
-			});
-		});
+	async setSyncCollections(collections: RaindropCollection[]) {
+		const syncCollections: SyncCollections = {};
+		for (const collection of collections) {
+			const { id, title } = collection;
+			const collectionKey = id.toString();
+			const targetCollection = this._settings.syncCollections[collectionKey];
+			const parentId = collection.parentId ? collection.parentId : undefined;
+
+			if (targetCollection === undefined) {
+				syncCollections[collectionKey] = {
+					id: id,
+					title: title,
+					sync: false,
+					lastSyncDate: undefined,
+					parentId,
+				};
+			} else {
+				targetCollection.title = title;
+				targetCollection.parentId = parentId;
+				syncCollections[collectionKey] = targetCollection;
+			}
+		}
+		this._settings.syncCollections = syncCollections;
+		if (this._settings.autoSyncAllCollections) {
+			await this.setAllCollections(true);
+		} else {
+			await this.autoCheckNestedCollections();
+		}
+		await this.save();
 	}
 
-	private connect(): void {
-		new Setting(this.containerEl).setName("Connect to Raindrop.io").addButton((button) => {
-			return button
-				.setButtonText("Connect")
-				.setCta()
-				.onClick(async () => {
-					const tokenModal = new ApiTokenModal(this.app, this.api);
-					await tokenModal.waitForClose;
+	async toggleCollectionSync(id: string) {
+		const targetCollection = this._settings.syncCollections[id];
+		if (!targetCollection) {
+			return;
+		}
+		targetCollection.sync = !targetCollection.sync;
 
-					if (this.api.tokenManager.get()) {
-						new Notice("Token saved");
-						const user = await this.api.getUser();
-						this.plugin.settings.isConnected = true;
-						this.plugin.settings.username = user.fullName;
-						await this.plugin.saveSettings();
-					}
+		if (this._settings.autoSyncNewNestedCollections) {
+			await this.setAllChildCollections(targetCollection.id, targetCollection.sync);
+		}
 
-					this.display(); // rerender
-				});
-		});
+		await this.save();
 	}
 
-	private async disconnect(): Promise<void> {
-		new Setting(this.containerEl)
-			.setName(`Connected to Raindrop.io as ${this.plugin.settings.username}`)
-			.addButton((button) => {
-				return button
-					.setButtonText("Test API")
-					.setCta()
-					.onClick(async () => {
-						try {
-							const user = await this.api.getUser();
-							new Notice(`Test pass, hello ${user.fullName}`);
-						} catch (e) {
-							console.error(e);
-							new Notice(`Test failed: ${e}`);
-							this.api.tokenManager.clear();
-							this.plugin.settings.isConnected = false;
-							this.plugin.settings.username = undefined;
-							await this.plugin.saveSettings();
-						}
-					});
-			})
-			.addButton((button) => {
-				return button
-					.setButtonText("Disconnect")
-					.setCta()
-					.onClick(async () => {
-						button.removeCta().setButtonText("Removing API token...").setDisabled(true);
-
-						try {
-							this.api.tokenManager.clear();
-							this.plugin.settings.isConnected = false;
-							this.plugin.settings.username = undefined;
-							await this.plugin.saveSettings();
-						} catch (e) {
-							console.error(e);
-							new Notice(`Token removed failed: ${e}`);
-							return;
-						}
-
-						new Notice("Token removed successfully");
-						this.display(); // rerender
-					});
-			});
+	async setCollectionSearch(id: string, search: string) {
+		const targetCollection = this._settings.syncCollections[id];
+		if (!targetCollection) {
+			return;
+		}
+		targetCollection.search = search;
+		await this.save();
 	}
 
-	private highlightsFolder(): void {
-		new Setting(this.containerEl)
-			.setName("Highlights folder location")
-			.setDesc("Vault folder to use for storing Raindrop.io highlights")
-			.addDropdown((dropdown) => {
-				const files = (this.app.vault.adapter as any).files;
-				Object.keys(files).forEach((key) => {
-					if (files[key].type == "folder") {
-						const folder = files[key].realpath;
-						dropdown.addOption(folder, folder);
-					}
-				});
-
-				return dropdown.setValue(this.plugin.settings.highlightsFolder).onChange(async (value) => {
-					this.plugin.settings.highlightsFolder = value;
-					await this.plugin.saveSettings();
-				});
-			});
+	async resetAllCollectionSyncHistory() {
+		for (const collection of Object.values(this._settings.syncCollections)) {
+			collection.lastSyncDate = undefined;
+		}
+		await this.save();
 	}
 
-	private async groups(): Promise<void> {
-		const descFragment = document.createRange().createContextualFragment(collectionGroupsInstructions);
-
-		new Setting(this.containerEl)
-			.setName("Collection groups")
-			.setDesc(descFragment)
-			.addToggle((toggle) => {
-				return toggle.setValue(this.plugin.settings.collectionGroups).onChange(async (value) => {
-					this.plugin.settings.collectionGroups = value;
-					await this.plugin.saveSettings();
-				});
-			});
+	async updateCollectionLastSyncDate(id: string, date: Date) {
+		const targetCollection = this._settings.syncCollections[id];
+		if (!targetCollection) {
+			return;
+		}
+		targetCollection.lastSyncDate = date;
+		await this.save();
 	}
 
-	private async collections(): Promise<void> {
-		new Setting(this.containerEl)
-			.setName("Collections")
-			.setDesc("Manage collections to be synced")
-			.addButton((button) => {
-				return button
-					.setDisabled(!this.plugin.settings.isConnected)
-					.setButtonText("Manage")
-					.setCta()
-					.onClick(async () => {
-						button.setButtonText("Loading collections...");
-
-						// update for new collections
-						const collectionGroup = this.plugin.settings.collectionGroups;
-						const allCollections = await this.api.getCollections(collectionGroup);
-						this.plugin.updateCollectionSettings(allCollections);
-
-						new CollectionsModal(this.app, this.plugin);
-						this.display(); // rerender
-					});
-			});
+	get autoSyncInterval() {
+		return this._settings.autoSyncInterval;
 	}
 
-	private async template(): Promise<void> {
-		const templateDescFragment = document.createRange().createContextualFragment(templateInstructions);
-
-		new Setting(this.containerEl)
-			.setName("Content template")
-			.setDesc(templateDescFragment)
-			.setClass("raindrop-content-template")
-			.addTextArea((text) => {
-				text.setValue(this.plugin.settings.template).onChange(async (value) => {
-					const isValid = this.renderer.validate(value);
-
-					if (isValid) {
-						this.plugin.settings.template = value;
-						await this.plugin.saveSettings();
-					}
-
-					text.inputEl.style.border = isValid ? "" : "1px solid red";
-				});
-				return text;
-			});
+	async setAutoSyncInterval(minutes: number) {
+		this._settings.autoSyncInterval = minutes;
+		await this.save();
 	}
 
-	private async metadataTemplate(): Promise<void> {
-		const templateDescFragment = document.createRange().createContextualFragment(metadataTemplateInstructions);
-
-		new Setting(this.containerEl)
-			.setName("Metadata template")
-			.setDesc(templateDescFragment)
-			.setClass("raindrop-metadata-template")
-			.addTextArea((text) => {
-				text.setPlaceholder(DEFAULT_METADATA_TEMPLATE);
-				text.setValue(this.plugin.settings.metadataTemplate).onChange(async (value) => {
-					const isValid = this.renderer.validate(value, true);
-
-					if (isValid) {
-						this.plugin.settings.metadataTemplate = value;
-						await this.plugin.saveSettings();
-					}
-
-					text.inputEl.style.border = isValid ? "" : "1px solid red";
-				});
-				return text;
-			});
+	get enableSyncNotices() {
+		return this._settings.autoSyncSuccessNotice;
 	}
 
-	private async filenameTemplate(): Promise<void> {
-		const templateDescFragment = document.createRange().createContextualFragment(filenameTemplateInstructions);
-
-		new Setting(this.containerEl)
-			.setName("Filename template")
-			.setDesc(templateDescFragment)
-			.setClass("raindrop-filename-template")
-			.addTextArea((text) => {
-				text.setValue(this.plugin.settings.filenameTemplate).onChange(async (value) => {
-					const isValid = this.renderer.validate(value, false);
-
-					if (isValid) {
-						this.plugin.settings.filenameTemplate = value;
-						await this.plugin.saveSettings();
-					}
-
-					text.inputEl.style.border = isValid ? "" : "1px solid red";
-				});
-				return text;
-			});
+	async setEnableSyncNotices(value: boolean) {
+		this._settings.autoSyncSuccessNotice = value;
+		await this.save();
 	}
 
-	private resetSyncHistory(): void {
-		new Setting(this.containerEl)
-			.setName("Reset the last sync time for each collection")
-			.setDesc("This is useful if you want to resync all bookmarks.")
-			.addButton((button) => {
-				return button
-					.setButtonText("Reset")
-					.setDisabled(!this.plugin.settings.isConnected)
-					.setWarning()
-					.onClick(async () => {
-						for (const id in this.plugin.settings.syncCollections) {
-							const collection = this.plugin.settings.syncCollections[id];
-							collection.lastSyncDate = undefined;
-						}
-						this.plugin.saveSettings();
-						new Notice("Sync history reset successfully");
-					});
-			});
+	get enableAutoEscape() {
+		return this._settings.autoescape;
 	}
 
-	private autoSyncInterval(): void {
-		new Setting(this.containerEl)
-			.setName("Auto sync in interval (minutes)")
-			.setDesc("Sync every X minutes. To disable auto sync, specify negative value or zero (default)")
-			.addText((text) => {
-				text.setPlaceholder(String(0))
-					.setValue(this.plugin.settings.autoSyncInterval.toString())
-					.onChange(async (value) => {
-						if (!isNaN(Number(value))) {
-							const minutes = Number(value);
-							this.plugin.settings.autoSyncInterval = minutes;
-							await this.plugin.saveSettings();
-							console.info("Set raindrop.io autosync interval", minutes);
-							if (minutes > 0) {
-								this.plugin.clearAutoSync();
-								this.plugin.startAutoSync(minutes);
-								console.info(`Raindrop.io auto sync enabled! Every ${minutes} minutes.`);
-							} else {
-								this.plugin.clearAutoSync();
-								console.info("Raindrop.io auto sync disabled!");
-							}
-						}
-					});
-			});
+	async setEnableAutoEscape(value: boolean) {
+		this._settings.autoescape = value;
+		await this.save();
 	}
 
-	private autoSyncSuccessNotice(): void {
-		new Setting(this.containerEl).setName("Display a notification when a collection is synced").addToggle((toggle) => {
-			return toggle.setValue(this.plugin.settings.autoSyncSuccessNotice).onChange(async (value) => {
-				this.plugin.settings.autoSyncSuccessNotice = value;
-				await this.plugin.saveSettings();
-			});
-		});
+	get enableAutoSyncAllCollections() {
+		return this._settings.autoSyncAllCollections;
 	}
 
-	private autoescape(): void {
-		const templateDescFragment = document.createRange().createContextualFragment(autoescapingInstructions);
+	async toggleSyncAllCollections() {
+		const newValue = !this._settings.autoSyncAllCollections;
+		this._settings.autoSyncAllCollections = newValue;
 
-		new Setting(this.containerEl)
-			.setName("Enable autoescaping for nunjucks")
-			.setDesc(templateDescFragment)
-			.addToggle((toggle) => {
-				return toggle.setValue(this.plugin.settings.autoescape).onChange(async (value) => {
-					this.plugin.settings.autoescape = value;
-					await this.plugin.saveSettings();
-				});
-			});
+		await this.setAllCollections(newValue);
+		await this.save();
+	}
+
+	get enableAutoSyncNewNestedCollections() {
+		return this._settings.autoSyncNewNestedCollections;
+	}
+
+	async toggleAutoSyncNestedCollections() {
+		const newValue = !this._settings.autoSyncNewNestedCollections;
+		this._settings.autoSyncNewNestedCollections = newValue;
+
+		await this.autoCheckNestedCollections();
+		await this.save();
+	}
+
+	getSyncCollectionById(id: string): DeepReadonly<SyncCollection | undefined> {
+		return this._settings.syncCollections[id];
+	}
+
+	private async migrateSettings() {
+		// do not use zod here for compatibility reasons
+		this._settings = Object.assign({}, DEFAULT_SETTINGS, await this._plugin.loadData());
+		if (semver.eq(this._settings.version, VERSION)) {
+			return;
+		}
+
+		// setting migration
+		if (semver.lt(this._settings.version, "0.0.18")) {
+			if ("dateTimeFormat" in this._settings) {
+				delete this._settings["dateTimeFormat"];
+			}
+		}
+
+		// version migration notice
+		new BreadkingChangeModal(this._app, this._settings.version);
+
+		this._settings.version = VERSION;
+
+		await this.save();
+	}
+
+	async load() {
+		await this.migrateSettings();
+
+		const safedSettings = ZPluginSettings.safeParse(await this._plugin.loadData());
+		if (!safedSettings.success) {
+			new Notice("Raindrop Highlight: Settings are corrupted. Resetting to default.");
+			this._settings = DEFAULT_SETTINGS;
+			await this.save();
+		} else {
+			this._settings = safedSettings.data;
+		}
+	}
+
+	private async save() {
+		await this._plugin.saveData(this._settings);
+	}
+
+	private flattenCollectionChain() {
+		// key: collection id, value: parent category chain
+		const collectionChainMap = new Map<number, number[]>();
+		// key: collection id, value: parent category id
+		const parentMap = new Map<number, number | undefined>();
+		for (const collection of this.syncCollectionsList) {
+			parentMap.set(collection.id, collection.parentId);
+		}
+		for (const collection of this.syncCollectionsList) {
+			const collectionChain: number[] = [];
+			let curParentId = collection.parentId;
+			while (curParentId !== undefined) {
+				collectionChain.push(curParentId);
+				curParentId = parentMap.get(curParentId);
+			}
+			collectionChainMap.set(collection.id, collectionChain);
+		}
+		return collectionChainMap;
+	}
+
+	private async autoCheckNestedCollections() {
+		if (!this._settings.autoSyncNewNestedCollections) {
+			return;
+		}
+
+		const collectionChainMap = this.flattenCollectionChain();
+
+		for (const [collectionId, parentIds] of collectionChainMap.entries()) {
+			const targetCollection = this._settings.syncCollections[collectionId.toString()];
+			if (!targetCollection) continue;
+			// check this collection if any of its parent is checked
+			for (const parentId of parentIds) {
+				const parentCollection = this._settings.syncCollections[parentId.toString()];
+				if (parentCollection?.sync) {
+					targetCollection.sync = true;
+					break;
+				}
+			}
+		}
+	}
+
+	private async setAllCollections(sync: boolean) {
+		const sysCollectionIdSet = new Set(SYSTEM_COLLECTIONS.map((col) => col.id));
+
+		for (const [, collection] of Object.entries(this._settings.syncCollections)) {
+			if (sysCollectionIdSet.has(collection.id)) {
+				continue;
+			}
+			collection.sync = sync;
+		}
+	}
+
+	private async setAllChildCollections(categoryId: number, sync: boolean) {
+		const collectionChainMap = this.flattenCollectionChain();
+
+		for (const [collectionId, parentIds] of collectionChainMap.entries()) {
+			const targetCollection = this._settings.syncCollections[collectionId.toString()];
+			if (!targetCollection) continue;
+			// check this collection if its parent chain includes the given categoryId
+			if (parentIds.includes(categoryId)) {
+				targetCollection.sync = sync;
+			}
+		}
 	}
 }

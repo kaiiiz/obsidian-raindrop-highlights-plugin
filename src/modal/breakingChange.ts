@@ -2,13 +2,8 @@ import { App, Modal } from "obsidian";
 import semver from "semver";
 
 export default class BreadkingChangeModal extends Modal {
-	public waitForClose: Promise<void>;
-	private resolvePromise: () => void;
-
 	constructor(app: App, currentVersion: string) {
 		super(app);
-
-		this.waitForClose = new Promise((resolve) => (this.resolvePromise = resolve));
 
 		this.titleEl.innerText = "Raindrop Highlight - Breaking Changes";
 
@@ -46,6 +41,5 @@ export default class BreadkingChangeModal extends Modal {
 
 	onClose() {
 		super.onClose();
-		this.resolvePromise();
 	}
 }
