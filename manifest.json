@@ -1,7 +1,7 @@
 {
 	"id": "obsidian-raindrop-highlights",
 	"name": "Raindrop Highlights",
-	"version": "0.0.23",
+	"version": "0.0.24",
 	"minAppVersion": "1.6.6",
 	"description": "Sync your Raindrop.io highlights.",
 	"author": "kaiiiz",
