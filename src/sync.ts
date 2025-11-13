@@ -31,15 +31,26 @@ export default class RaindropSync {
 
 	async sync({ fullSync }: { fullSync: boolean }) {
 		const failedCollections: string[] = [];
+		let syncFailed = false;
 
 		if ((await this.syncCollectionMeta()) === false) {
 			return;
+		}
+		const remoteBookmarkIds: Set<number> = new Set<number>();
+
+		if (this.plugin.settings.syncDeleteFiles) {
+			fullSync = true;
 		}
 
 		for (const collection of this.plugin.settings.syncCollectionsList) {
 			if (collection.sync) {
 				try {
-					if ((await this.syncCollection(collection, fullSync)) === false) {
+					const syncRes = await this.syncCollection(
+						collection,
+						remoteBookmarkIds,
+						fullSync,
+					);
+					if (syncRes === false) {
 						failedCollections.push(collection.title);
 					}
 				} catch (e) {
@@ -52,15 +63,60 @@ export default class RaindropSync {
 			}
 		}
 
+		if (failedCollections.length > 0) {
+			console.error(
+				`Raindrop Highlights: sync failed, failedCollections: ${failedCollections.join(", ")}`,
+			);
+			remoteBookmarkIds.clear(); /* not source of truth, clear it */
+			syncFailed = true;
+		} else {
+			if (this.plugin.settings.syncDeleteFiles) {
+				if ((await this.syncDeletedBookmarks(remoteBookmarkIds)) === false) {
+					syncFailed = true;
+				}
+			}
+		}
+
 		if (this.plugin.settings.enableSyncNotices) {
-			if (failedCollections.length > 0) {
-				console.log(
-					`Raindrop Highlights: sync failed, failedCollections: ${failedCollections.join(", ")}`,
-				);
+			if (syncFailed) {
 				new Notice(`Raindrop Highlights: Sync failed, see console for details.`);
 			} else {
 				new Notice(`Raindrop Highlights: Sync completed`);
 			}
+		}
+	}
+
+	private async deleteFile(file: TFile): Promise<void> {
+		if (this.plugin.settings.syncDeleteUseTrash) {
+			await this.app.vault.trash(file, false);
+		} else {
+			await this.app.vault.delete(file, true);
+		}
+	}
+
+	private async syncDeletedBookmarks(remoteBookmarkIds: Set<number>): Promise<boolean> {
+		try {
+			let nrDeleted = 0;
+
+			for (const localBookmark of this.getBookmarkFiles()) {
+				if (remoteBookmarkIds.has(localBookmark.raindropId)) continue;
+
+				try {
+					console.debug(
+						`Deleted local file for bookmark ID: ${localBookmark.raindropId}, file: ${localBookmark.file.path}`,
+					);
+					await this.deleteFile(localBookmark.file);
+					nrDeleted++;
+				} catch (e) {
+					console.error(e);
+				}
+			}
+
+			console.debug(`Deleted ${nrDeleted} orphaned bookmark files`);
+			return true;
+		} catch (e) {
+			console.error("Error during bookmark deletion sync:", e);
+			return false;
 		}
 	}
 
@@ -112,6 +168,7 @@ export default class RaindropSync {
 
 	private async syncCollection(
 		collection: DeepReadonly<SyncCollection>,
+		remoteBookmarkIds: Set<number>,
 		fullSync: boolean,
 	): Promise<boolean> {
 		let notice: Notice | undefined;
@@ -130,13 +187,14 @@ export default class RaindropSync {
 				);
 			}
 			for await (const bookmarks of this.api.getRaindropsAfter(
-				collection.title,
-				collection.id,
-				collection.search,
+				collection,
 				notice,
 				lastSyncDate,
 			)) {
 				await this.syncBookmarks(bookmarks, syncFolder);
+				for (const bookmark of bookmarks) {
+					remoteBookmarkIds.add(bookmark.id);
+				}
 			}
 			await this.plugin.settings.updateCollectionLastSyncDate(
 				collection.id.toString(),

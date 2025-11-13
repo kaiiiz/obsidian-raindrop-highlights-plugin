@@ -12,6 +12,8 @@ export const DEFAULT_SETTINGS: ZPluginSettingsType = {
 	appendMode: true,
 	collectionsFolders: true,
 	onlyBookmarksWithHl: false,
+	syncDeleteFiles: false,
+	syncDeleteUseTrash: true,
 	highlightsFolder: "/",
 	collectionGroups: false,
 	autoSyncSuccessNotice: true,

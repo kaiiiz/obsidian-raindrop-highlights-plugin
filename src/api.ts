@@ -1,7 +1,7 @@
 import { Notice, type App } from "obsidian";
 import axios, { AxiosError } from "axios";
 import axiosRetry from "axios-retry";
-import type { RaindropBookmark, RaindropCollection, RaindropUser } from "./types";
+import type { RaindropBookmark, RaindropCollection, RaindropUser, SyncCollection } from "./types";
 import TokenManager from "./tokenManager";
 import { Md5 } from "ts-md5";
 import z from "zod";
@@ -214,17 +214,15 @@ export class RaindropAPI {
 	}
 
 	async *getRaindropsAfter(
-		collectionTitle: string,
-		collectionId: number,
-		collectionSearch: string | undefined,
+		collection: SyncCollection,
 		notice?: Notice,
 		lastSync?: Date,
 	): AsyncGenerator<RaindropBookmark[]> {
 		const pageSize = 50;
 		const getPage = async (page: number) => {
-			const url = `${BASEURL}/raindrops/${collectionId}`;
+			const url = `${BASEURL}/raindrops/${collection.id}`;
 			const res = await this.get(url, {
-				search: collectionSearch ? collectionSearch : undefined,
+				search: collection.search ? collection.search : undefined,
 				page: page,
 				perpage: pageSize,
 				sort: "-lastUpdate",
@@ -249,7 +247,7 @@ export class RaindropAPI {
 				yield bookmarks;
 				while (remainPages--) {
 					notice?.setMessage(
-						`Sync "${collectionTitle}", pages: ${page + 1}/${totalPages}`,
+						`Sync "${collection.title}", pages: ${page + 1}/${totalPages}`,
 					);
 					const res = await getPage(page++);
 					yield this.parseRaindrops(res.items);
