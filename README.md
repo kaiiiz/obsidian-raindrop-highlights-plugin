@@ -6,7 +6,7 @@ Obsidian Raindrop Highlights (Community Plugin) is an unofficial plugin to synch
 
 - Sync web article highlights into Obsidian
 - Sync web article annotations into Obsidian (Raindrop PRO user only)
-- Sync bookmark delete event
+- Sync bookmark delete events
 - Support nested collections and collection groups
 - Update existing files with new highlights and annotations (2 mode supported)
     - Append new highlights to the end of existing file (default)
