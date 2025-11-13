@@ -2,7 +2,7 @@ import DEFAULT_TEMPLATE from "./assets/defaultTemplate.njk";
 import DEFAULT_FILENAME_TEMPLATE from "./assets/defaultFilenameTemplate.njk";
 import type { RaindropCollection, ZPluginSettingsType } from "./types";
 
-export const VERSION = "0.0.23";
+export const VERSION = "0.0.24";
 
 export const DEFAULT_SETTINGS: ZPluginSettingsType = {
 	version: VERSION,
@@ -12,6 +12,8 @@ export const DEFAULT_SETTINGS: ZPluginSettingsType = {
 	appendMode: true,
 	collectionsFolders: true,
 	onlyBookmarksWithHl: false,
+	syncDeleteFiles: false,
+	syncDeleteUseTrash: true,
 	highlightsFolder: "/",
 	collectionGroups: false,
 	autoSyncSuccessNotice: true,

@@ -82,6 +82,8 @@ export const ZPluginSettings = z.object({
 	appendMode: z.boolean().optional().default(true),
 	collectionsFolders: z.boolean().optional().default(true),
 	onlyBookmarksWithHl: z.boolean().optional().default(false),
+	syncDeleteFiles: z.boolean().optional().default(false),
+	syncDeleteUseTrash: z.boolean().optional().default(true),
 	highlightsFolder: z.string().optional().default("/"),
 	collectionGroups: z.boolean().optional().default(false),
 	autoSyncSuccessNotice: z.boolean().optional().default(true),

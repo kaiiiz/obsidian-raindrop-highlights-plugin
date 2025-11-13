@@ -60,6 +60,24 @@ export class RaindropPluginSettings {
 		await this.save();
 	}
 
+	get syncDeleteFiles() {
+		return this._settings.syncDeleteFiles;
+	}
+
+	async setSyncDeleteFiles(value: boolean) {
+		this._settings.syncDeleteFiles = value;
+		await this.save();
+	}
+
+	get syncDeleteUseTrash() {
+		return this._settings.syncDeleteUseTrash;
+	}
+
+	async setSyncDeleteUseTrash(value: boolean) {
+		this._settings.syncDeleteUseTrash = value;
+		await this.save();
+	}
+
 	get enableCollectionsFolders() {
 		return this._settings.collectionsFolders;
 	}

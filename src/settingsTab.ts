@@ -51,6 +51,8 @@ export class RaindropSettingTab extends PluginSettingTab {
 		new Setting(containerEl).setName("Rules & Templates").setHeading();
 		this.collections();
 		this.onlyBookmarksWithHl();
+		this.syncDeleteFiles();
+		this.syncDeleteUseTrash();
 		this.appendMode();
 		this.template();
 		this.metadataTemplate();
@@ -111,6 +113,32 @@ export class RaindropSettingTab extends PluginSettingTab {
 					.onChange(async (value) => {
 						await this.settings.setEnablePreventMovingExistingFiles(value);
 					});
+			});
+	}
+
+	private syncDeleteFiles(): void {
+		new Setting(this.containerEl)
+			.setName("Delete local files when removed from Raindrop")
+			.setDesc(
+				"Sync delete event from Raindrop. Note that enabling this option will always trigger full sync instead of incremental sync.",
+			)
+			.addToggle((toggle) => {
+				return toggle.setValue(this.settings.syncDeleteFiles).onChange(async (value) => {
+					await this.settings.setSyncDeleteFiles(value);
+				});
+			});
+	}
+
+	private syncDeleteUseTrash(): void {
+		new Setting(this.containerEl)
+			.setName("Use Trash to delete synced files")
+			.setDesc(
+				"Must use 'Delete local files when removed from Raindrop' option. Files will be moved to Trash instead of permanently deleted.",
+			)
+			.addToggle((toggle) => {
+				return toggle.setValue(this.settings.syncDeleteUseTrash).onChange(async (value) => {
+					await this.settings.setSyncDeleteUseTrash(value);
+				});
 			});
 	}
 
