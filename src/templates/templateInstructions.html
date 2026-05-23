@@ -70,7 +70,24 @@
 	</li>
 	<li>
 		<span class="u-pop">defuddle</span> Fetch a link and convert to markdown using Defuddle -
-		example: <code>{{ link | defuddle | safe }}</code>. Useful for archiving the full content of
-		the link.
+		example: <code>{{ link | defuddle }}</code>. Useful for archiving the full content of the
+		link.
+	</li>
+	<li>
+		<span class="u-pop">download_attachment(filename?: string)</span> Download a URL to the
+		Obsidian attachment folder and return the local path. Filename is optional — defaults to
+		<code>{{title}}</code>.
+		<br />
+		<b>Examples:</b><br />
+		<code>{{ cover | download_attachment }}</code> <br />
+		<code>{{ cover | download_attachment(title ~ " - cover") }}</code>.
+		<br />
+		<b>Fallback rules:</b> On failure, the original URL is returned, so the template can handle
+		error handling gracefully (e.g. choose between two different formats:
+		<code>![](Remote URL)</code> or <code>![[Local Path]]</code>).
+		<br />
+		<b>Collision rules:</b> When the target path already exists, the file content is compared —
+		if identical, no re-download. If different, suffixes <code>(1)</code>, <code>(2)</code>,
+		etc. are tried until a matching or empty slot is found.
 	</li>
 </ul>

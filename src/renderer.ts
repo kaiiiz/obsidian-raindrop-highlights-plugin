@@ -4,6 +4,7 @@ import type RaindropPlugin from "./main";
 import sanitize from "sanitize-filename";
 import type { BookmarkFileFrontMatter, RaindropBookmark } from "./types";
 import { parseYaml, requestUrl, stringifyYaml } from "obsidian";
+import { AttachmentDownloader } from "./attachmentDownloader";
 import Defuddle from "defuddle/full";
 
 type RenderHighlight = {
@@ -64,7 +65,11 @@ const FAKE_RENDER_CONTEXT: RenderTemplate = {
 		title: "fake_collection",
 	},
 	tags: ["fake_tag1", "fake_tag2"],
-	cover: "https://example.com",
+	/*
+	 * download_attachment has side effect to create new file, so set it to empty
+	 * string to avoid unexpected file creation during validation
+	 */
+	cover: "",
 	created: Moment(),
 	type: "link",
 	important: false,
@@ -78,14 +83,16 @@ const FAKE_RENDER_CONTEXT: RenderTemplate = {
 
 export default class Renderer {
 	plugin: RaindropPlugin;
+	private attDownloader: AttachmentDownloader;
 
 	constructor(plugin: RaindropPlugin) {
 		this.plugin = plugin;
+		this.attDownloader = new AttachmentDownloader(this.plugin.app);
 	}
 
 	async validate(template: string, isYaml = false): Promise<boolean> {
 		try {
-			const env = this.createEnv();
+			const env = this.createEnv(FAKE_RENDER_CONTEXT);
 			const fakeContent = await this.renderStringAsync(env, template, FAKE_RENDER_CONTEXT);
 			if (isYaml) {
 				const { id } = FAKE_RENDER_CONTEXT;
@@ -189,7 +196,7 @@ ${fakeContent}`;
 			raindropUrl: `https://app.raindrop.io/my/${bookmark.collectionId}/item/${bookmark.id}/edit`,
 		};
 
-		const env = this.createEnv();
+		const env = this.createEnv(context);
 		return this.renderStringAsync(env, template, context);
 	}
 
@@ -206,7 +213,7 @@ ${fakeContent}`;
 		});
 	}
 
-	private createEnv(): nunjucks.Environment {
+	private createEnv(renderContext?: RenderTemplate): nunjucks.Environment {
 		const env = new nunjucks.Environment(undefined, {
 			autoescape: this.plugin.settings.enableAutoEscape,
 		});
@@ -231,6 +238,34 @@ ${fakeContent}`;
 					.catch((err: Error) => {
 						console.error(`Defuddle error for link ${link}:`, err);
 						callback(null, `*Defuddle error: ${err.message}*`);
+					});
+			},
+			true,
+		);
+		env.addFilter(
+			"download_attachment",
+			(url: unknown, ...args: unknown[]) => {
+				const callback = args[args.length - 1] as (
+					err: Error | null,
+					result: string,
+				) => void;
+				const templateFilename = args.length > 1 ? String(args[0] ?? "") : undefined;
+
+				const urlStr = url ? String(url) : "";
+				if (!urlStr) {
+					callback(null, "");
+					return;
+				}
+
+				const defaultFilename = renderContext ? `${renderContext.title}` : "attachment";
+				const filename = templateFilename ?? defaultFilename;
+
+				this.attDownloader
+					.download(urlStr, filename)
+					.then((result) => callback(null, result))
+					.catch((err) => {
+						console.error(`download_attachment: failed for ${urlStr}`, err);
+						callback(null, urlStr);
 					});
 			},
 			true,
