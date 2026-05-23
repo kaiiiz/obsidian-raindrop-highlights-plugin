@@ -279,7 +279,7 @@ export class RaindropSettingTab extends PluginSettingTab {
 			.setClass("raindrop-content-template")
 			.addTextArea((text) => {
 				text.setValue(this.settings.contentTemplate).onChange(async (value) => {
-					const isValid = this.renderer.validate(value);
+					const isValid = await this.renderer.validate(value);
 
 					if (isValid) {
 						await this.settings.setContentTemplate(value);
@@ -303,7 +303,7 @@ export class RaindropSettingTab extends PluginSettingTab {
 			.addTextArea((text) => {
 				text.setPlaceholder(DEFAULT_METADATA_TEMPLATE);
 				text.setValue(this.settings.metadataTemplate).onChange(async (value) => {
-					const isValid = this.renderer.validate(value, true);
+					const isValid = await this.renderer.validate(value, true);
 
 					if (isValid) {
 						await this.settings.setMetadataTemplate(value);
@@ -326,7 +326,7 @@ export class RaindropSettingTab extends PluginSettingTab {
 			.setClass("raindrop-filename-template")
 			.addTextArea((text) => {
 				text.setValue(this.settings.filenameTemplate).onChange(async (value) => {
-					const isValid = this.renderer.validate(value, false);
+					const isValid = await this.renderer.validate(value, false);
 
 					if (isValid) {
 						await this.settings.setFilenameTemplate(value);

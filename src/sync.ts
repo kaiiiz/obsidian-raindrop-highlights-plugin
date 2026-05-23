@@ -240,7 +240,7 @@ export default class RaindropSync {
 					await this.updateFileName(file, bookmark, folderPath);
 				}
 			} else {
-				const renderedFilename = this.renderer.renderFileName(bookmark, true);
+				const renderedFilename = await this.renderer.renderFileName(bookmark, true);
 				const filePath = await this.buildNonDupFilePath(folderPath, renderedFilename);
 				bookmarkFilesMap[bookmark.id] = await this.createFile(filePath, bookmark);
 			}
@@ -271,7 +271,7 @@ export default class RaindropSync {
 	}
 
 	private async updateFileName(file: TFile, bookmark: RaindropBookmark, folderPath: string) {
-		const renderedFilename = this.renderer.renderFileName(bookmark, true);
+		const renderedFilename = await this.renderer.renderFileName(bookmark, true);
 		let newFilePath = this.buildFilePath(folderPath, renderedFilename);
 		const newFileMeta = this.app.metadataCache.getCache(newFilePath);
 		// check new file is the same as the old file
@@ -311,13 +311,13 @@ export default class RaindropSync {
 			});
 		}
 
-		const appendedContent = this.renderer.renderContent(bookmark, false);
+		const appendedContent = await this.renderer.renderContent(bookmark, false);
 
 		await this.app.vault.append(file, appendedContent);
 
 		// update front matter
 		const fileContent = await this.app.vault.cachedRead(file);
-		const bookmarkFm = this.renderer.renderFrontmatter(bookmark, false);
+		const bookmarkFm = await this.renderer.renderFrontmatter(bookmark, false);
 		const bookmarkFmObj: BookmarkFileFrontMatter = parseYaml(bookmarkFm);
 		bookmarkFmObj.raindrop_highlights = highlightSigs;
 		if (metadata?.frontmatterPosition) {
@@ -351,13 +351,13 @@ export default class RaindropSync {
 
 	private async updateFileOverwriteMode(file: TFile, bookmark: RaindropBookmark) {
 		console.debug("update file overwrite mode", file.path);
-		const mdContent = this.renderer.renderFullArticle(bookmark);
+		const mdContent = await this.renderer.renderFullArticle(bookmark);
 		return this.app.vault.modify(file, mdContent);
 	}
 
 	private async createFile(filePath: string, bookmark: RaindropBookmark): Promise<TFile> {
 		console.debug("create file", filePath);
-		const mdContent = this.renderer.renderFullArticle(bookmark);
+		const mdContent = await this.renderer.renderFullArticle(bookmark);
 		return this.app.vault.create(filePath, mdContent);
 	}
 

@@ -17,6 +17,8 @@ Obsidian Raindrop Highlights (Community Plugin) is an unofficial plugin to synch
 - Support customized [Advanced Search Operators](https://help.raindrop.io/using-search#operators) to sync only bookmarks that match the condition
 - Auto sync in interval
 - Only sync bookmarks with highlights
+- Download the full article content and save as markdown file (via [defuddle](https://github.com/kepano/defuddle))
+- Download and embed attachments (e.g. cover image) into the vault
 
 ## Usage
 
