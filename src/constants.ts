@@ -1,4 +1,5 @@
 import DEFAULT_TEMPLATE from "./assets/defaultTemplate.njk";
+import DEFAULT_METADATA_TEMPLATE from "./assets/defaultMetadataTemplate.njk";
 import DEFAULT_FILENAME_TEMPLATE from "./assets/defaultFilenameTemplate.njk";
 import type { RaindropCollection, ZPluginSettingsType } from "./types";
 
@@ -21,7 +22,7 @@ export const DEFAULT_SETTINGS: ZPluginSettingsType = {
 	autoSyncNewNestedCollections: false,
 	syncCollections: {},
 	template: DEFAULT_TEMPLATE,
-	metadataTemplate: "",
+	metadataTemplate: DEFAULT_METADATA_TEMPLATE,
 	filenameTemplate: DEFAULT_FILENAME_TEMPLATE,
 	preventMovingExistingFiles: true,
 	autoSyncInterval: 0,
