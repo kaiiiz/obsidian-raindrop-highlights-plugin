@@ -1,15 +1,6 @@
 import { normalizePath, requestUrl } from "obsidian";
 import type { App } from "obsidian";
-
-const CONTENT_TYPE_EXT: Record<string, string> = {
-	"image/jpeg": ".jpg",
-	"image/png": ".png",
-	"image/gif": ".gif",
-	"image/webp": ".webp",
-	"image/svg+xml": ".svg",
-	"image/bmp": ".bmp",
-	"image/avif": ".avif",
-};
+import mime from "mime";
 
 function detectExtension(url: string, contentType?: string): string {
 	try {
@@ -22,13 +13,14 @@ function detectExtension(url: string, contentType?: string): string {
 
 	if (contentType) {
 		const primary = contentType.split(";")[0]?.trim().toLowerCase() ?? "";
-		if (CONTENT_TYPE_EXT[primary]) return CONTENT_TYPE_EXT[primary];
+		const ext = mime.getExtension(primary);
+		if (ext) return `.${ext}`;
 	}
 
 	console.warn(
 		`Could not detect file extension for URL: ${url} with content type: ${contentType}`,
 	);
-	return ".jpg";
+	return "";
 }
 
 async function sha256(data: ArrayBuffer): Promise<string> {
