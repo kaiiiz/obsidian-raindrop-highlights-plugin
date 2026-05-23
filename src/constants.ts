@@ -3,7 +3,7 @@ import DEFAULT_METADATA_TEMPLATE from "./assets/defaultMetadataTemplate.njk";
 import DEFAULT_FILENAME_TEMPLATE from "./assets/defaultFilenameTemplate.njk";
 import type { RaindropCollection, ZPluginSettingsType } from "./types";
 
-export const VERSION = "0.0.24";
+export const VERSION = "0.0.25";
 
 export const DEFAULT_SETTINGS: ZPluginSettingsType = {
 	version: VERSION,
