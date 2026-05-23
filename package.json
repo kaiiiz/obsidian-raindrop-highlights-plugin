@@ -1,6 +1,7 @@
 {
 	"name": "obsidian-raindrop-highlights",
 	"version": "0.0.25",
+	"packageManager": "pnpm@11.2.2",
 	"description": "Sync your Raindrop.io highlights.",
 	"main": "main.js",
 	"scripts": {
@@ -35,9 +36,6 @@
 		"svelte-preprocess": "6.0.3",
 		"tslib": "2.8.1",
 		"typescript": "5.9.3"
-	},
-	"pnpm": {
-		"onlyBuiltDependencies": ["@parcel/watcher", "esbuild", "svelte-preprocess"]
 	},
 	"dependencies": {
 		"axios": "1.16.1",
