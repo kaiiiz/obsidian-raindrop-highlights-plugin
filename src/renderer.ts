@@ -65,11 +65,7 @@ const FAKE_RENDER_CONTEXT: RenderTemplate = {
 		title: "fake_collection",
 	},
 	tags: ["fake_tag1", "fake_tag2"],
-	/*
-	 * download_attachment has side effect to create new file, so set it to empty
-	 * string to avoid unexpected file creation during validation
-	 */
-	cover: "",
+	cover: "https://example.com",
 	created: Moment(),
 	type: "link",
 	important: false,
@@ -92,7 +88,7 @@ export default class Renderer {
 
 	async validate(template: string, isYaml = false): Promise<boolean> {
 		try {
-			const env = this.createEnv(FAKE_RENDER_CONTEXT);
+			const env = this.createEnv(FAKE_RENDER_CONTEXT, true);
 			const fakeContent = await this.renderStringAsync(env, template, FAKE_RENDER_CONTEXT);
 			if (isYaml) {
 				const { id } = FAKE_RENDER_CONTEXT;
@@ -213,7 +209,7 @@ ${fakeContent}`;
 		});
 	}
 
-	private createEnv(renderContext?: RenderTemplate): nunjucks.Environment {
+	private createEnv(renderContext?: RenderTemplate, isValidate = false): nunjucks.Environment {
 		const env = new nunjucks.Environment(undefined, {
 			autoescape: this.plugin.settings.enableAutoEscape,
 		});
@@ -223,7 +219,7 @@ ${fakeContent}`;
 		env.addFilter(
 			"defuddle",
 			(link: string, callback: (err: Error | null, result: string) => void) => {
-				if (!link) {
+				if (!link || isValidate) {
 					callback(null, "");
 					return;
 				}
@@ -252,7 +248,7 @@ ${fakeContent}`;
 				const templateFilename = args.length > 1 ? String(args[0] ?? "") : undefined;
 
 				const urlStr = url ? String(url) : "";
-				if (!urlStr) {
+				if (!urlStr || isValidate) {
 					callback(null, "");
 					return;
 				}
