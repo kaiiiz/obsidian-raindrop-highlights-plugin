@@ -3,7 +3,8 @@ import Moment from "moment";
 import type RaindropPlugin from "./main";
 import sanitize from "sanitize-filename";
 import type { BookmarkFileFrontMatter, RaindropBookmark } from "./types";
-import { parseYaml, stringifyYaml } from "obsidian";
+import { parseYaml, requestUrl, stringifyYaml } from "obsidian";
+import Defuddle from "defuddle/full";
 
 type RenderHighlight = {
 	id: string;
@@ -82,10 +83,10 @@ export default class Renderer {
 		this.plugin = plugin;
 	}
 
-	validate(template: string, isYaml = false): boolean {
+	async validate(template: string, isYaml = false): Promise<boolean> {
 		try {
 			const env = this.createEnv();
-			const fakeContent = env.renderString(template, FAKE_RENDER_CONTEXT);
+			const fakeContent = await this.renderStringAsync(env, template, FAKE_RENDER_CONTEXT);
 			if (isYaml) {
 				const { id } = FAKE_RENDER_CONTEXT;
 				const fakeMetadata = `raindrop_id: ${id}
@@ -98,12 +99,12 @@ ${fakeContent}`;
 		}
 	}
 
-	renderContent(bookmark: RaindropBookmark, newArticle: boolean) {
+	async renderContent(bookmark: RaindropBookmark, newArticle: boolean): Promise<string> {
 		return this.renderTemplate(this.plugin.settings.contentTemplate, bookmark, newArticle);
 	}
 
-	renderFrontmatter(bookmark: RaindropBookmark, newArticle: boolean) {
-		const newMdFrontmatter = this.renderTemplate(
+	async renderFrontmatter(bookmark: RaindropBookmark, newArticle: boolean): Promise<string> {
+		const newMdFrontmatter = await this.renderTemplate(
 			this.plugin.settings.metadataTemplate,
 			bookmark,
 			newArticle,
@@ -127,15 +128,15 @@ ${fakeContent}`;
 		}
 	}
 
-	renderFullArticle(bookmark: RaindropBookmark) {
-		const newMdContent = this.renderContent(bookmark, true);
-		const newMdFrontmatter = this.renderFrontmatter(bookmark, true);
+	async renderFullArticle(bookmark: RaindropBookmark): Promise<string> {
+		const newMdContent = await this.renderContent(bookmark, true);
+		const newMdFrontmatter = await this.renderFrontmatter(bookmark, true);
 		const mdContent = `---\n${newMdFrontmatter}\n---\n${newMdContent}`;
 		return mdContent;
 	}
 
-	renderFileName(bookmark: RaindropBookmark, newArticle: boolean) {
-		const filename = this.renderTemplate(
+	async renderFileName(bookmark: RaindropBookmark, newArticle: boolean): Promise<string> {
+		const filename = await this.renderTemplate(
 			this.plugin.settings.filenameTemplate,
 			bookmark,
 			newArticle,
@@ -147,7 +148,11 @@ ${fakeContent}`;
 		return sanitize(filename.replace(/[':#|]/g, "").trim());
 	}
 
-	private renderTemplate(template: string, bookmark: RaindropBookmark, newArticle: boolean) {
+	private renderTemplate(
+		template: string,
+		bookmark: RaindropBookmark,
+		newArticle: boolean,
+	): Promise<string> {
 		const renderHighlights: RenderHighlight[] = bookmark.highlights.map((hl) => {
 			const renderHighlight: RenderHighlight = {
 				id: hl.id,
@@ -185,8 +190,20 @@ ${fakeContent}`;
 		};
 
 		const env = this.createEnv();
-		const content = env.renderString(template, context);
-		return content;
+		return this.renderStringAsync(env, template, context);
+	}
+
+	private renderStringAsync(
+		env: nunjucks.Environment,
+		template: string,
+		context: object,
+	): Promise<string> {
+		return new Promise<string>((resolve, reject) => {
+			env.renderString(template, context, (err: Error | null, content: string | null) => {
+				if (err) reject(err);
+				else resolve(content ?? "");
+			});
+		});
 	}
 
 	private createEnv(): nunjucks.Environment {
@@ -196,6 +213,28 @@ ${fakeContent}`;
 		env.addFilter("date", (date: moment.Moment, format: string) => {
 			return date.format(format);
 		});
+		env.addFilter(
+			"defuddle",
+			(link: string, callback: (err: Error | null, result: string) => void) => {
+				if (!link) {
+					callback(null, "");
+					return;
+				}
+
+				requestUrl({ url: link })
+					.then((response) => {
+						const dom = new DOMParser().parseFromString(response.text, "text/html");
+						const def = new Defuddle(dom, { url: link, markdown: true });
+						const result = def.parse();
+						callback(null, result.contentMarkdown ?? result.content);
+					})
+					.catch((err: Error) => {
+						console.error(`Defuddle error for link ${link}:`, err);
+						callback(null, `*Defuddle error: ${err.message}*`);
+					});
+			},
+			true,
+		);
 		return env;
 	}
 }
