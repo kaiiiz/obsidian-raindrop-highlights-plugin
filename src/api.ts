@@ -56,10 +56,18 @@ const ZRaindrop = z.object({
 	collectionId: z.number(),
 	cover: ZOptEmptyString,
 	created: z.coerce.date(),
-	creatorRef: z.object({
-		_id: z.number(),
-		name: ZOptEmptyString,
-	}),
+	creatorRef: z
+		.object({
+			_id: z
+				.number()
+				.optional()
+				.nullable()
+				.transform((val) => val ?? 0),
+			name: ZOptEmptyString,
+		})
+		.optional()
+		.nullable()
+		.transform((val) => val ?? { _id: 0, name: "" }),
 	excerpt: ZOptEmptyString,
 	highlights: z.array(
 		z.object({
