@@ -1,11 +1,11 @@
 import nunjucks from "nunjucks";
 import Moment from "moment";
 import type RaindropPlugin from "./main";
-import sanitize from "sanitize-filename";
 import type { BookmarkFileFrontMatter, RaindropBookmark } from "./types";
 import { parseYaml, requestUrl, stringifyYaml } from "obsidian";
 import { AttachmentDownloader } from "./attachmentDownloader";
 import Defuddle from "defuddle/full";
+import { sanitizePathComponent } from "./filename";
 
 type RenderHighlight = {
 	id: string;
@@ -144,11 +144,11 @@ ${fakeContent}`;
 			bookmark,
 			newArticle,
 		);
-		return this.sanitizeFilename(filename);
+		return this.sanitizeFilename(filename, `bookmark-${bookmark.id}`);
 	}
 
-	private sanitizeFilename(filename: string): string {
-		return sanitize(filename.replace(/[':#|]/g, "").trim());
+	private sanitizeFilename(filename: string, fallback: string): string {
+		return sanitizePathComponent(filename.replace(/[':#|]/g, ""), fallback);
 	}
 
 	private renderTemplate(

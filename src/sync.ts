@@ -3,6 +3,7 @@ import type { RaindropAPI } from "./api";
 import type RaindropPlugin from "./main";
 import Renderer from "./renderer";
 import truncate from "truncate-utf8-bytes";
+import { sanitizePathComponent } from "./filename";
 import type {
 	BookmarkFile,
 	BookmarkFileFrontMatter,
@@ -161,7 +162,11 @@ export default class RaindropSync {
 		const highlightsFolder = this.plugin.settings.highlightsFolder;
 		let collectionFolder = highlightsFolder;
 		if (this.plugin.settings.enableCollectionsFolders) {
-			collectionFolder = `${highlightsFolder}/${collection["title"]}`;
+			const collectionName = sanitizePathComponent(
+				collection["title"],
+				`collection-${collection.id}`,
+			);
+			collectionFolder = `${highlightsFolder}/${collectionName}`;
 		}
 		return collectionFolder;
 	}
